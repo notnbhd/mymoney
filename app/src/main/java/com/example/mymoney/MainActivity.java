@@ -360,7 +360,7 @@ public class MainActivity extends AppCompatActivity {
         TextView balance = walletItemView.findViewById(R.id.wallet_balance);
 
         name.setText(wallet.getName());
-        balance.setText(String.format("%,.0f %s", wallet.getBalance(), wallet.getCurrency()));
+        balance.setText(String.format("%,.2f %s", wallet.getBalance(), wallet.getCurrency()));
 
         // Set icon based on wallet type
         switch (wallet.getType()) {

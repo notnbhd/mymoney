@@ -32,11 +32,6 @@ public class AddWalletFragment extends Fragment {
     private String walletType;
     private String selectedCurrency = "VND"; // Default currency
 
-    /**
-     * Factory method to create a new instance of AddWalletFragment
-     * @param walletType The type of wallet (cash, bank, or virtual)
-     * @return A new instance of AddWalletFragment
-     */
     public static AddWalletFragment newInstance(String walletType) {
         AddWalletFragment fragment = new AddWalletFragment();
         Bundle args = new Bundle();

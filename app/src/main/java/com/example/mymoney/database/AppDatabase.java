@@ -33,7 +33,7 @@ import java.util.concurrent.Executors;
                 Budget.class,
                 SavingGoal.class
         },
-        version = 9,
+        version = 12,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -129,7 +129,15 @@ public abstract class AppDatabase extends RoomDatabase {
             {"Home", "ic_home"},
             {"Transport", "ic_transport"},
             {"Relationship", "ic_love"},
-            {"Entertainment", "ic_entertainment"}
+            {"Entertainment", "ic_entertainment"},
+            {"Medical", "ic_medical"},
+            {"Tax", "tax_accountant_fee_svgrepo_com"},
+            {"Gym & Fitness", "ic_gym"},
+            {"Beauty", "ic_beauty"},
+            {"Clothing", "ic_clothing"},
+            {"Education", "ic_education"},
+            {"Childcare", "ic_childcare"},
+            {"Others", "ic_more_apps"}
         };
         
         for (String[] categoryData : expenseCategories) {
@@ -187,7 +195,15 @@ public abstract class AppDatabase extends RoomDatabase {
                 {"Home", "ic_home"},
                 {"Transport", "ic_transport"},
                 {"Relationship", "ic_love"},
-                {"Entertainment", "ic_entertainment"}
+                {"Entertainment", "ic_entertainment"},
+                {"Medical", "ic_medical"},
+                {"Tax", "tax_accountant_fee_svgrepo_com"},
+                {"Gym & Fitness", "ic_gym"},
+                {"Beauty", "ic_beauty"},
+                {"Clothing", "ic_clothing"},
+                {"Education", "ic_education"},
+                {"Childcare", "ic_childcare"},
+                {"Others", "ic_more_apps"}
             };
             
             for (String[] categoryData : expenseCategories) {

@@ -338,7 +338,7 @@ public class StatisticsFragment extends Fragment {
             tvCategory.setText(item.category);
             double percent = (item.total / totalAll) * 100;
             tvPercent.setText(String.format(Locale.getDefault(), "%.1f%%", percent));
-            tvAmount.setText(String.format(Locale.getDefault(), "%,.0f VND", item.total));
+            tvAmount.setText(String.format(Locale.getDefault(), "%,.2f VND", item.total));
 
             // Gán icon theo tên danh mục
             String cat = item.category.toLowerCase(Locale.ROOT);

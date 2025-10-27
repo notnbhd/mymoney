@@ -102,7 +102,6 @@ public class HomeFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Reload data when fragment becomes visible
         loadWalletData();
     }
 
@@ -119,12 +118,6 @@ public class HomeFragment extends Fragment {
                         @Override
                         public void onDelete(Transaction transactionToDelete) {
                             deleteTransaction(transactionToDelete);
-                        }
-
-                        @Override
-                        public void onEdit(Transaction transactionToEdit) {
-                            // TODO: Navigate to edit screen
-                            android.util.Log.d("HomeFragment", "Edit transaction: " + transactionToEdit.getId());
                         }
                     }
                 );
@@ -156,17 +149,14 @@ public class HomeFragment extends Fragment {
                 if (walletId != -1) {
                     Wallet wallet = db.walletDao().getWalletById(walletId);
 
-                    // Calculate total expenses and incomes from transactions FOR THIS WALLET
                     double totalExpenses = db.transactionDao().getTotalExpensesByWallet(walletId);
                     double totalIncomes = db.transactionDao().getTotalIncomeByWallet(walletId);
                     
-                    // Get recent transactions FOR THIS WALLET
                     List<Transaction> allTransactions = db.transactionDao().getTransactionsByWalletId(walletId);
                     
-                    // Group transactions by date
                     List<DailyTransactionGroup> dailyGroups = groupTransactionsByDate(allTransactions);
                     
-                    // Limit to recent 5 days
+                    // Limit to 5 days
                     List<DailyTransactionGroup> recentGroups = dailyGroups.size() > 5 
                         ? dailyGroups.subList(0, 5) 
                         : dailyGroups;
@@ -184,17 +174,17 @@ public class HomeFragment extends Fragment {
                         getActivity().runOnUiThread(() -> {
                             if (finalWallet != null) {
                                 balanceAmount.setText(String.format(Locale.getDefault(),
-                                        "%,.0f %s", finalWallet.getBalance(), finalWallet.getCurrency()));
+                                        "%,.2f %s", finalWallet.getBalance(), finalWallet.getCurrency()));
                             } else {
                                 balanceAmount.setText("0 VND");
                             }
                             
                             expensesAmount.setText(String.format(Locale.getDefault(), 
-                                "-%,.0f VND", finalExpenses));
+                                "-%,.2f VND", finalExpenses));
                             incomesAmount.setText(String.format(Locale.getDefault(), 
-                                "+%,.0f VND", finalIncomes));
+                                "+%,.2f VND", finalIncomes));
                             
-                            // Update the half-doughnut chart
+                            // Update the chart
                             halfDoughnutChart.setData(finalExpenses, finalIncomes);
                             
                             // Set current date

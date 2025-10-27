@@ -22,9 +22,9 @@ public class HalfDoughnutChartView extends View {
     private double expenseAmount = 0;
     private double incomeAmount = 0;
     
-    private static final float START_ANGLE = 180f; // Start from left (180 degrees)
-    private static final float SWEEP_ANGLE = 180f; // Half circle
-    private static final float STROKE_WIDTH_DP = 24f; // Thickness of the doughnut
+    private static final float START_ANGLE = 180f; 
+    private static final float SWEEP_ANGLE = 180f;
+    private static final float STROKE_WIDTH_DP = 24f; // thick
     
     public HalfDoughnutChartView(Context context) {
         super(context);

@@ -19,9 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Adapter for displaying transactions grouped by date in cards
- */
 public class DailyTransactionGroupAdapter extends RecyclerView.Adapter<DailyTransactionGroupAdapter.DailyGroupViewHolder> {
 
     private List<DailyTransactionGroup> dailyGroups = new ArrayList<>();
@@ -51,7 +48,7 @@ public class DailyTransactionGroupAdapter extends RecyclerView.Adapter<DailyTran
         DailyTransactionGroup group = dailyGroups.get(position);
         holder.bind(group, position);
         
-        // Add entrance animation
+        // entrance anim
         holder.itemView.setAlpha(0f);
         holder.itemView.setTranslationY(50f);
         holder.itemView.animate()
@@ -91,9 +88,9 @@ public class DailyTransactionGroupAdapter extends RecyclerView.Adapter<DailyTran
             // Set date
             tvDate.setText(group.getDate());
 
-            // Set summary
+            // Set summary with 2 decimal places
             String summary = String.format(Locale.getDefault(),
-                    "Income:$%,.0f Expense:$%,.0f",
+                    "Income:$%,.2f Expense:$%,.2f",
                     group.getTotalIncome(),
                     group.getTotalExpense());
             tvSummary.setText(summary);

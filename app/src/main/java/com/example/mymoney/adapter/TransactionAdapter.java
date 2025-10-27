@@ -99,14 +99,14 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             String dateStr = sdf.format(new Date(transaction.getCreatedAt()));
             transactionDetails.setText(dateStr);
             
-            // Format amount
+            // Format amount with 2 decimal places
             String amountStr;
             int textColor;
             if (transaction.getType().equals("expense")) {
-                amountStr = String.format(Locale.getDefault(), "-%,.0f VND", transaction.getAmount());
+                amountStr = String.format(Locale.getDefault(), "-%,.2f VND", transaction.getAmount());
                 textColor = itemView.getContext().getColor(R.color.expense_red);
             } else {
-                amountStr = String.format(Locale.getDefault(), "+%,.0f VND", transaction.getAmount());
+                amountStr = String.format(Locale.getDefault(), "+%,.2f VND", transaction.getAmount());
                 textColor = itemView.getContext().getColor(R.color.primary_green);
             }
             transactionAmount.setText(amountStr);
@@ -139,6 +139,28 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
                 case "entertainment":
                     iconRes = R.drawable.ic_entertainment;
                     break;
+                case "medical":
+                    iconRes = R.drawable.ic_medical;
+                    break;
+                case "tax":
+                    iconRes = R.drawable.tax_accountant_fee_svgrepo_com;
+                    break;
+                case "gym & fitness":
+                    iconRes = R.drawable.ic_gym;
+                    break;
+                case "beauty":
+                    iconRes = R.drawable.ic_beauty;
+                    break;
+                case "clothing":
+                    iconRes = R.drawable.ic_clothing;
+                    break;
+                case "education":
+                case "study":
+                    iconRes = R.drawable.ic_education;
+                    break;
+                case "childcare":
+                    iconRes = R.drawable.ic_childcare;
+                    break;
                 case "salary":
                     iconRes = R.drawable.ic_salary;
                     break;
@@ -147,9 +169,6 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
                     break;
                 case "gifts":
                     iconRes = R.drawable.ic_gift;
-                    break;
-                case "study":
-                    iconRes = R.drawable.ic_study;
                     break;
                 case "others":
                 default:

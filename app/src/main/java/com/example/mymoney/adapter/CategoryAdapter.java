@@ -109,6 +109,27 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
                 case "entertainment":
                     iconRes = R.drawable.ic_entertainment;
                     break;
+                case "medical":
+                    iconRes = R.drawable.ic_medical;
+                    break;
+                case "tax":
+                    iconRes = R.drawable.tax_accountant_fee_svgrepo_com;
+                    break;
+                case "gym & fitness":
+                    iconRes = R.drawable.ic_gym;
+                    break;
+                case "beauty":
+                    iconRes = R.drawable.ic_beauty;
+                    break;
+                case "clothing":
+                    iconRes = R.drawable.ic_clothing;
+                    break;
+                case "education":
+                    iconRes = R.drawable.ic_education;
+                    break;
+                case "childcare":
+                    iconRes = R.drawable.ic_childcare;
+                    break;
                 case "salary":
                     iconRes = R.drawable.ic_salary;
                     break;

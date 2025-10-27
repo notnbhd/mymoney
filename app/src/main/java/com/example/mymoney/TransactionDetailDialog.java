@@ -39,7 +39,6 @@ public class TransactionDetailDialog extends Dialog {
 
     public interface OnTransactionActionListener {
         void onDelete(Transaction transaction);
-        void onEdit(Transaction transaction);
     }
 
     public TransactionDetailDialog(@NonNull Context context, Transaction transaction, OnTransactionActionListener listener) {
@@ -92,21 +91,12 @@ public class TransactionDetailDialog extends Dialog {
     private void loadTransactionDetails() {
         new Thread(() -> {
             try {
-                // Get category
                 Category category = database.categoryDao().getCategoryById(transaction.getCategoryId());
                 
-                // Get wallet
                 Wallet wallet = database.walletDao().getWalletById(transaction.getWalletId());
 
-                // Format date
-                SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss", Locale.getDefault());
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault());
                 String formattedDate = sdf.format(new Date(transaction.getCreatedAt()));
-
-                // Log for debugging
-                android.util.Log.d("TransactionDialog", "Category: " + (category != null ? category.getName() : "null"));
-                android.util.Log.d("TransactionDialog", "Icon: " + (category != null ? category.getIcon() : "null"));
-                android.util.Log.d("TransactionDialog", "Wallet: " + (wallet != null ? wallet.getName() : "null"));
-                android.util.Log.d("TransactionDialog", "Description: " + transaction.getDescription());
 
                 // Update UI on main thread - use a Handler or post to any view
                 if (tvCategoryName != null) {
@@ -123,16 +113,14 @@ public class TransactionDetailDialog extends Dialog {
                                         "drawable",
                                         getContext().getPackageName()
                                     );
-                                    android.util.Log.d("TransactionDialog", "Icon resource ID: " + iconResId);
                                     if (iconResId != 0) {
                                         ivCategoryIcon.setImageDrawable(getContext().getDrawable(iconResId));
                                     }
                                 }
                             }
 
-                            // Amount with color
                             String amountText = String.format(Locale.getDefault(), 
-                                "%s%,.0f %s", 
+                                "%s%,.2f %s", 
                                 "income".equals(transaction.getType()) ? "+" : "-",
                                 transaction.getAmount(),
                                 wallet != null ? wallet.getCurrency() : "VND");
