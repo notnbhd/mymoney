@@ -143,6 +143,12 @@ public interface TransactionDao {
             "WHERE user_id = :userId AND category_id = :categoryId AND type = 'expense' AND created_at >= :fromDate")
     Double getTotalSpentByCategorySince(int userId, int categoryId, long fromDate);
 
+    @Query("SELECT IFNULL(SUM(t.amount), 0) FROM `transaction` t " +
+            "JOIN category c ON t.category_id = c.id " +
+            "WHERE t.type = 'expense' AND c.name = :categoryName AND t.created_at >= :fromDate")
+    double getTotalExpenseByCategorySince(String categoryName, long fromDate);
+
+
 
 
 }

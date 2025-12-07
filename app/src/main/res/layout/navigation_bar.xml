@@ -42,22 +42,6 @@
             android:src="@drawable/ic_transactions" />
     </LinearLayout>
 
-    <!-- Budget Tab -->
-    <LinearLayout
-        android:id="@+id/nav_budget"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:clickable="true"
-        android:background="?android:attr/selectableItemBackground">
-
-        <ImageView
-            android:layout_width="35dp"
-            android:layout_height="35dp"
-            android:src="@drawable/ic_budget" />
-    </LinearLayout>
 
     <!-- AI Chat Tab -->
     <LinearLayout

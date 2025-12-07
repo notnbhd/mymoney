@@ -76,6 +76,9 @@ public class SavingGoalFragment extends Fragment {
 
             } else {
                 // mở BudgetFragment (auto mode)
+                SharedPreferences prefs = requireContext().getSharedPreferences("budget_prefs", Context.MODE_PRIVATE);
+                prefs.edit().putString("current_goal_name", goal.getName()).apply();
+
                 openBudgetFragmentFromList(goal);
             }
 
@@ -90,6 +93,12 @@ public class SavingGoalFragment extends Fragment {
 
         return view;
     }
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadGoalsFromPrefs();   // luôn reload danh sách khi quay lại màn hình
+    }
+
 
     // ============================================================
     private void loadGoalsFromPrefs() {
@@ -252,6 +261,14 @@ public class SavingGoalFragment extends Fragment {
             tempRelation = Integer.parseInt(edtRelation.getText().toString());
             tempEntertainment = Integer.parseInt(edtEntertain.getText().toString());
 
+            // 🔹 LƯU START TIME CHO GOAL MANUAL
+            SharedPreferences prefsBudget =
+                    requireContext().getSharedPreferences("budget_prefs", Context.MODE_PRIVATE);
+            long now = System.currentTimeMillis();
+            prefsBudget.edit()
+                    .putLong(tempGoalName + "_start", now)
+                    .apply();
+
             dialog.dismiss();
 
             addGoalToList(tempGoalName, tempGoalAmount, "manual");
@@ -259,6 +276,7 @@ public class SavingGoalFragment extends Fragment {
             openProgressScreen(tempGoalName, tempGoalAmount,
                     tempFood, tempHome, tempTransport, tempRelation, tempEntertainment);
         });
+
 
         dialog.show();
     }
@@ -277,6 +295,8 @@ public class SavingGoalFragment extends Fragment {
                                     int relation, int entertain) {
 
         Fragment fragment = SavingProgressFragment.newInstance(name, targetAmount);
+        SharedPreferences prefs = requireContext().getSharedPreferences("budget_prefs", Context.MODE_PRIVATE);
+        prefs.edit().putString("current_goal_name", name).apply();
 
         getParentFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, fragment)
@@ -287,6 +307,7 @@ public class SavingGoalFragment extends Fragment {
     // ============================================================
     // ⭐⭐ HÀM SILVER BULLET — FIX AUTO MODE ⭐⭐
     private void openBudgetFragment() {
+        prefs.edit().putString("current_goal_name", tempGoalName).apply();
         addGoalToList(tempGoalName, tempGoalAmount, "auto");
         BudgetFragment fragment = BudgetFragment.newInstance(
                 tempGoalName,     // ⭐ THÊM
@@ -303,12 +324,16 @@ public class SavingGoalFragment extends Fragment {
     }
     private void openBudgetFragmentFromList(SavingGoal goal) {
 
-        int months = prefs.getInt(goal.getName() + "_months", 1);
-        int income = prefs.getInt(goal.getName() + "_income", 0);
+        SharedPreferences budgetPrefs =
+                requireContext().getSharedPreferences("budget_prefs", Context.MODE_PRIVATE);
+
+        long target = budgetPrefs.getLong(goal.getName() + "_target", goal.getTargetAmount());
+        long months = budgetPrefs.getLong(goal.getName() + "_months", 1);
+        long income = budgetPrefs.getLong(goal.getName() + "_income", 0);
 
         BudgetFragment fragment = BudgetFragment.newInstance(
                 goal.getName(),
-                goal.getTargetAmount(),
+                target,
                 months,
                 income
         );
@@ -318,6 +343,7 @@ public class SavingGoalFragment extends Fragment {
                 .addToBackStack(null)
                 .commit();
     }
+
     private void openSavingHistory() {
         Fragment fragment = new SavingHistoryFragment();
         getParentFragmentManager().beginTransaction()
@@ -326,5 +352,25 @@ public class SavingGoalFragment extends Fragment {
                 .commit();
     }
 
+    public static void updateSavedInGoalList(Context context, String goalName, long newSaved) {
+        SharedPreferences prefs = context.getSharedPreferences("SAVING_GOALS", Context.MODE_PRIVATE);
+
+        Set<String> rawSet = prefs.getStringSet("goal_list", new HashSet<>());
+        Set<String> newSet = new HashSet<>();
+
+        for (String item : rawSet) {
+            String[] arr = item.split("\\|");
+
+            if (arr[0].equals(goalName)) {
+                // format: name|target|saved|type
+                String updated = goalName + "|" + arr[1] + "|" + newSaved + "|" + arr[3];
+                newSet.add(updated);
+            } else {
+                newSet.add(item);
+            }
+        }
+
+        prefs.edit().putStringSet("goal_list", newSet).apply();
+    }
 
 }

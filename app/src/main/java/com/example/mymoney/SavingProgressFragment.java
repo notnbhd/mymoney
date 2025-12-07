@@ -38,6 +38,8 @@ public class SavingProgressFragment extends Fragment {
     private LinearLayout categoryContainer;
     private EditText inputSavedMoney;
     private Button btnSaveProgress;
+    private Button btnEndSavingProgress;
+
 
     private List<CategoryExpense> expensesSinceStart;
 
@@ -74,7 +76,15 @@ public class SavingProgressFragment extends Fragment {
         // còn nếu chưa lưu thì savingStart = 0 -> lấy toàn bộ lịch sử)
         SharedPreferences prefsBudget =
                 requireContext().getSharedPreferences("budget_prefs", Context.MODE_PRIVATE);
-        long savingStart = prefsBudget.getLong("savingStart", 0);
+
+// ưu tiên start theo từng goal
+        long savingStart = prefsBudget.getLong(goalName + "_start", 0);
+
+// fallback cho các goal cũ (nếu có)
+        if (savingStart == 0) {
+            savingStart = prefsBudget.getLong("savingStart", 0);
+        }
+
 
         // 🔥 Lấy dữ liệu chi tiêu kể từ ngày bắt đầu (y hệt BudgetFragment)
         loadExpensesSinceSavingStart(savingStart, this::setupUI);
@@ -96,6 +106,8 @@ public class SavingProgressFragment extends Fragment {
         categoryContainer = v.findViewById(R.id.categoryContainer);
         inputSavedMoney = v.findViewById(R.id.inputSavedMoney);
         btnSaveProgress = v.findViewById(R.id.btnSaveProgress);
+        btnEndSavingProgress = v.findViewById(R.id.btnEndSavingProgress);
+
     }
 
     // Đọc tổng tiền đã tiết kiệm cho goal này từ SAVING_GOALS
@@ -140,6 +152,8 @@ public class SavingProgressFragment extends Fragment {
 
         progressBar.setMax(goalAmount);
         progressBar.setProgress(totalSaved);
+        btnEndSavingProgress.setOnClickListener(v -> endSavingGoal());
+
 
         // ====== 2. Hiển thị chi tiêu / limit ======
         categoryContainer.removeAllViews();
@@ -157,7 +171,7 @@ public class SavingProgressFragment extends Fragment {
         if (expensesSinceStart != null) {
             for (CategoryExpense ce : expensesSinceStart) {
                 long spent = (long) ce.total;
-                long limit = budgetPrefs.getLong("limit_" + ce.category, 0);
+                long limit = budgetPrefs.getLong(goalName + "_limit_" + ce.category, 0);
                 addCategory(ce.category, spent, limit);
             }
         }
@@ -229,4 +243,61 @@ public class SavingProgressFragment extends Fragment {
 
         prefs.edit().putStringSet("goal_list", newSet).apply();
     }
+    private void endSavingGoal() {
+
+        // 1) XÓA KHỎI DANH SÁCH GOAL
+        SharedPreferences prefs =
+                requireContext().getSharedPreferences("SAVING_GOALS", Context.MODE_PRIVATE);
+
+        Set<String> raw = prefs.getStringSet("goal_list", new HashSet<>());
+        Set<String> newSet = new HashSet<>();
+
+        for (String item : raw) {
+            String[] arr = item.split("\\|");
+            if (!arr[0].equals(goalName)) {
+                newSet.add(item); // giữ lại những mục khác
+            }
+        }
+
+        prefs.edit().putStringSet("goal_list", newSet).apply();
+
+
+
+        // 2) LẤY START TIME đã lưu khi bắt đầu tiết kiệm
+        SharedPreferences prefsBudget =
+                requireContext().getSharedPreferences("budget_prefs", Context.MODE_PRIVATE);
+
+        long startTime = prefsBudget.getLong(goalName + "_start", 0);
+
+        // 3) END TIME = thời điểm hoàn thành
+        long endTime = System.currentTimeMillis();
+
+
+
+        // 4) LƯU VÀO LỊCH SỬ HOÀN THÀNH — ĐÚNG THỨ TỰ:
+        // name | target | saved | start | end | type
+        SharedPreferences historyPref =
+                requireContext().getSharedPreferences("SAVING_HISTORY", Context.MODE_PRIVATE);
+
+        Set<String> history = historyPref.getStringSet("history_list", new HashSet<>());
+
+        history.add(
+                goalName + "|" +
+                        goalAmount + "|" +
+                        totalSaved + "|" +
+                        startTime + "|" +
+                        endTime + "|" +
+                        "completed"
+        );
+
+        historyPref.edit().putStringSet("history_list", history).apply();
+
+
+
+        // 5) Quay lại màn danh sách
+        requireActivity().getSupportFragmentManager()
+                .popBackStack();
+    }
+
+
 }

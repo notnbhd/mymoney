@@ -444,6 +444,7 @@ public class ImportFragment extends Fragment {
         }
 
         // Save to database in background thread
+        // Save to database in background thread
         new Thread(() -> {
             try {
                 AppDatabase db = AppDatabase.getInstance(requireContext());
@@ -452,25 +453,37 @@ public class ImportFragment extends Fragment {
                 // Update wallet balance
                 updateWalletBalance(transaction);
 
+                // =========================
+                // CHECK LIMIT — chạy ở background, KHÔNG CRASH
+                // =========================
+                BudgetChecker.checkAllGoalsBackground(
+                        requireContext(),
+                        selectedCategory.getName(),
+                        amount
+                );
+
                 // Show success message on UI thread
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        Toast.makeText(requireContext(), "Transaction saved successfully!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(),
+                                "Transaction saved successfully!", Toast.LENGTH_SHORT).show();
                         clearForm();
-
-                        // Refresh HomeFragment if it exists
                         refreshHomeFragment();
                     });
                 }
+
             } catch (Exception e) {
                 e.printStackTrace();
                 if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        Toast.makeText(requireContext(), "Error saving transaction: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    });
+                    getActivity().runOnUiThread(() ->
+                            Toast.makeText(requireContext(),
+                                    "Error saving transaction: " + e.getMessage(),
+                                    Toast.LENGTH_SHORT).show()
+                    );
                 }
             }
         }).start();
+
     }
 
     private void updateWalletBalance(Transaction transaction) {

@@ -44,6 +44,14 @@
             android:progressTint="#FF80AB"
             android:backgroundTint="#FFE4EC"
             android:paddingBottom="20dp" />
+        <Button
+            android:id="@+id/btnEndSavingProgress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Kết thúc tiết kiệm"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="#FF4081"
+            android:textColor="@android:color/white"/>
 
         <!-- Chi tiêu theo danh mục (LIST) -->
         <TextView

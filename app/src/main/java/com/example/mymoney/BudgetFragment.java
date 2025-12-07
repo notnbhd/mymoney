@@ -1,5 +1,6 @@
 package com.example.mymoney;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -14,6 +15,8 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.mymoney.database.AppDatabase;
@@ -24,28 +27,32 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 
 public class BudgetFragment extends Fragment {
 
     // ==== Views ====
-    private LinearLayout  layoutSavingSection;
+    private LinearLayout layoutSavingSection;
 
     private EditText edtSavedMoney;
     private TextView tvResult, tvSavingPercent;
 
-    private Button  btnEndSaving, btnUpdateSaved, btnRecalc;
+    private Button btnEndSaving, btnUpdateSaved, btnRecalc;
 
     private ProgressBar progressSaving;
-    private String goalName;
+    private TextView tvWarning;
 
 
     // ==== Data ====
     private SharedPreferences prefs;
     private TransactionDao transactionDao;
+    private String goalName = "";
+
     private final DecimalFormat df = new DecimalFormat("#,###");
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 
@@ -57,8 +64,6 @@ public class BudgetFragment extends Fragment {
 
         // ==== MAP VIEW ====
         layoutSavingSection = view.findViewById(R.id.layout_saving_section);
-
-
         tvResult = view.findViewById(R.id.tv_budget_result);
         tvSavingPercent = view.findViewById(R.id.tvSavingPercent);
 
@@ -68,30 +73,28 @@ public class BudgetFragment extends Fragment {
 
         edtSavedMoney = view.findViewById(R.id.edt_saved_money);
         progressSaving = view.findViewById(R.id.progressSaving);
+        tvWarning = view.findViewById(R.id.tvWarning);
 
+
+        // ==== INIT ====
         prefs = requireContext().getSharedPreferences("budget_prefs", Context.MODE_PRIVATE);
         transactionDao = AppDatabase.getInstance(requireContext()).transactionDao();
 
-        // ==== HIDE DEFAULT ====
-        layoutSavingSection.setVisibility(View.GONE);
-        btnEndSaving.setVisibility(View.GONE);
-        btnUpdateSaved.setVisibility(View.GONE);
-        edtSavedMoney.setVisibility(View.GONE);
-        progressSaving.setVisibility(View.GONE);
-        btnRecalc.setVisibility(View.GONE);
+        // Ẩn mặc định
+        hideAll();
 
-        // ==== BUTTON CLICK ====
-        btnEndSaving.setOnClickListener(v -> endSavingAction());
-        btnUpdateSaved.setOnClickListener(v -> updateSavedMoney());
-        btnRecalc.setOnClickListener(v -> recalcBudgetAutomatically());
-
-        // ==== AUTO MODE HANDLE (PHẢI ĐẶT SAU KHI MAP VIEW) ====
+        // Lấy tham số
         Bundle args = getArguments();
         if (args != null) {
             goalName = args.getString("goalName", "");
         }
 
+        // CHỈ KHỞI TẠO START_TIME NẾU CHƯA TỒN TẠI
+        if (!prefs.contains(goalName + "_start")) {
+            prefs.edit().putLong(goalName + "_start", System.currentTimeMillis()).apply();
+        }
 
+        // Xử lý auto mode (tính budget)
         if (args != null && args.containsKey("target_arg")) {
 
             long target = args.getLong("target_arg");
@@ -101,19 +104,40 @@ public class BudgetFragment extends Fragment {
             Executors.newSingleThreadExecutor().execute(() -> {
                 calculateBudget(target, months, income);
 
-                requireActivity().runOnUiThread(() -> {
-                    loadSavedPlan();
-                });
+                requireActivity().runOnUiThread(this::loadSavedPlan);
             });
+
         } else {
-            // Load nếu đang trong chế độ tiết kiệm
-            if (prefs.getBoolean("isSaving", false)) {
+            if (prefs.getBoolean(goalName + "_isSaving", false)) {
                 loadSavedPlan();
             }
         }
 
+        // ==== BUTTON HANDLER ====
+        btnUpdateSaved.setOnClickListener(v -> updateSavedMoney());
+        btnEndSaving.setOnClickListener(v -> endSavingAction());
+        btnRecalc.setOnClickListener(v -> recalcBudgetAutomatically());
         return view;
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (prefs.getBoolean(goalName + "_isSaving", false)) {
+            loadSavedPlan();
+        }
+    }
+
+    private void hideAll() {
+        layoutSavingSection.setVisibility(View.GONE);
+        btnEndSaving.setVisibility(View.GONE);
+        btnUpdateSaved.setVisibility(View.GONE);
+        edtSavedMoney.setVisibility(View.GONE);
+        progressSaving.setVisibility(View.GONE);
+        btnRecalc.setVisibility(View.GONE);
+    }
+
     // ============================================================
     // MAIN CALCULATE FUNCTION
     // ============================================================
@@ -126,7 +150,7 @@ public class BudgetFragment extends Fragment {
         long savingPerMonth = floorToThousand((double) targetVal / monthsVal);
         long maxExpensePerMonth = floorToThousand(incomeVal - savingPerMonth);
 
-        // ==== Lấy dữ liệu 3 tháng gần nhất ====
+        // Lấy chi tiêu 3 tháng gần nhất
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.MONTH, -3);
         long fromDate = cal.getTimeInMillis();
@@ -139,9 +163,7 @@ public class BudgetFragment extends Fragment {
         long totalSpent = floorToThousand(totalExpense3M);
         if (totalSpent <= 0) totalSpent = 1;
 
-        // ============================
-        // 1) LƯU TOÀN BỘ GIÁ TRỊ
-        // ============================
+        // Lưu dữ liệu
         SharedPreferences.Editor editor = prefs.edit();
 
         editor.putLong(goalName + "_target", targetVal);
@@ -150,52 +172,58 @@ public class BudgetFragment extends Fragment {
         editor.putLong(goalName + "_savingPerMonth", savingPerMonth);
         editor.putLong(goalName + "_maxExpensePerMonth", maxExpensePerMonth);
 
-        // Lưu LIMIT
+        // Tính limit từng category
         for (CategoryExpense ce : expenses) {
-            long spent = floorToThousand(ce.total);
-            double ratio = (double) spent / totalSpent;
+            double ratio = ce.total / totalExpense3M;
             long limit = floorToThousand(ratio * maxExpensePerMonth);
-
             editor.putLong(goalName + "_limit_" + ce.category, limit);
         }
 
-        // APPLY TRƯỚC KHI TẠO SUMMARY !!!
         editor.apply();
 
+        // Tạo summary
+        long startTime = prefs.getLong(goalName + "_start", 0);
+        List<CategoryExpense> spentSinceStart =
+                transactionDao.getExpensesByCategorySince(startTime);
 
-        // ============================
-        // 2) TẠO SUMMARY – LÚC NÀY prefs đã có LIMIT đúng
-        // ============================
-        StringBuilder summary = new StringBuilder();
-        summary.append("<b>🎯 Kế hoạch tiết kiệm</b><br><br>");
-        summary.append("<b>Mục tiêu:</b> ").append(df.format(targetVal)).append(" VND<br>");
-        summary.append("<b>Thời gian:</b> ").append(monthsVal).append(" tháng<br>");
-        summary.append("<b>Lương:</b> ").append(df.format(incomeVal)).append(" VND<br><br>");
-        summary.append("<b>Cần tiết kiệm mỗi tháng:</b> ").append(df.format(savingPerMonth)).append(" VND<br>");
-        summary.append("<b>Được tiêu tối đa tháng này:</b> ").append(df.format(maxExpensePerMonth)).append(" VND<br><br>");
-        summary.append("<b>🚀 Giới hạn theo thói quen 3 tháng gần nhất:</b><br>");
-
-        for (CategoryExpense ce : expenses) {
-            long limit = prefs.getLong(goalName + "_limit_" + ce.category, 0);
-            summary.append("• ").append(ce.category).append(": ")
-                    .append(df.format(limit)).append(" VND<br>");
+        Map<String, Long> spentMap = new HashMap<>();
+        for (CategoryExpense ce : spentSinceStart) {
+            spentMap.put(ce.category, floorToThousand(ce.total));
         }
 
-        // LƯU SUMMARY
+        StringBuilder sb = new StringBuilder();
+        sb.append("<b>🎯 Kế hoạch tiết kiệm</b><br><br>");
+        sb.append("Mục tiêu: ").append(df.format(targetVal)).append(" VND<br>");
+        sb.append("Thời gian: ").append(monthsVal).append(" tháng<br>");
+        sb.append("Lương: ").append(df.format(incomeVal)).append(" VND<br><br>");
+
+        sb.append("Cần tiết kiệm mỗi tháng: ").append(df.format(savingPerMonth)).append(" VND<br>");
+        sb.append("Được tiêu tối đa tháng này: ").append(df.format(maxExpensePerMonth)).append(" VND<br><br>");
+
+        sb.append("<b>🚀 Giới hạn theo thói quen:</b><br>");
+
+        for (CategoryExpense ce : expenses) {
+            long spent = spentMap.getOrDefault(ce.category, 0L);
+            long limit = prefs.getLong(goalName + "_limit_" + ce.category, 0);
+
+            sb.append("• ").append(ce.category).append(": ")
+                    .append(df.format(spent)).append(" / ").append(df.format(limit))
+                    .append(" VND<br>");
+        }
+
         prefs.edit()
-                .putString(goalName + "_summary", summary.toString())
+                .putString(goalName + "_summary", sb.toString())
                 .putBoolean(goalName + "_isSaving", true)
                 .apply();
     }
 
 
-
-
+    // ============================================================
+    // LOAD SAVED PLAN
+    // ============================================================
     private void loadSavedPlan() {
 
         String summary = prefs.getString(goalName + "_summary", "");
-        long startTime = prefs.getLong(goalName + "_savingStart", 0);
-        long savedManual = prefs.getLong(goalName + "_savedManual", 0);
 
         if (summary.isEmpty()) {
             layoutSavingSection.setVisibility(View.VISIBLE);
@@ -204,23 +232,24 @@ public class BudgetFragment extends Fragment {
 
         layoutSavingSection.setVisibility(View.VISIBLE);
         btnEndSaving.setVisibility(View.VISIBLE);
-        edtSavedMoney.setVisibility(View.VISIBLE);
         btnUpdateSaved.setVisibility(View.VISIBLE);
+        edtSavedMoney.setVisibility(View.VISIBLE);
         progressSaving.setVisibility(View.VISIBLE);
 
-        String startDate = startTime == 0 ? "Chưa bắt đầu" : dateFormat.format(new Date(startTime));
+        long saved = prefs.getLong(goalName + "_savedManual", 0);
+        long startTime = prefs.getLong(goalName + "_start", 0);
 
-        String finalText =
-                summary +
-                        "<br><b>Bắt đầu tiết kiệm:</b> " + startDate +
-                        "<br><b>Đã tiết kiệm:</b> " + df.format(savedManual) + " VND<br>";
+        String startDate = dateFormat.format(new Date(startTime));
 
-        tvResult.setText(android.text.Html.fromHtml(finalText));
+        String fullText = summary +
+                "<br><b>Bắt đầu tiết kiệm:</b> " + startDate +
+                "<br><b>Đã tiết kiệm:</b> " + df.format(saved) + " VND";
+
+        tvResult.setText(android.text.Html.fromHtml(fullText));
         tvResult.setGravity(Gravity.START);
 
         long target = prefs.getLong(goalName + "_target", 0);
-
-        int percent = target == 0 ? 0 : (int)((savedManual * 100) / target);
+        int percent = target == 0 ? 0 : (int) ((saved * 100) / target);
         if (percent > 100) percent = 100;
 
         progressSaving.setProgress(percent);
@@ -229,33 +258,28 @@ public class BudgetFragment extends Fragment {
         Executors.newSingleThreadExecutor().execute(this::checkSavingProgress);
     }
 
+
     // ============================================================
     // UPDATE SAVED MONEY
     // ============================================================
     private void updateSavedMoney() {
 
         String savedStr = edtSavedMoney.getText().toString().trim();
-
-        if (TextUtils.isEmpty(savedStr)) {
-            new android.app.AlertDialog.Builder(requireContext())
-                    .setTitle("Lỗi")
-                    .setMessage("Vui lòng nhập số tiền hợp lệ.")
-                    .setPositiveButton("OK", null)
-                    .show();
-            return;
-        }
+        if (savedStr.isEmpty()) return;
 
         long added = floorToThousand(Long.parseLong(savedStr));
         long current = prefs.getLong(goalName + "_savedManual", 0);
         long newTotal = current + added;
 
+        // Lưu vào budget_prefs
         prefs.edit().putLong(goalName + "_savedManual", newTotal).apply();
 
-        edtSavedMoney.setText("");
+        // ⭐⭐⭐ LƯU NGƯỢC LẠI VÀO DANH SÁCH NGOÀI ⭐⭐⭐
+        SavingGoalFragment.updateSavedInGoalList(requireContext(), goalName, newTotal);
 
+        edtSavedMoney.setText("");
         loadSavedPlan();
     }
-
 
 
 
@@ -264,44 +288,66 @@ public class BudgetFragment extends Fragment {
     // ============================================================
     private void checkSavingProgress() {
 
-        long target = prefs.getLong(goalName + "_target", 0);
-        long savingStart = prefs.getLong(goalName + "_savingStart", 0);
-        long saved = prefs.getLong(goalName + "_savedManual", 0);
+        long maxExpense = prefs.getLong(goalName + "_maxExpensePerMonth", 0);
+        long spentThisMonth = getExpenseThisMonth();
 
-        long savingPerMonth = prefs.getLong(goalName + "_savingPerMonth", 0);
-        long maxExpensePerMonth = prefs.getLong(goalName + "_maxExpensePerMonth", 0);
-
-        long expenseThisMonth = getExpenseThisMonth();
-
-        boolean exceed = expenseThisMonth > maxExpensePerMonth;
+        boolean exceed = spentThisMonth > maxExpense;
 
         requireActivity().runOnUiThread(() -> {
+
             btnRecalc.setVisibility(exceed ? View.VISIBLE : View.GONE);
+
+            if (exceed) {
+                tvWarning.setVisibility(View.VISIBLE);
+                tvWarning.setText("⚠ Chi tiêu vượt hạn mức! Đã tiêu: "
+                        + df.format(spentThisMonth) + " / "
+                        + df.format(maxExpense) + " VND");
+
+
+                // 🔥 POPUP
+                new AlertDialog.Builder(requireContext())
+                        .setTitle("⚠ Chi tiêu vượt giới hạn!")
+                        .setMessage(
+                                "Bạn đã tiêu vượt mức giới hạn tháng này.\n\n" +
+                                        "• Đã tiêu: " + df.format(spentThisMonth) + " VND\n" +
+                                        "• Giới hạn: " + df.format(maxExpense) + " VND\n\n" +
+                                        "Hãy điều chỉnh chi tiêu hoặc tính lại ngân sách."
+                        )
+                        .setPositiveButton("OK", null)
+                        .show();
+            } else {
+                tvWarning.setVisibility(View.GONE);
+            }
         });
     }
-
 
     // ============================================================
     private long getExpenseThisMonth() {
         Calendar c = Calendar.getInstance();
         c.set(Calendar.DAY_OF_MONTH, 1);
+
         long from = c.getTimeInMillis();
-        return floorToThousand(transactionDao.getTotalExpenseSince(from));
+
+        double totalDouble = transactionDao.getTotalExpenseSince(from);
+
+        return floorToThousand(totalDouble);
     }
 
 
+
+    // ============================================================
     private void recalcBudgetAutomatically() {
 
-        long income = prefs.getLong("income", 0);
-        long target = prefs.getLong("target", 0);
-        long months = prefs.getLong("months", 0);
+        long income = prefs.getLong(goalName + "_income", 0);
+        long target = prefs.getLong(goalName + "_target", 0);
+        long months = prefs.getLong(goalName + "_months", 0);
 
         if (income == 0 || target == 0 || months == 0) return;
 
         calculateBudget(target, months, income);
 
-        new android.app.AlertDialog.Builder(requireContext())
-                .setTitle("Đã tính lại")
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Đã tính lại ngân sách")
                 .setMessage("Ngân sách đã được cập nhật theo chi tiêu thực tế.")
                 .setPositiveButton("OK", (d, w) -> loadSavedPlan())
                 .show();
@@ -311,6 +357,64 @@ public class BudgetFragment extends Fragment {
     private long floorToThousand(double v) {
         return (long) (Math.floor(v / 1000) * 1000);
     }
+
+
+    // ============================================================
+    // END SAVING GOAL
+    // ============================================================
+    private void endSavingAction() {
+
+        SharedPreferences goalPrefs =
+                requireContext().getSharedPreferences("SAVING_GOALS", Context.MODE_PRIVATE);
+
+        Set<String> set = new HashSet<>(goalPrefs.getStringSet("goal_list", new HashSet<>()));
+        Set<String> newSet = new HashSet<>();
+
+        for (String item : set) {
+            if (!item.startsWith(goalName + "|")) newSet.add(item);
+        }
+
+        goalPrefs.edit().putStringSet("goal_list", newSet).apply();
+
+        // Lưu lịch sử
+        SharedPreferences historyPref =
+                requireContext().getSharedPreferences("SAVING_HISTORY", Context.MODE_PRIVATE);
+
+        Set<String> history = historyPref.getStringSet("history_list", new HashSet<>());
+
+        long target = prefs.getLong(goalName + "_target", 0);
+        long saved = prefs.getLong(goalName + "_savedManual", 0);
+        long start = prefs.getLong(goalName + "_start", 0);
+        long end = System.currentTimeMillis();
+
+        history.add(goalName + "|" + target + "|" + saved + "|" + start + "|" + end + "|auto");
+
+        historyPref.edit().putStringSet("history_list", history).apply();
+
+        // Xóa dữ liệu riêng
+        SharedPreferences.Editor ed = prefs.edit();
+        ed.remove(goalName + "_target");
+        ed.remove(goalName + "_months");
+        ed.remove(goalName + "_income");
+        ed.remove(goalName + "_savingPerMonth");
+        ed.remove(goalName + "_maxExpensePerMonth");
+        ed.remove(goalName + "_savedManual");
+        ed.remove(goalName + "_summary");
+        ed.remove(goalName + "_isSaving");
+        ed.remove(goalName + "_start");
+        ed.apply();
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Đã kết thúc mục tiêu")
+                .setMessage("Mục tiêu \"" + goalName + "\" đã được lưu vào lịch sử.")
+                .setPositiveButton("OK", (dialog, which) ->
+                        requireActivity().getSupportFragmentManager().popBackStack()
+                )
+                .show();
+    }
+
+
+    // ============================================================
     public static BudgetFragment newInstance(String goalName, long target, long months, long income) {
         BudgetFragment fragment = new BudgetFragment();
         Bundle args = new Bundle();
@@ -320,28 +424,6 @@ public class BudgetFragment extends Fragment {
         args.putLong("income_arg", income);
         fragment.setArguments(args);
         return fragment;
-    }
-    private void endSavingAction() {
-
-        long target = prefs.getLong(goalName + "_target", 0);
-        long saved = prefs.getLong(goalName + "_savedManual", 0);
-
-        // ============= LƯU VÀO LỊCH SỬ =============
-        SharedPreferences historyPrefs = requireContext().getSharedPreferences("SAVING_HISTORY", Context.MODE_PRIVATE);
-        Set<String> historySet = historyPrefs.getStringSet("history_list", new HashSet<>());
-
-        String record = goalName + "|" + target + "|" + saved + "|" + System.currentTimeMillis();
-        historySet.add(record);
-
-        historyPrefs.edit().putStringSet("history_list", historySet).apply();
-        // ============================================
-
-        // Xoá dữ liệu hiện tại
-        prefs.edit().clear().apply();
-
-        layoutSavingSection.setVisibility(View.GONE);
-        tvResult.setText("Hãy nhập thông tin để tạo kế hoạch tiết kiệm mới.");
-        tvResult.setGravity(Gravity.CENTER_HORIZONTAL);
     }
 
 
