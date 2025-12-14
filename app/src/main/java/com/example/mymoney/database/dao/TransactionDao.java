@@ -114,14 +114,17 @@ public interface TransactionDao {
     // 🟢 ===== HÀM CHO MỤC BUDGET (dùng trong BudgetFragment) =====
     @Query(
             "SELECT c.name AS category, IFNULL(SUM(t.amount), 0) AS total " +
-                    "FROM `transaction` t " +
-                    "JOIN category c ON t.category_id = c.id " +
-                    "WHERE t.created_at >= :from " +
+                    "FROM category c " +
+                    "LEFT JOIN `transaction` t " +
+                    "  ON t.category_id = c.id " +
                     "  AND t.type = 'expense' " +
-                    "  AND c.name != 'Saving' " +
+                    "  AND t.user_id = :userId " +
+                    "  AND t.created_at >= :from " +
+                    "WHERE c.name != 'Saving' " +
                     "GROUP BY c.name"
     )
-    List<CategoryExpense> getExpensesByCategorySince(long from);
+    List<CategoryExpense> getExpensesByCategorySince(long from, int userId);
+
 
     @Query("SELECT IFNULL(SUM(amount), 0) FROM `transaction` " +
             "WHERE type = 'income' AND created_at >= :startDate")
@@ -152,17 +155,22 @@ public interface TransactionDao {
 
     @Query(
             "SELECT c.name AS category, IFNULL(SUM(t.amount), 0) AS total " +
-                    "FROM `transaction` t " +
-                    "JOIN category c ON t.category_id = c.id " +
-                    "WHERE t.type = 'expense' " +
-                    "AND t.created_at >= :fromDate " +
-                    "AND t.created_at < :toDate " +
+                    "FROM category c " +
+                    "LEFT JOIN `transaction` t " +
+                    "  ON t.category_id = c.id " +
+                    "  AND t.type = 'expense' " +
+                    "  AND t.user_id = :userId " +
+                    "  AND t.created_at >= :fromDate " +
+                    "  AND t.created_at < :toDate " +
+                    "WHERE c.name != 'Saving' " +
                     "GROUP BY c.name"
     )
     List<CategoryExpense> getExpensesByCategoryBetween(
             long fromDate,
-            long toDate
+            long toDate,
+            int userId
     );
+
 
     @NonNull
     @Query(
@@ -173,5 +181,19 @@ public interface TransactionDao {
     )
     List<String> getAllCategoryNames();
 
+    @Query(
+            "SELECT IFNULL(SUM(t.amount), 0) " +
+                    "FROM `transaction` t " +
+                    "JOIN category c ON t.category_id = c.id " +
+                    "WHERE t.type = 'expense' " +
+                    "AND c.name = :categoryName " +
+                    "AND t.created_at >= :fromDate " +
+                    "AND t.user_id = :userId"
+    )
+    double getTotalExpenseByCategorySinceForUser(
+            String categoryName,
+            long fromDate,
+            int userId
+    );
 
 }

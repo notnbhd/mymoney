@@ -1,5 +1,7 @@
 package com.example.mymoney;
 
+import static com.example.mymoney.MainActivity.getCurrentUserId;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -55,6 +57,7 @@ public class BudgetFragment extends Fragment {
 
     private final DecimalFormat df = new DecimalFormat("#,###");
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+
 
 
     @Override
@@ -123,11 +126,11 @@ public class BudgetFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-
         if (prefs.getBoolean(goalName + "_isSaving", false)) {
-            loadSavedPlan();
+            loadSavedPlan(); // đã rebuild bên trong
         }
     }
+
 
     private void hideAll() {
         layoutSavingSection.setVisibility(View.GONE);
@@ -141,6 +144,14 @@ public class BudgetFragment extends Fragment {
     // ============================================================
     // MAIN CALCULATE FUNCTION
     // ============================================================
+    private static final String[] CATEGORIES = {
+            "Food",
+            "Home",
+            "Transport",
+            "Relationship",
+            "Entertainment"
+    };
+
     private void calculateBudget(long target, long months, long income) {
 
         long targetVal = floorToThousand(target);
@@ -151,38 +162,41 @@ public class BudgetFragment extends Fragment {
         long maxExpensePerMonth = floorToThousand(incomeVal - savingPerMonth);
 
         // =====================================================
-        // 1️⃣ XÁC ĐỊNH KHOẢNG 3 THÁNG TRƯỚC KHI BẮT ĐẦU TIẾT KIỆM
+        // 1️⃣ XÁC ĐỊNH MỐC 3 THÁNG TRƯỚC
         // =====================================================
         long startTime = prefs.getLong(goalName + "_start", 0);
 
-        // Tháng bắt đầu tiết kiệm (ngày 1)
         Calendar startCal = Calendar.getInstance();
         startCal.setTimeInMillis(startTime);
         startCal.set(Calendar.DAY_OF_MONTH, 1);
         long startMonthStart = startCal.getTimeInMillis();
 
-        // Lùi 3 tháng (KHÔNG tính tháng bắt đầu tiết kiệm)
         Calendar fromCal = Calendar.getInstance();
         fromCal.setTimeInMillis(startMonthStart);
         fromCal.add(Calendar.MONTH, -3);
         long fromDate = fromCal.getTimeInMillis();
 
+        int userId = getCurrentUserId();
+
         // =====================================================
-        // 2️⃣ LẤY CHI TIÊU THEO CATEGORY (3 THÁNG TRƯỚC)
-        // fromDate  <= date < startMonthStart
+        // 2️⃣ LẤY THÓI QUEN CHI TIÊU 3 THÁNG
         // =====================================================
-        List<CategoryExpense> expenses =
+        List<CategoryExpense> habitList =
                 transactionDao.getExpensesByCategoryBetween(
                         fromDate,
-                        startMonthStart
+                        startMonthStart,
+                        userId
                 );
 
+        Map<String, Long> habitMap = new HashMap<>();
         double totalExpense3M = 0;
-        for (CategoryExpense ce : expenses) {
-            totalExpense3M += ce.total;
+
+        for (CategoryExpense ce : habitList) {
+            long v = floorToThousand(ce.total);
+            habitMap.put(ce.category, v);
+            totalExpense3M += v;
         }
 
-        // Tránh chia cho 0
         if (totalExpense3M <= 0) totalExpense3M = 1;
 
         // =====================================================
@@ -197,27 +211,34 @@ public class BudgetFragment extends Fragment {
         editor.putLong(goalName + "_maxExpensePerMonth", maxExpensePerMonth);
 
         // =====================================================
-        // 4️⃣ TÍNH LIMIT TỪ THÓI QUEN (CỐ ĐỊNH – KHÔNG LỆCH)
+        // 4️⃣ TÍNH LIMIT CHO TẤT CẢ DANH MỤC (QUAN TRỌNG)
         // =====================================================
-        for (CategoryExpense ce : expenses) {
-            double ratio = ce.total / totalExpense3M;
+        for (String category : CATEGORIES) {
+
+            long habit = habitMap.getOrDefault(category, 0L); // ⭐ DB không có → 0
+            double ratio = habit / totalExpense3M;
             long limit = floorToThousand(ratio * maxExpensePerMonth);
-            editor.putLong(goalName + "_limit_" + ce.category, limit);
+
+            editor.putLong(goalName + "_limit_" + category, limit);
         }
 
-        editor.apply();
+        editor.commit(); // commit để đảm bảo dữ liệu đã ghi
 
         // =====================================================
-        // 5️⃣ TẠO SUMMARY (TỪ NGÀY BẮT ĐẦU TIẾT KIỆM)
+        // 5️⃣ LẤY CHI TIÊU KỂ TỪ KHI BẮT ĐẦU TIẾT KIỆM
         // =====================================================
-        List<CategoryExpense> spentSinceStart =
-                transactionDao.getExpensesByCategorySince(startTime);
+        List<CategoryExpense> spentList =
+                transactionDao.getExpensesByCategorySince(startTime, userId);
 
         Map<String, Long> spentMap = new HashMap<>();
-        for (CategoryExpense ce : spentSinceStart) {
-            spentMap.put(ce.category, floorToThousand(ce.total));
+        for (CategoryExpense ce : spentList) {
+            spentMap.put(ce.category, (long) ce.total);
+
         }
 
+        // =====================================================
+        // 6️⃣ BUILD SUMMARY (HIỂN THỊ ĐỦ CATEGORY)
+        // =====================================================
         StringBuilder sb = new StringBuilder();
         sb.append("<b>🎯 Kế hoạch tiết kiệm</b><br><br>");
         sb.append("Mục tiêu: ").append(df.format(targetVal)).append(" VND<br>");
@@ -231,11 +252,11 @@ public class BudgetFragment extends Fragment {
 
         sb.append("<b>🚀 Giới hạn theo thói quen (3 tháng trước):</b><br>");
 
-        for (CategoryExpense ce : expenses) {
-            long spent = spentMap.getOrDefault(ce.category, 0L);
-            long limit = prefs.getLong(goalName + "_limit_" + ce.category, 0);
+        for (String category : CATEGORIES) {
+            long spent = spentMap.getOrDefault(category, 0L);
+            long limit = prefs.getLong(goalName + "_limit_" + category, 0);
 
-            sb.append("• ").append(ce.category).append(": ")
+            sb.append("• ").append(category).append(": ")
                     .append(df.format(spent))
                     .append(" / ")
                     .append(df.format(limit))
@@ -250,45 +271,47 @@ public class BudgetFragment extends Fragment {
 
 
 
+
     // ============================================================
     // LOAD SAVED PLAN
     // ============================================================
     private void loadSavedPlan() {
 
-        String summary = prefs.getString(goalName + "_summary", "");
+        Executors.newSingleThreadExecutor().execute(() -> {
 
-        if (summary.isEmpty()) {
-            layoutSavingSection.setVisibility(View.VISIBLE);
-            return;
-        }
+            rebuildSummary();
+            checkSavingProgress(); // 🔥 BẮT BUỘC PHẢI CÓ
 
-        layoutSavingSection.setVisibility(View.VISIBLE);
-        btnEndSaving.setVisibility(View.VISIBLE);
-        btnUpdateSaved.setVisibility(View.VISIBLE);
-        edtSavedMoney.setVisibility(View.VISIBLE);
-        progressSaving.setVisibility(View.VISIBLE);
+            requireActivity().runOnUiThread(() -> {
 
-        long saved = prefs.getLong(goalName + "_savedManual", 0);
-        long startTime = prefs.getLong(goalName + "_start", 0);
+                String summary = prefs.getString(goalName + "_summary", "");
 
-        String startDate = dateFormat.format(new Date(startTime));
+                layoutSavingSection.setVisibility(View.VISIBLE);
+                btnEndSaving.setVisibility(View.VISIBLE);
+                btnUpdateSaved.setVisibility(View.VISIBLE);
+                edtSavedMoney.setVisibility(View.VISIBLE);
+                progressSaving.setVisibility(View.VISIBLE);
 
-        String fullText = summary +
-                "<br><b>Bắt đầu tiết kiệm:</b> " + startDate +
-                "<br><b>Đã tiết kiệm:</b> " + df.format(saved) + " VND";
+                long saved = prefs.getLong(goalName + "_savedManual", 0);
+                long startTime = prefs.getLong(goalName + "_start", 0);
 
-        tvResult.setText(android.text.Html.fromHtml(fullText));
-        tvResult.setGravity(Gravity.START);
+                String startDate = dateFormat.format(new Date(startTime));
 
-        long target = prefs.getLong(goalName + "_target", 0);
-        int percent = target == 0 ? 0 : (int) ((saved * 100) / target);
-        if (percent > 100) percent = 100;
+                String fullText = summary +
+                        "<br><b>Bắt đầu tiết kiệm:</b> " + startDate +
+                        "<br><b>Đã tiết kiệm:</b> " + df.format(saved) + " VND";
 
-        progressSaving.setProgress(percent);
-        tvSavingPercent.setText(percent + "%");
+                tvResult.setText(android.text.Html.fromHtml(fullText));
+                tvResult.setGravity(Gravity.START);
 
-        Executors.newSingleThreadExecutor().execute(this::checkSavingProgress);
+                long target = prefs.getLong(goalName + "_target", 0);
+                int percent = target == 0 ? 0 : (int) ((saved * 100) / target);
+                progressSaving.setProgress(Math.min(percent, 100));
+                tvSavingPercent.setText(percent + "%");
+            });
+        });
     }
+
 
 
     // ============================================================
@@ -322,21 +345,27 @@ public class BudgetFragment extends Fragment {
 
         Map<String, Long> spentMap = getExpenseByCategoryForWarning();
 
-
         boolean hasExceeded = false;
         StringBuilder warningDetail = new StringBuilder();
 
-        for (Map.Entry<String, Long> entry : spentMap.entrySet()) {
+        for (String category : CATEGORIES) {
 
-            String category = entry.getKey();
-            long spent = entry.getValue();
-
+            long spent = spentMap.getOrDefault(category, 0L);
             long limit = prefs.getLong(goalName + "_limit_" + category, 0);
 
-            // ❗ Nếu category không có limit thì bỏ qua
-            if (limit <= 0) continue;
+            // 🔴 TRƯỜNG HỢP 1: LIMIT = 0 → CẤM CHI
+            if (limit == 0 && spent > 0) {
+                hasExceeded = true;
+                warningDetail.append("• ")
+                        .append(category)
+                        .append(": ")
+                        .append(df.format(spent))
+                        .append(" / 0 VND\n");
+                continue;
+            }
 
-            if (spent > limit) {
+            // 🔴 TRƯỜNG HỢP 2: LIMIT > 0 → so bình thường
+            if (limit > 0 && spent > limit) {
                 hasExceeded = true;
                 warningDetail.append("• ")
                         .append(category)
@@ -352,7 +381,7 @@ public class BudgetFragment extends Fragment {
 
         requireActivity().runOnUiThread(() -> {
 
-            btnRecalc.setVisibility(finalHasExceeded ? View.VISIBLE : View.GONE);
+            btnRecalc.setVisibility(finalHasExceeded ? View.VISIBLE : View.GONE); // ⭐ THIẾU DÒNG NÀY
 
             if (finalHasExceeded) {
 
@@ -364,39 +393,44 @@ public class BudgetFragment extends Fragment {
                         .setMessage(
                                 "Các danh mục sau đã vượt hạn mức:\n\n" +
                                         warningDetail.toString() +
-                                        "\nHãy điều chỉnh chi tiêu hoặc tính lại ngân sách."
+                                        "\n\nBạn có muốn hệ thống tự động tính lại ngân sách không?"
                         )
-                        .setPositiveButton("OK", null)
+                        .setNegativeButton("Không", null)
+                        .setPositiveButton("Tính lại", (dialog, which) -> {
+                            recalcBudgetAutomatically(); // ⭐ GỌI TẠI ĐÂY
+                        })
                         .show();
+
+
 
             } else {
                 tvWarning.setVisibility(View.GONE);
             }
         });
+
     }
+
 
 
     // ============================================================
     private Map<String, Long> getExpenseByCategoryForWarning() {
 
         long startTime = prefs.getLong(goalName + "_start", 0);
+        int userId = getCurrentUserId();
 
-        Calendar c = Calendar.getInstance();
-        c.set(Calendar.DAY_OF_MONTH, 1);
-        long firstDayOfMonth = c.getTimeInMillis();
-
-        // ✅ lấy mốc từ ngày bắt đầu tiết kiệm (nếu bắt đầu giữa tháng)
-        long from = Math.max(startTime, firstDayOfMonth);
-
+        // ✅ CHỈ LẤY TỪ LÚC BẮT ĐẦU TIẾT KIỆM
         List<CategoryExpense> expenses =
-                transactionDao.getExpensesByCategorySince(from);
+                transactionDao.getExpensesByCategorySince(startTime, userId);
 
         Map<String, Long> map = new HashMap<>();
         for (CategoryExpense ce : expenses) {
-            map.put(ce.category, floorToThousand(ce.total));
+            map.put(ce.category, (long) ce.total); // ❌ KHÔNG floor
         }
+
         return map;
     }
+
+
 
     // ============================================================
     private void recalcBudgetAutomatically() {
@@ -406,16 +440,17 @@ public class BudgetFragment extends Fragment {
             long maxExpense = prefs.getLong(goalName + "_maxExpensePerMonth", 0);
             long startTime = prefs.getLong(goalName + "_start", 0);
 
+            int userId = getCurrentUserId(); // ⭐ BẮT BUỘC
+
             // =========================
             // 1️⃣ LẤY CHI TIÊU HIỆN TẠI
             // =========================
             List<CategoryExpense> spentList =
-                    transactionDao.getExpensesByCategorySince(startTime);
-
+                    transactionDao.getExpensesByCategorySince(startTime, userId);
             Map<String, Long> spentMap = new HashMap<>();
             long totalSpent = 0;
             for (CategoryExpense ce : spentList) {
-                long s = floorToThousand(ce.total);
+                long s = (long) ce.total;
                 spentMap.put(ce.category, s);
                 totalSpent += s;
             }
@@ -429,11 +464,15 @@ public class BudgetFragment extends Fragment {
             long startMonthStart = getStartMonthStart();
             long habitFrom = getHabitFromDate(startMonthStart);
 
+
             List<CategoryExpense> habitList =
                     transactionDao.getExpensesByCategoryBetween(
                             habitFrom,
-                            startMonthStart
+                            startMonthStart,
+                            userId
                     );
+
+
 
             Map<String, Long> habitMap = new HashMap<>();
             long totalHabit = 0;
@@ -588,12 +627,17 @@ public class BudgetFragment extends Fragment {
         long income = prefs.getLong(goalName + "_income", 0);
         long maxExpense = prefs.getLong(goalName + "_maxExpensePerMonth", 0);
 
+        int userId = getCurrentUserId(); // ⭐ BẮT BUỘC
+
+        // =========================
+        // 1️⃣ LẤY CHI TIÊU HIỆN TẠI
+        // =========================
         List<CategoryExpense> spentList =
-                transactionDao.getExpensesByCategorySince(startTime);
+                transactionDao.getExpensesByCategorySince(startTime, userId);
 
         Map<String, Long> spentMap = new HashMap<>();
         for (CategoryExpense ce : spentList) {
-            spentMap.put(ce.category, floorToThousand(ce.total));
+            spentMap.put(ce.category, (long) ce.total);
         }
 
         StringBuilder sb = new StringBuilder();
@@ -606,18 +650,24 @@ public class BudgetFragment extends Fragment {
 
         sb.append("<b>🚀 Giới hạn sau khi điều chỉnh:</b><br>");
 
-        for (String key : prefs.getAll().keySet()) {
-            if (!key.startsWith(goalName + "_limit_")) continue;
+        for (String category : CATEGORIES) {
 
-            String category = key.replace(goalName + "_limit_", "");
-            long limit = prefs.getLong(key, 0);
             long spent = spentMap.getOrDefault(category, 0L);
+
+            // ⭐ AUTO MODE: LUÔN LẤY LIMIT, KHÔNG CÓ = 0
+            long limit = prefs.getLong(goalName + "_limit_" + category, 0);
 
             sb.append("• ").append(category).append(": ")
                     .append(df.format(spent))
                     .append(" / ")
                     .append(df.format(limit))
-                    .append(" VND<br>");
+                    .append(" VND");
+
+            if (spent > limit && limit > 0) {
+                sb.append(" ⚠");
+            }
+
+            sb.append("<br>");
         }
 
         prefs.edit()

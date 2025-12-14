@@ -1,5 +1,7 @@
 package com.example.mymoney;
 
+import static com.example.mymoney.MainActivity.getCurrentUserId;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -56,17 +58,23 @@ public class BudgetChecker {
                 }
 
             } else {
-                // Auto mode: bạn đang check tổng chi tiêu - phần này tuỳ logic của bạn
-                long limit = prefs.getLong(goalName + "_maxExpensePerMonth", 0);
+                // ✅ limit theo danh mục (auto mode bạn vẫn đang lưu _limit_Food,...)
+                long limit = prefs.getLong(goalName + "_limit_" + category, 0);
                 if (limit <= 0) continue;
 
-                long spent = BudgetUtils.getSpentAutoMode(context, goalName); // nếu hàm này theo tháng ok
-                long newTotal = Math.round(spent + amount);
+                long start = prefs.getLong(goalName + "_start", -1);
+                if (start <= 0) continue;
 
+                // ✅ spent theo danh mục, từ lúc start (NHỚ lọc userId)
+                int userId = getCurrentUserId();
+                double spent = dao.getTotalExpenseByCategorySinceForUser(category, start, userId);
+
+                long newTotal = Math.round(spent); // ✅ KHÔNG + amount nếu đã insert vào DB
                 if (newTotal > limit) {
-                    showWarningOnUI(context, goalName, "Tổng chi tiêu", newTotal, limit);
+                    showWarningOnUI(context, goalName, category, newTotal, limit);
                 }
             }
+
         }
     }
 

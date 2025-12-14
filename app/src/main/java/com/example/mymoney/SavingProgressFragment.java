@@ -1,5 +1,7 @@
 package com.example.mymoney;
 
+import static com.example.mymoney.MainActivity.getCurrentUserId;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -142,13 +144,18 @@ public class SavingProgressFragment extends Fragment {
     private void loadExpensesSinceSavingStart(long savingStart, Runnable callback) {
         Executors.newSingleThreadExecutor().execute(() -> {
 
-            TransactionDao dao = AppDatabase.getInstance(requireContext()).transactionDao();
+            TransactionDao dao =
+                    AppDatabase.getInstance(requireContext()).transactionDao();
 
-            expensesSinceStart = dao.getExpensesByCategorySince(savingStart);
+            int userId = getCurrentUserId(); // giống BudgetFragment
+
+            expensesSinceStart =
+                    dao.getExpensesByCategorySince(savingStart, userId);
 
             requireActivity().runOnUiThread(callback);
         });
     }
+
 
     private void setupUI() {
 
@@ -191,7 +198,13 @@ public class SavingProgressFragment extends Fragment {
         // 🔥 HIỂN THỊ THEO CATEGORY CỐ ĐỊNH
         for (String category : CATEGORIES) {
             long spent = spentMap.getOrDefault(category, 0L);
-            long limit = budgetPrefs.getLong(goalName + "_limit_" + category, 0);
+            long limit;
+            if (budgetPrefs.contains(goalName + "_limit_" + category)) {
+                limit = budgetPrefs.getLong(goalName + "_limit_" + category, 0);
+            } else {
+                limit = -1; // chưa set limit
+            }
+
             addCategory(category, spent, limit);
         }
 

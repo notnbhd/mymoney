@@ -320,21 +320,32 @@ public class SavingGoalFragment extends Fragment {
     // ============================================================
     // ⭐⭐ HÀM SILVER BULLET — FIX AUTO MODE ⭐⭐
     private void openBudgetFragment() {
-        prefs.edit().putString("current_goal_name", tempGoalName).apply();
+
+        SharedPreferences budgetPrefs =
+                requireContext().getSharedPreferences("budget_prefs", Context.MODE_PRIVATE);
+
+        // ⭐⭐⭐ SET START TIME CHUẨN – CHỈ 1 LẦN ⭐⭐⭐
+        if (!budgetPrefs.contains(tempGoalName + "_start")) {
+            budgetPrefs.edit()
+                    .putLong(tempGoalName + "_start", System.currentTimeMillis())
+                    .apply();
+        }
+
         addGoalToList(tempGoalName, tempGoalAmount, "auto");
+
         BudgetFragment fragment = BudgetFragment.newInstance(
-                tempGoalName,     // ⭐ THÊM
+                tempGoalName,
                 tempGoalAmount,
                 tempMonths,
                 tempIncome
         );
-
 
         getParentFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, fragment)
                 .addToBackStack(null)
                 .commit();
     }
+
     private void openBudgetFragmentFromList(SavingGoal goal) {
 
         SharedPreferences budgetPrefs =
