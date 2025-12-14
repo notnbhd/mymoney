@@ -198,6 +198,26 @@ public class MainActivity extends AppCompatActivity {
             hideSettingsPanel();
             performLogout();
         });
+        LinearLayout settingsNotification = findViewById(R.id.settings_notification);
+
+        settingsNotification.setOnClickListener(v -> {
+            hideSettingsPanel();
+
+            FragmentTransaction transaction = fragmentManager.beginTransaction();
+            transaction.setCustomAnimations(
+                    R.anim.fade_in_up,
+                    R.anim.fade_out_down,
+                    R.anim.fade_in_up,
+                    R.anim.fade_out_down
+            );
+            transaction.replace(
+                    R.id.fragment_container,
+                    new NotificationSettingFragment()
+            );
+            transaction.addToBackStack(null);
+            transaction.commit();
+        });
+
     }
 
     /**
