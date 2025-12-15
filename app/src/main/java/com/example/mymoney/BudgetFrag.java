@@ -63,7 +63,7 @@ public class BudgetFrag extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.fragment_budget, container, false);
+        View view = inflater.inflate(R.layout.frag_budget, container, false);
 
         // ==== MAP VIEW ====
         layoutSavingSection = view.findViewById(R.id.layout_saving_section);
