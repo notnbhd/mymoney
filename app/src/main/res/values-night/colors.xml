@@ -38,6 +38,7 @@
     <color name="card_background">#1E1E1E</color>        <!-- nền card -->
     <color name="item_background">#222222</color>
     <color name="light_gray">#2A2A2A</color>
+    <color name="light_gray_bg">#2A2A2A</color>
     <color name="dark_gray">#444444</color>
     <color name="gray">#AAAAAA</color>
 

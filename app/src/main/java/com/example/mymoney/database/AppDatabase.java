@@ -33,7 +33,7 @@ import java.util.concurrent.Executors;
                 Budget.class,
                 SavingGoal.class
         },
-        version = 12,
+        version = 15,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -137,6 +137,7 @@ public abstract class AppDatabase extends RoomDatabase {
             {"Clothing", "ic_clothing"},
             {"Education", "ic_education"},
             {"Childcare", "ic_childcare"},
+            {"Groceries", "ic_groceries"},
             {"Others", "ic_more_apps"}
         };
         
@@ -203,6 +204,7 @@ public abstract class AppDatabase extends RoomDatabase {
                 {"Clothing", "ic_clothing"},
                 {"Education", "ic_education"},
                 {"Childcare", "ic_childcare"},
+                {"Groceries", "ic_groceries"},
                 {"Others", "ic_more_apps"}
             };
             

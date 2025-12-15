@@ -1,5 +1,6 @@
 package com.example.mymoney;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,6 +9,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -41,6 +43,19 @@ public class HomeFragment extends Fragment {
     private FloatingActionButton fabAddTransaction;
     private HalfDoughnutChartView halfDoughnutChart;
 
+    // Period selector views
+    private TextView periodToday;
+    private TextView periodThisWeek;
+    private TextView periodThisMonth;
+    private TextView periodThisYear;
+    private TextView periodCustom;
+    
+    // Current selected period
+    private enum Period { TODAY, THIS_WEEK, THIS_MONTH, THIS_YEAR, CUSTOM }
+    private Period currentPeriod = Period.THIS_MONTH;
+    private long customStartDate = 0;
+    private long customEndDate = 0;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -59,10 +74,207 @@ public class HomeFragment extends Fragment {
         fabAddTransaction = view.findViewById(R.id.fab_add_transaction);
         halfDoughnutChart = view.findViewById(R.id.half_doughnut_chart);
         
+        // Initialize period selector views
+        periodToday = view.findViewById(R.id.period_today);
+        periodThisWeek = view.findViewById(R.id.period_this_week);
+        periodThisMonth = view.findViewById(R.id.period_this_month);
+        periodThisYear = view.findViewById(R.id.period_this_year);
+        periodCustom = view.findViewById(R.id.period_custom);
+        
         setupRecyclerView();
         setupFab();
+        setupPeriodSelector();
         
         loadWalletData();
+    }
+    
+    private void setupPeriodSelector() {
+        periodToday.setOnClickListener(v -> selectPeriod(Period.TODAY));
+        periodThisWeek.setOnClickListener(v -> selectPeriod(Period.THIS_WEEK));
+        periodThisMonth.setOnClickListener(v -> selectPeriod(Period.THIS_MONTH));
+        periodThisYear.setOnClickListener(v -> selectPeriod(Period.THIS_YEAR));
+        periodCustom.setOnClickListener(v -> showCustomDatePicker());
+        
+        // Set initial selection
+        updatePeriodSelectorUI();
+    }
+    
+    private void selectPeriod(Period period) {
+        currentPeriod = period;
+        updatePeriodSelectorUI();
+        loadWalletData();
+    }
+    
+    private void updatePeriodSelectorUI() {
+        // Reset all to unselected state
+        resetPeriodButton(periodToday);
+        resetPeriodButton(periodThisWeek);
+        resetPeriodButton(periodThisMonth);
+        resetPeriodButton(periodThisYear);
+        resetPeriodButton(periodCustom);
+        
+        // Set selected state for current period
+        TextView selectedButton = null;
+        switch (currentPeriod) {
+            case TODAY:
+                selectedButton = periodToday;
+                break;
+            case THIS_WEEK:
+                selectedButton = periodThisWeek;
+                break;
+            case THIS_MONTH:
+                selectedButton = periodThisMonth;
+                break;
+            case THIS_YEAR:
+                selectedButton = periodThisYear;
+                break;
+            case CUSTOM:
+                selectedButton = periodCustom;
+                break;
+        }
+        
+        if (selectedButton != null) {
+            selectedButton.setBackgroundResource(R.drawable.period_selector_bg_selected);
+            selectedButton.setTextColor(ContextCompat.getColor(requireContext(), R.color.white));
+        }
+    }
+    
+    private void resetPeriodButton(TextView button) {
+        button.setBackgroundResource(R.drawable.period_selector_bg);
+        button.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray_text));
+    }
+    
+    private void showCustomDatePicker() {
+        Calendar calendar = Calendar.getInstance();
+        
+        // Show start date picker first
+        DatePickerDialog startDatePicker = new DatePickerDialog(
+            requireContext(),
+            (view, year, month, dayOfMonth) -> {
+                Calendar startCal = Calendar.getInstance();
+                startCal.set(year, month, dayOfMonth, 0, 0, 0);
+                startCal.set(Calendar.MILLISECOND, 0);
+                customStartDate = startCal.getTimeInMillis();
+                
+                // Show end date picker
+                DatePickerDialog endDatePicker = new DatePickerDialog(
+                    requireContext(),
+                    (view2, year2, month2, dayOfMonth2) -> {
+                        Calendar endCal = Calendar.getInstance();
+                        endCal.set(year2, month2, dayOfMonth2, 23, 59, 59);
+                        endCal.set(Calendar.MILLISECOND, 999);
+                        customEndDate = endCal.getTimeInMillis();
+                        
+                        currentPeriod = Period.CUSTOM;
+                        updatePeriodSelectorUI();
+                        
+                        // Update custom button text to show date range
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM", Locale.getDefault());
+                        String dateRange = sdf.format(new Date(customStartDate)) + " - " + sdf.format(new Date(customEndDate));
+                        periodCustom.setText(dateRange);
+                        
+                        loadWalletData();
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)
+                );
+                endDatePicker.setTitle(getString(R.string.filter_to_date));
+                endDatePicker.show();
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        );
+        startDatePicker.setTitle(getString(R.string.filter_from_date));
+        startDatePicker.show();
+    }
+    
+    private long[] getDateRangeForPeriod() {
+        Calendar calendar = Calendar.getInstance();
+        long startDate, endDate;
+        
+        switch (currentPeriod) {
+            case TODAY:
+                calendar.set(Calendar.HOUR_OF_DAY, 0);
+                calendar.set(Calendar.MINUTE, 0);
+                calendar.set(Calendar.SECOND, 0);
+                calendar.set(Calendar.MILLISECOND, 0);
+                startDate = calendar.getTimeInMillis();
+                
+                calendar.set(Calendar.HOUR_OF_DAY, 23);
+                calendar.set(Calendar.MINUTE, 59);
+                calendar.set(Calendar.SECOND, 59);
+                calendar.set(Calendar.MILLISECOND, 999);
+                endDate = calendar.getTimeInMillis();
+                break;
+                
+            case THIS_WEEK:
+                // Get start of week (Monday)
+                calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+                // If today is Sunday and first day of week is Monday, we need to go back
+                if (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
+                    calendar.add(Calendar.WEEK_OF_YEAR, -1);
+                }
+                calendar.set(Calendar.HOUR_OF_DAY, 0);
+                calendar.set(Calendar.MINUTE, 0);
+                calendar.set(Calendar.SECOND, 0);
+                calendar.set(Calendar.MILLISECOND, 0);
+                startDate = calendar.getTimeInMillis();
+                
+                // Get end of week (Sunday)
+                calendar.add(Calendar.DAY_OF_MONTH, 6);
+                calendar.set(Calendar.HOUR_OF_DAY, 23);
+                calendar.set(Calendar.MINUTE, 59);
+                calendar.set(Calendar.SECOND, 59);
+                calendar.set(Calendar.MILLISECOND, 999);
+                endDate = calendar.getTimeInMillis();
+                break;
+                
+            case THIS_MONTH:
+                calendar.set(Calendar.DAY_OF_MONTH, 1);
+                calendar.set(Calendar.HOUR_OF_DAY, 0);
+                calendar.set(Calendar.MINUTE, 0);
+                calendar.set(Calendar.SECOND, 0);
+                calendar.set(Calendar.MILLISECOND, 0);
+                startDate = calendar.getTimeInMillis();
+                
+                calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+                calendar.set(Calendar.HOUR_OF_DAY, 23);
+                calendar.set(Calendar.MINUTE, 59);
+                calendar.set(Calendar.SECOND, 59);
+                calendar.set(Calendar.MILLISECOND, 999);
+                endDate = calendar.getTimeInMillis();
+                break;
+                
+            case THIS_YEAR:
+                calendar.set(Calendar.DAY_OF_YEAR, 1);
+                calendar.set(Calendar.HOUR_OF_DAY, 0);
+                calendar.set(Calendar.MINUTE, 0);
+                calendar.set(Calendar.SECOND, 0);
+                calendar.set(Calendar.MILLISECOND, 0);
+                startDate = calendar.getTimeInMillis();
+                
+                calendar.set(Calendar.MONTH, Calendar.DECEMBER);
+                calendar.set(Calendar.DAY_OF_MONTH, 31);
+                calendar.set(Calendar.HOUR_OF_DAY, 23);
+                calendar.set(Calendar.MINUTE, 59);
+                calendar.set(Calendar.SECOND, 59);
+                calendar.set(Calendar.MILLISECOND, 999);
+                endDate = calendar.getTimeInMillis();
+                break;
+                
+            case CUSTOM:
+                startDate = customStartDate;
+                endDate = customEndDate;
+                break;
+                
+            default:
+                startDate = 0;
+                endDate = System.currentTimeMillis();
+        }
+        
+        return new long[]{startDate, endDate};
     }
     
     private void setupFab() {
@@ -119,6 +331,12 @@ public class HomeFragment extends Fragment {
                         public void onDelete(Transaction transactionToDelete) {
                             deleteTransaction(transactionToDelete);
                         }
+
+                        @Override
+                        public void onEdit(Transaction editedTransaction) {
+                            // Refresh data after edit
+                            loadWalletData();
+                        }
                     }
                 );
                 dialog.show();
@@ -149,12 +367,21 @@ public class HomeFragment extends Fragment {
                 if (walletId != -1) {
                     Wallet wallet = db.walletDao().getWalletById(walletId);
 
-                    double totalExpenses = db.transactionDao().getTotalExpensesByWallet(walletId);
-                    double totalIncomes = db.transactionDao().getTotalIncomeByWallet(walletId);
+                    // Get date range based on selected period
+                    long[] dateRange = getDateRangeForPeriod();
+                    long startDate = dateRange[0];
+                    long endDate = dateRange[1];
                     
-                    List<Transaction> allTransactions = db.transactionDao().getTransactionsByWalletId(walletId);
+                    // Get expenses and income for the selected period
+                    Double totalExpensesResult = db.transactionDao().getTotalExpensesByDateRange(MainActivity.getCurrentUserId(), startDate, endDate);
+                    Double totalIncomesResult = db.transactionDao().getTotalIncomeByDateRange(MainActivity.getCurrentUserId(), startDate, endDate);
+                    double totalExpenses = totalExpensesResult != null ? totalExpensesResult : 0;
+                    double totalIncomes = totalIncomesResult != null ? totalIncomesResult : 0;
                     
-                    List<DailyTransactionGroup> dailyGroups = groupTransactionsByDate(allTransactions);
+                    // Get transactions for the selected period
+                    List<Transaction> periodTransactions = db.transactionDao().getTransactionsByWalletAndDateRange(walletId, startDate, endDate);
+                    
+                    List<DailyTransactionGroup> dailyGroups = groupTransactionsByDate(periodTransactions);
                     
                     // Limit to 5 days
                     List<DailyTransactionGroup> recentGroups = dailyGroups.size() > 5 
@@ -162,7 +389,7 @@ public class HomeFragment extends Fragment {
                         : dailyGroups;
                     
                     android.util.Log.d("HomeFragment", "Loading wallet ID: " + walletId + 
-                        ", daily groups: " + recentGroups.size());
+                        ", daily groups: " + recentGroups.size() + ", period: " + currentPeriod);
                     
                     // Update UI on main thread
                     if (getActivity() != null) {
@@ -170,19 +397,20 @@ public class HomeFragment extends Fragment {
                         final double finalExpenses = totalExpenses;
                         final double finalIncomes = totalIncomes;
                         final List<DailyTransactionGroup> finalGroups = recentGroups;
+                        final String currency = MainActivity.getSelectedWalletCurrency();
                         
                         getActivity().runOnUiThread(() -> {
                             if (finalWallet != null) {
                                 balanceAmount.setText(String.format(Locale.getDefault(),
-                                        "%,.2f %s", finalWallet.getBalance(), finalWallet.getCurrency()));
+                                        "%,.2f %s", finalWallet.getBalance(), currency));
                             } else {
-                                balanceAmount.setText("0 VND");
+                                balanceAmount.setText("0 " + currency);
                             }
                             
                             expensesAmount.setText(String.format(Locale.getDefault(), 
-                                "-%,.2f VND", finalExpenses));
+                                "-%,.2f %s", finalExpenses, currency));
                             incomesAmount.setText(String.format(Locale.getDefault(), 
-                                "+%,.2f VND", finalIncomes));
+                                "+%,.2f %s", finalIncomes, currency));
                             
                             // Update the chart
                             halfDoughnutChart.setData(finalExpenses, finalIncomes);
@@ -200,10 +428,11 @@ public class HomeFragment extends Fragment {
                 } else {
                     android.util.Log.d("HomeFragment", "No wallet available for user " + MainActivity.getCurrentUserId());
                     if (getActivity() != null) {
+                        final String currency = MainActivity.getSelectedWalletCurrency();
                         getActivity().runOnUiThread(() -> {
-                            balanceAmount.setText("0 VND");
-                            expensesAmount.setText("-0 VND");
-                            incomesAmount.setText("+0 VND");
+                            balanceAmount.setText("0 " + currency);
+                            expensesAmount.setText("-0 " + currency);
+                            incomesAmount.setText("+0 " + currency);
                             
                             // Update chart with zero values
                             halfDoughnutChart.setData(0, 0);

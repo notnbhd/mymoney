@@ -32,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_IS_LOGGED_IN = "isLoggedIn";
 
     private static int selectedWalletId = -1; //-1 la chua chon vi nao
+    private static String selectedWalletCurrency = "VND"; // Default currency
     private static int currentUserId = 1; // acc default la 1
 
     private FragmentManager fragmentManager;
@@ -291,6 +292,7 @@ public class MainActivity extends AppCompatActivity {
             // Auto-select first wallet if none is selected or if wallet doesn't belong to current user
             boolean needToSelectWallet = false;
             int newSelectedWalletId = selectedWalletId;
+            String newCurrency = selectedWalletCurrency;
 
             if (!wallets.isEmpty()) {
                 // Check if current selected wallet belongs to this user
@@ -302,19 +304,25 @@ public class MainActivity extends AppCompatActivity {
                     if (selectedWallet == null || selectedWallet.getUserId() != userId) {
                         android.util.Log.d("MainActivity", "Selected wallet doesn't belong to user " + userId + ", resetting");
                         needToSelectWallet = true;
+                    } else {
+                        // Update currency from current selected wallet
+                        newCurrency = selectedWallet.getCurrency() != null ? selectedWallet.getCurrency() : "VND";
                     }
                 }
 
                 if (needToSelectWallet) {
                     newSelectedWalletId = wallets.get(0).getId();
-                    android.util.Log.d("MainActivity", "Auto-selected first wallet: ID " + newSelectedWalletId + " (" + wallets.get(0).getName() + ")");
+                    newCurrency = wallets.get(0).getCurrency() != null ? wallets.get(0).getCurrency() : "VND";
+                    android.util.Log.d("MainActivity", "Auto-selected first wallet: ID " + newSelectedWalletId + " (" + wallets.get(0).getName() + "), Currency: " + newCurrency);
                 }
             } else {
                 android.util.Log.d("MainActivity", "No wallets available for user " + userId);
                 newSelectedWalletId = -1;
+                newCurrency = "VND";
             }
 
             final int finalWalletId = newSelectedWalletId;
+            final String finalCurrency = newCurrency;
             final boolean walletChanged = (selectedWalletId != newSelectedWalletId);
 
             runOnUiThread(() -> {
@@ -325,8 +333,9 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 selectedWalletId = finalWalletId;
+                selectedWalletCurrency = finalCurrency;
 
-                android.util.Log.d("MainActivity", "Wallet items added to panel, selected wallet ID: " + selectedWalletId);
+                android.util.Log.d("MainActivity", "Wallet items added to panel, selected wallet ID: " + selectedWalletId + ", Currency: " + selectedWalletCurrency);
 
                 if (walletChanged) {
                     android.util.Log.d("MainActivity", "Wallet selection changed, triggering fragment refresh");
@@ -385,9 +394,10 @@ public class MainActivity extends AppCompatActivity {
             hideWalletPanel();
             int oldWalletId = selectedWalletId;
             selectedWalletId = wallet.getId();
+            selectedWalletCurrency = wallet.getCurrency() != null ? wallet.getCurrency() : "VND";
 
             android.util.Log.d("MainActivity", "Wallet switched: " + oldWalletId + " -> " + selectedWalletId);
-            android.util.Log.d("MainActivity", "Selected wallet: " + wallet.getName());
+            android.util.Log.d("MainActivity", "Selected wallet: " + wallet.getName() + ", Currency: " + selectedWalletCurrency);
 
             Toast.makeText(this, "Chọn ví: " + wallet.getName(), Toast.LENGTH_SHORT).show();
 
@@ -417,6 +427,9 @@ public class MainActivity extends AppCompatActivity {
         } else if (currentFragment instanceof StatisticsFragment) {
             android.util.Log.d("MainActivity", "Calling StatisticsFragment.refreshData()");
             ((StatisticsFragment) currentFragment).refreshData();
+        } else if (currentFragment instanceof BudgetFragment) {
+            android.util.Log.d("MainActivity", "Calling BudgetFragment.refreshData()");
+            ((BudgetFragment) currentFragment).refreshData();
         } else if (currentFragment != null) {
             // For other fragments, use detach/attach
             android.util.Log.d("MainActivity", "Using detach/attach for fragment refresh");
@@ -465,14 +478,33 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupNavigationBar() {
     LinearLayout navHome = findViewById(R.id.nav_home);
-    LinearLayout navHistory = findViewById(R.id.nav_history);
     LinearLayout navAIChat = findViewById(R.id.nav_ai_chat);
     LinearLayout navStatistics = findViewById(R.id.nav_statistics);
+    LinearLayout navMore = findViewById(R.id.nav_more);
 
     navHome.setOnClickListener(v -> loadFragment(new HomeFragment(), "Home"));
-    navHistory.setOnClickListener(v -> loadFragment(new HistoryFragment(), "History"));
     navAIChat.setOnClickListener(v -> loadFragment(new AIChatFragment(), "AI Chat"));
     navStatistics.setOnClickListener(v -> loadFragment(new StatisticsFragment(), "Statistics"));
+    navMore.setOnClickListener(v -> loadFragment(new MoreFragment(), "More"));
+}
+
+/**
+ * Load fragment from MoreFragment (with back stack)
+ */
+public void loadFragmentFromMore(Fragment fragment, String title) {
+    showHeaderAndFooter();
+    headerTitle.setText(title);
+
+    FragmentTransaction transaction = fragmentManager.beginTransaction();
+    transaction.setCustomAnimations(
+            R.anim.fade_in_up,
+            R.anim.fade_out_down,
+            R.anim.fade_in_up,
+            R.anim.fade_out_down
+    );
+    transaction.replace(R.id.fragment_container, fragment);
+    transaction.addToBackStack(null);
+    transaction.commit();
 }
 
 private void loadFragment(Fragment fragment, String title) {
@@ -540,6 +572,13 @@ public static void setSelectedWalletId(int walletId) {
  */
 public static int getCurrentUserId() {
     return currentUserId;
+}
+
+/**
+ * Get the selected wallet's currency (for use in fragments)
+ */
+public static String getSelectedWalletCurrency() {
+    return selectedWalletCurrency != null ? selectedWalletCurrency : "VND";
 }
 
 /**

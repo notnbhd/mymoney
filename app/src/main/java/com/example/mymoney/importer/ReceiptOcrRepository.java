@@ -20,13 +20,10 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-/**
- * Repository responsible for communicating with the receipt OCR backend.
- */
 public class ReceiptOcrRepository {
 
     private static final String TAG = "ReceiptOcrRepository";
-    private static final String DEFAULT_BASE_URL = "http://192.168.1.12:5000/";
+    private static final String DEFAULT_BASE_URL = "http://10.24.6.73:5000/";
 
     private final ReceiptOcrApiService apiService;
 

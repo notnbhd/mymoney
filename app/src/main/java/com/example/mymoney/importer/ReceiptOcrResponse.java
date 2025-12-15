@@ -2,9 +2,6 @@ package com.example.mymoney.importer;
 
 import com.google.gson.annotations.SerializedName;
 
-/**
- * Data model for receipt OCR API response.
- */
 public class ReceiptOcrResponse {
 
     @SerializedName("receiptData")

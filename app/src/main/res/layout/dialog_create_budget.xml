@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@android:color/white">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Create Budget"
+        android:textColor="@color/text_primary"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="20dp" />
+
+    <!-- Budget Name -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Budget Name"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <EditText
+        android:id="@+id/edt_budget_name"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:hint="Enter budget name"
+        android:paddingHorizontal="12dp"
+        android:background="@drawable/bg_edittext_rounded"
+        android:textSize="15sp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Category Selection -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Category (Optional)"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <Spinner
+        android:id="@+id/spinner_category"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:paddingHorizontal="12dp"
+        android:background="@drawable/bg_edittext_rounded"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Budget Amount -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Budget Amount"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <EditText
+        android:id="@+id/edt_budget_amount"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:hint="Enter amount"
+        android:inputType="numberDecimal"
+        android:paddingHorizontal="12dp"
+        android:background="@drawable/bg_edittext_rounded"
+        android:textSize="15sp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Period Type -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Period Type"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <RadioGroup
+        android:id="@+id/rg_period_type"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="16dp">
+
+        <RadioButton
+            android:id="@+id/rb_daily"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:text="Daily"
+            android:textSize="15sp"
+            android:buttonTint="@color/primary_pink" />
+
+        <RadioButton
+            android:id="@+id/rb_weekly"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:text="Weekly"
+            android:textSize="15sp"
+            android:buttonTint="@color/primary_pink" />
+
+        <RadioButton
+            android:id="@+id/rb_monthly"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:text="Monthly"
+            android:textSize="15sp"
+            android:checked="true"
+            android:buttonTint="@color/primary_pink" />
+
+        <RadioButton
+            android:id="@+id/rb_yearly"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:text="Yearly"
+            android:textSize="15sp"
+            android:buttonTint="@color/primary_pink" />
+
+        <RadioButton
+            android:id="@+id/rb_custom"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:text="Custom Period"
+            android:textSize="15sp"
+            android:buttonTint="@color/primary_pink" />
+
+    </RadioGroup>
+
+    <!-- Custom Period Section (Initially Hidden) -->
+    <LinearLayout
+        android:id="@+id/layout_custom_period"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Start Date"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tv_start_date"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="Select start date"
+            android:paddingHorizontal="12dp"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_edittext_rounded"
+            android:textSize="15sp"
+            android:drawableEnd="@android:drawable/ic_menu_my_calendar"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="End Date"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tv_end_date"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="Select end date"
+            android:paddingHorizontal="12dp"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_edittext_rounded"
+            android:textSize="15sp"
+            android:drawableEnd="@android:drawable/ic_menu_my_calendar"
+            android:clickable="true"
+            android:focusable="true" />
+
+    </LinearLayout>
+
+    <!-- Alert Threshold (Optional) -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Alert Threshold (%)"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <EditText
+        android:id="@+id/edt_alert_threshold"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:hint="e.g., 80 (alert at 80%)"
+        android:inputType="number"
+        android:paddingHorizontal="12dp"
+        android:background="@drawable/bg_edittext_rounded"
+        android:textSize="15sp"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/btn_cancel"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="Cancel"
+            android:gravity="center"
+            android:textColor="@color/text_secondary"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/btn_create"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="Create"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_button_rounded"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginStart="8dp" />
+
+    </LinearLayout>
+
+</LinearLayout>

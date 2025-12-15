@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFF8FAFB"
+    android:background="@drawable/back2"
     android:padding="24dp"
     tools:context=".AccountActivity">
 
@@ -61,7 +61,7 @@
                     android:id="@+id/tvFullName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Fullname: "
+                    android:text="Họ và tên: "
                     android:textSize="16sp"
                     android:textColor="@color/black"
                     android:layout_marginBottom="8dp" />
@@ -70,7 +70,7 @@
                     android:id="@+id/tvGender"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Gender: "
+                    android:text="Giới tính: "
                     android:textSize="16sp"
                     android:textColor="@color/black"
                     android:layout_marginBottom="8dp" />
@@ -88,7 +88,7 @@
                     android:id="@+id/tvPhone"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Phone Number: (not set)"
+                    android:text="Số điện thoại : "
                     android:textSize="16sp"
                     android:textColor="@color/black"
                     android:layout_marginBottom="8dp" />
@@ -97,7 +97,7 @@
                     android:id="@+id/tvDOB"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Date of Birth: (not set)"
+                    android:text="Ngày sinh :"
                     android:textSize="16sp"
                     android:textColor="@color/black"
                     android:layout_marginBottom="8dp" />
@@ -106,7 +106,7 @@
                     android:id="@+id/tvJob"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Job: (not set)"
+                    android:text="Nghề nghiệp: "
                     android:textSize="16sp"
                     android:textColor="@color/black"
                     android:layout_marginBottom="8dp" />
@@ -115,7 +115,7 @@
                     android:id="@+id/tvAddress"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Address: (not set)"
+                    android:text="Địa chỉ"
                     android:textSize="16sp"
                     android:textColor="@color/black" />
             </LinearLayout>
@@ -126,7 +126,7 @@
             android:id="@+id/btnEdit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Edit"
+            android:text="Sửa"
             android:textSize="16sp"
             android:textColor="@android:color/white"
             android:backgroundTint="@color/primary_green"

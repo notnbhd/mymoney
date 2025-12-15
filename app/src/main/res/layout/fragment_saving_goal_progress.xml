@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- TIÊU ĐỀ -->
+        <TextView
+            android:id="@+id/txtTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tiến độ tiết kiệm"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#FF4081"
+            android:gravity="center"
+            android:paddingBottom="16dp" />
+
+        <!-- Progress percent -->
+        <TextView
+            android:id="@+id/txtTotalProgress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 / 0"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:paddingBottom="10dp" />
+
+        <!-- Progress bar -->
+        <ProgressBar
+            android:id="@+id/progressGoal"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="10dp"
+            android:progress="0"
+            android:max="100"
+            android:progressTint="#FF80AB"
+            android:backgroundTint="#FFE4EC"
+            android:paddingBottom="20dp" />
+        <Button
+            android:id="@+id/btnEndSavingProgress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Kết thúc tiết kiệm"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="#FF4081"
+            android:textColor="@android:color/white"/>
+
+        <!-- Chi tiêu theo danh mục (LIST) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chi tiêu theo danh mục:"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:paddingTop="12dp"
+            android:paddingBottom="6dp" />
+
+        <LinearLayout
+            android:id="@+id/categoryContainer"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- Nhập tiền tiết kiệm -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nhập số tiền tiết kiệm thêm:"
+            android:textSize="14sp"
+            android:paddingTop="20dp" />
+
+        <EditText
+            android:id="@+id/inputSavedMoney"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="VD: 500000"
+            android:inputType="number"
+            android:padding="10dp"
+            android:background="@android:drawable/edit_text" />
+
+        <!-- Button -->
+        <Button
+            android:id="@+id/btnSaveProgress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="CẬP NHẬT TIẾN ĐỘ TIẾT KIỆM"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#FF4081"
+            android:layout_marginTop="20dp"
+            android:padding="14dp" />
+
+    </LinearLayout>
+
+</ScrollView>

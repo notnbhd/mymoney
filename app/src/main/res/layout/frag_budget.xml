@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:padding="20dp"
+    android:background="@drawable/back2_copy"
+    android:descendantFocusability="afterDescendants"
+    android:isScrollContainer="false"
+    android:focusableInTouchMode="true">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal">
+        <!-- ================== KẾT QUẢ ================== -->
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_card_rounded"
+            android:padding="16dp">
+
+            <!-- Nút kết thúc tiết kiệm góc phải -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <Button
+                    android:id="@+id/btn_end_saving"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_alignParentEnd="true"
+                    android:background="@drawable/bg_button_rounded"
+                    android:text="Kết thúc tiết kiệm"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"/>
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/tv_budget_result"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:textColor="@android:color/black"
+                android:padding="6dp"
+                android:gravity="center_horizontal" />
+        </LinearLayout>
+
+        <!-- Thanh tiến độ -->
+        <FrameLayout
+            android:id="@+id/progressContainer"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_marginTop="8dp">
+
+            <ProgressBar
+                android:id="@+id/progressSaving"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:max="100"
+                android:progress="0"
+                android:progressDrawable="@drawable/progress_pink" />
+
+            <TextView
+                android:id="@+id/tvSavingPercent"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="0%"
+                android:textSize="14sp"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/tvWarning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FF0000"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                android:paddingTop="8dp"
+                android:text="Chi tiêu tháng này đang vượt quá giới hạn!"
+                />
+
+
+        </FrameLayout>
+
+
+        <!-- ================== KHỐI TIẾT KIỆM ================== -->
+        <LinearLayout
+            android:id="@+id/layout_saving_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_card_rounded"
+            android:padding="16dp"
+            android:visibility="gone">
+
+
+
+            <!-- Hàng nhập tiền + cập nhật -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <EditText
+                    android:id="@+id/edt_saved_money"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:hint="Nhập số tiền đã tiết kiệm"
+                    android:inputType="number"
+                    android:background="@drawable/bg_edittext_rounded"
+                    android:padding="8dp" />
+
+                <Button
+                    android:id="@+id/btn_update_saved"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="10dp"
+                    android:background="@drawable/bg_button_rounded"
+                    android:text="Cập nhật"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

@@ -26,23 +26,6 @@
 
     </LinearLayout>
 
-    <!-- History Tab -->
-    <LinearLayout
-        android:id="@+id/nav_history"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:clickable="true"
-        android:background="?android:attr/selectableItemBackground">
-
-        <ImageView
-            android:layout_width="35dp"
-            android:layout_height="35dp"
-            android:src="@drawable/ic_transactions" />
-    </LinearLayout>
-
     <!-- AI Chat Tab -->
     <LinearLayout
         android:id="@+id/nav_ai_chat"
@@ -76,6 +59,24 @@
             android:layout_width="35dp"
             android:layout_height="35dp"
             android:src="@drawable/ic_chart" />
+    </LinearLayout>
+
+    <!-- More Tab -->
+    <LinearLayout
+        android:id="@+id/nav_more"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:clickable="true"
+        android:background="?android:attr/selectableItemBackground">
+
+        <ImageView
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:src="@drawable/ic_more" />
+
     </LinearLayout>
 
 </LinearLayout>

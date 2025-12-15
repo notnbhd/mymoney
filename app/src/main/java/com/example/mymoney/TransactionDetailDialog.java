@@ -1,14 +1,19 @@
 package com.example.mymoney;
 
 import android.annotation.SuppressLint;
+import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.TimePickerDialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -16,8 +21,11 @@ import com.example.mymoney.database.AppDatabase;
 import com.example.mymoney.database.entity.Category;
 import com.example.mymoney.database.entity.Transaction;
 import com.example.mymoney.database.entity.Wallet;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.button.MaterialButton;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -26,10 +34,12 @@ public class TransactionDetailDialog extends Dialog {
     private Transaction transaction;
     private AppDatabase database;
     private OnTransactionActionListener listener;
+    private Context context;
 
     // Views
     private ImageButton btnClose;
     private ImageButton btnDelete;
+    private ImageButton btnEdit;
     private ImageView ivCategoryIcon;
     private TextView tvCategoryName;
     private TextView tvAmount;
@@ -39,10 +49,12 @@ public class TransactionDetailDialog extends Dialog {
 
     public interface OnTransactionActionListener {
         void onDelete(Transaction transaction);
+        void onEdit(Transaction transaction);
     }
 
     public TransactionDetailDialog(@NonNull Context context, Transaction transaction, OnTransactionActionListener listener) {
         super(context);
+        this.context = context;
         this.transaction = transaction;
         this.database = AppDatabase.getInstance(context);
         this.listener = listener;
@@ -79,6 +91,7 @@ public class TransactionDetailDialog extends Dialog {
     private void initViews() {
         btnClose = findViewById(R.id.btn_close);
         btnDelete = findViewById(R.id.btn_delete);
+        btnEdit = findViewById(R.id.btn_edit);
         ivCategoryIcon = findViewById(R.id.iv_category_icon);
         tvCategoryName = findViewById(R.id.tv_category_name);
         tvAmount = findViewById(R.id.tv_amount);
@@ -167,5 +180,166 @@ public class TransactionDetailDialog extends Dialog {
             }
             dismiss();
         });
+
+        btnEdit.setOnClickListener(v -> {
+            dismiss();
+            showEditDialog();
+        });
+    }
+
+    private void showEditDialog() {
+        BottomSheetDialog editDialog = new BottomSheetDialog(context);
+        View dialogView = View.inflate(context, R.layout.dialog_edit_transaction, null);
+        editDialog.setContentView(dialogView);
+
+        // Get views
+        ImageButton btnCloseEdit = dialogView.findViewById(R.id.btn_close);
+        ImageView ivCatIcon = dialogView.findViewById(R.id.iv_category_icon);
+        TextView tvCatName = dialogView.findViewById(R.id.tv_category_name);
+        EditText edtAmount = dialogView.findViewById(R.id.edt_amount);
+        LinearLayout layoutDate = dialogView.findViewById(R.id.layout_date);
+        TextView tvDateEdit = dialogView.findViewById(R.id.tv_date);
+        LinearLayout layoutTime = dialogView.findViewById(R.id.layout_time);
+        TextView tvTime = dialogView.findViewById(R.id.tv_time);
+        EditText edtNote = dialogView.findViewById(R.id.edt_note);
+        MaterialButton btnCancel = dialogView.findViewById(R.id.btn_cancel);
+        MaterialButton btnSave = dialogView.findViewById(R.id.btn_save);
+
+        // Calendar for date/time selection
+        final Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(transaction.getCreatedAt());
+
+        // Date formatters
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+
+        // Pre-fill current values
+        edtAmount.setText(String.valueOf(transaction.getAmount()));
+        tvDateEdit.setText(dateFormat.format(new Date(transaction.getCreatedAt())));
+        tvTime.setText(timeFormat.format(new Date(transaction.getCreatedAt())));
+        if (transaction.getDescription() != null) {
+            edtNote.setText(transaction.getDescription());
+        }
+
+        // Load category info
+        new Thread(() -> {
+            Category category = database.categoryDao().getCategoryById(transaction.getCategoryId());
+            if (category != null && tvCatName != null) {
+                tvCatName.post(() -> {
+                    tvCatName.setText(category.getName());
+                    if (category.getIcon() != null && !category.getIcon().isEmpty()) {
+                        int iconResId = context.getResources().getIdentifier(
+                            category.getIcon(), "drawable", context.getPackageName());
+                        if (iconResId != 0) {
+                            ivCatIcon.setImageResource(iconResId);
+                        }
+                    }
+                });
+            }
+        }).start();
+
+        // Date picker
+        layoutDate.setOnClickListener(v -> {
+            DatePickerDialog datePicker = new DatePickerDialog(
+                context,
+                (view, year, month, dayOfMonth) -> {
+                    calendar.set(Calendar.YEAR, year);
+                    calendar.set(Calendar.MONTH, month);
+                    calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                    tvDateEdit.setText(dateFormat.format(calendar.getTime()));
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+            );
+            datePicker.show();
+        });
+
+        // Time picker
+        layoutTime.setOnClickListener(v -> {
+            TimePickerDialog timePicker = new TimePickerDialog(
+                context,
+                (view, hourOfDay, minute) -> {
+                    calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                    calendar.set(Calendar.MINUTE, minute);
+                    tvTime.setText(timeFormat.format(calendar.getTime()));
+                },
+                calendar.get(Calendar.HOUR_OF_DAY),
+                calendar.get(Calendar.MINUTE),
+                true
+            );
+            timePicker.show();
+        });
+
+        // Close button
+        btnCloseEdit.setOnClickListener(v -> editDialog.dismiss());
+        btnCancel.setOnClickListener(v -> editDialog.dismiss());
+
+        // Save button
+        btnSave.setOnClickListener(v -> {
+            String amountStr = edtAmount.getText().toString().trim();
+            if (amountStr.isEmpty()) {
+                Toast.makeText(context, "Please enter amount", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            try {
+                double newAmount = Double.parseDouble(amountStr);
+                String newNote = edtNote.getText().toString().trim();
+                long newTimestamp = calendar.getTimeInMillis();
+
+                // Calculate wallet balance adjustment
+                double amountDifference = newAmount - transaction.getAmount();
+
+                // Update transaction
+                transaction.setAmount(newAmount);
+                transaction.setDescription(newNote);
+                transaction.setCreatedAt(newTimestamp);
+                transaction.setUpdatedAt(System.currentTimeMillis());
+
+                // Save to database and update wallet balance
+                new Thread(() -> {
+                    try {
+                        database.transactionDao().update(transaction);
+
+                        // Update wallet balance if amount changed
+                        if (amountDifference != 0) {
+                            Wallet wallet = database.walletDao().getWalletById(transaction.getWalletId());
+                            if (wallet != null) {
+                                double currentBalance = wallet.getBalance();
+                                double newBalance;
+                                if ("income".equals(transaction.getType())) {
+                                    newBalance = currentBalance + amountDifference;
+                                } else {
+                                    newBalance = currentBalance - amountDifference;
+                                }
+                                database.walletDao().updateBalance(
+                                    wallet.getId(), newBalance, System.currentTimeMillis());
+                            }
+                        }
+
+                        // Notify listener
+                        if (listener != null) {
+                            tvCatName.post(() -> listener.onEdit(transaction));
+                        }
+
+                        tvCatName.post(() -> {
+                            Toast.makeText(context, "Transaction updated", Toast.LENGTH_SHORT).show();
+                            editDialog.dismiss();
+                        });
+
+                    } catch (Exception e) {
+                        android.util.Log.e("EditTransaction", "Error saving", e);
+                        tvCatName.post(() -> 
+                            Toast.makeText(context, "Error saving: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                    }
+                }).start();
+
+            } catch (NumberFormatException e) {
+                Toast.makeText(context, "Invalid amount", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        editDialog.show();
     }
 }

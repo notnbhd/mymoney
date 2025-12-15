@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Nền progress -->
+    <item android:id="@android:id/background">
+        <shape android:shape="rectangle">
+            <corners android:radius="20dp"/>
+            <size android:height="14dp"/>
+            <solid android:color="#FFE4E9"/> <!-- pastel hồng nhạt -->
+        </shape>
+    </item>
+
+    <!-- Thanh progress -->
+    <item android:id="@android:id/progress">
+        <clip>
+            <shape android:shape="rectangle">
+                <corners android:radius="20dp"/>
+                <size android:height="14dp"/>
+                <gradient
+                    android:startColor="#FF84B8"
+                    android:endColor="#FFA3D5"
+                    android:angle="0"/>
+            </shape>
+        </clip>
+    </item>
+
+</layer-list>

@@ -132,7 +132,7 @@ public class ImportFragment extends Fragment {
         recurringSpinner = view.findViewById(R.id.recurring_spinner);
         saveButton = view.findViewById(R.id.save_button);
         btnCamera = view.findViewById(R.id.btnCamera);
-    btnScan = view.findViewById(R.id.btnScan);
+        btnScan = view.findViewById(R.id.btnScan);
         
         selectedDate = Calendar.getInstance();
         updateDateDisplay();
@@ -411,31 +411,24 @@ public class ImportFragment extends Fragment {
             return;
         }
 
-        // Set amount - use plain string format to avoid locale issues
         Double totalAmount = data.getTotalAmount();
         if (totalAmount != null) {
-            // Use String.format with US locale to ensure proper decimal point format
-            // This ensures the EditText can properly parse it back as a double
             amountInput.setText(String.format(Locale.US, "%.2f", totalAmount));
         }
 
-        // Set notes from merchant name
         String merchantName = data.getMerchantName();
         if (!TextUtils.isEmpty(merchantName)) {
             notesInput.setText(merchantName);
         }
 
-        // Set transaction type to expense
         selectedType = "expense";
         selectTransactionType("expense");
 
-        // Set category
         String mappedCategory = mapToLocalCategory(data.getExpenseCategory());
         if (!TextUtils.isEmpty(mappedCategory)) {
             assignCategoryByName(mappedCategory);
         }
 
-        // Set date
         String receiptDate = data.getReceiptDate();
         if (!TextUtils.isEmpty(receiptDate)) {
             try {
@@ -452,9 +445,6 @@ public class ImportFragment extends Fragment {
         if (TextUtils.isEmpty(remoteCategory)) {
             return "Others";
         }
-
-        // LLM now returns exact category names matching our database
-        // Just return the category name as-is
         return remoteCategory.trim();
     }
 
@@ -486,10 +476,8 @@ public class ImportFragment extends Fragment {
     }
     
     private void saveTransaction() {
-        // Get selected wallet from MainActivity
         int walletId = MainActivity.getSelectedWalletId();
         
-        // If no wallet selected, try to get the first available wallet
         if (walletId == -1) {
             new Thread(() -> {
                 AppDatabase db = AppDatabase.getInstance(requireContext());
@@ -497,7 +485,7 @@ public class ImportFragment extends Fragment {
                 if (!wallets.isEmpty()) {
                     MainActivity.setSelectedWalletId(wallets.get(0).getId());
                     if (getActivity() != null) {
-                        getActivity().runOnUiThread(() -> saveTransactionWithWallet());
+                        getActivity().runOnUiThread(this::saveTransactionWithWallet);
                     }
                 } else {
                     if (getActivity() != null) {

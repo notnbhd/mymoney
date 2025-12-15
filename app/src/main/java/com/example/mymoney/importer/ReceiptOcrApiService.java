@@ -6,11 +6,8 @@ import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
 
-/**
- * Retrofit definition for the receipt OCR backend service.
- */
-public interface ReceiptOcrApiService {
 
+public interface ReceiptOcrApiService {
     @Multipart
     @POST("api/process-receipt")
     Call<ReceiptOcrResponse> processReceipt(@Part MultipartBody.Part imagePart);

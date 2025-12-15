@@ -335,10 +335,11 @@ public class StatisticsFragment extends Fragment {
             TextView tvAmount = row.findViewById(R.id.tvAmount);
             ImageView imgIcon = row.findViewById(R.id.imgCategoryIcon);
 
+            String currency = MainActivity.getSelectedWalletCurrency();
             tvCategory.setText(item.category);
             double percent = (item.total / totalAll) * 100;
             tvPercent.setText(String.format(Locale.getDefault(), "%.1f%%", percent));
-            tvAmount.setText(String.format(Locale.getDefault(), "%,.2f VND", item.total));
+            tvAmount.setText(String.format(Locale.getDefault(), "%,.2f %s", item.total, currency));
 
             // Gán icon theo tên danh mục
             String cat = item.category.toLowerCase(Locale.ROOT);

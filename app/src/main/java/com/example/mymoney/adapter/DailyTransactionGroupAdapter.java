@@ -88,11 +88,14 @@ public class DailyTransactionGroupAdapter extends RecyclerView.Adapter<DailyTran
             // Set date
             tvDate.setText(group.getDate());
 
-            // Set summary with 2 decimal places
+            // Get currency from MainActivity
+            String currency = com.example.mymoney.MainActivity.getSelectedWalletCurrency();
+
+            // Set summary with 2 decimal places using wallet currency
             String summary = String.format(Locale.getDefault(),
-                    "Income:$%,.2f Expense:$%,.2f",
-                    group.getTotalIncome(),
-                    group.getTotalExpense());
+                    "Income: %,.2f %s | Expense: %,.2f %s",
+                    group.getTotalIncome(), currency,
+                    group.getTotalExpense(), currency);
             tvSummary.setText(summary);
 
             // Show/hide transactions based on expanded state

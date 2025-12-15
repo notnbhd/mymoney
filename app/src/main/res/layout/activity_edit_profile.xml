@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?android:windowBackground"
+    android:background="@drawable/back2"
     android:padding="24dp"
     tools:context=".EditProfileActivity">
 
@@ -14,7 +14,7 @@
 
         <!-- Tiêu đề -->
         <TextView
-            android:text="Edit Profile"
+            android:text="Sửa thông tin cá nhân "
             android:textSize="20sp"
             android:textStyle="bold"
             android:textColor="@color/primary_green"
@@ -32,7 +32,7 @@
             android:layout_marginBottom="12dp">
 
             <TextView
-                android:text="Full name:"
+                android:text="Họ và tên:"
                 android:textSize="16sp"
                 android:textColor="@color/black"
                 android:layout_width="100dp"
@@ -45,7 +45,7 @@
                 android:layout_height="44dp"
                 android:layout_weight="1"
                 android:textSize="16sp"
-                android:hint="Enter name"
+                android:hint="Nhập tên"
                 android:inputType="textPersonName"
                 android:background="@drawable/edittext_selector"
                 android:paddingHorizontal="12dp"
@@ -62,7 +62,7 @@
             android:layout_marginBottom="12dp">
 
             <TextView
-                android:text="Gender:"
+                android:text="Giới tính :"
                 android:textSize="16sp"
                 android:textColor="@color/black"
                 android:layout_width="100dp"
@@ -79,7 +79,7 @@
                     android:id="@+id/rbMale"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Male"
+                    android:text="Nam"
                     android:textSize="16sp"
                     android:textColor="@color/black"
                     android:buttonTint="@color/primary_green"
@@ -89,7 +89,7 @@
                     android:id="@+id/rbFemale"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Female"
+                    android:text="Nữ"
                     android:textSize="16sp"
                     android:textColor="@color/black"
                     android:buttonTint="@color/primary_green" />
@@ -118,7 +118,7 @@
                 android:layout_height="44dp"
                 android:layout_weight="1"
                 android:textSize="16sp"
-                android:hint="Enter email"
+                android:hint="Nhập email"
                 android:inputType="textEmailAddress"
                 android:background="@drawable/edittext_selector"
                 android:paddingHorizontal="12dp"
@@ -135,7 +135,7 @@
             android:layout_marginBottom="12dp">
 
             <TextView
-                android:text="Phone:"
+                android:text="Sđt :"
                 android:textSize="16sp"
                 android:textColor="@color/black"
                 android:layout_width="100dp"
@@ -148,7 +148,7 @@
                 android:layout_height="44dp"
                 android:layout_weight="1"
                 android:textSize="16sp"
-                android:hint="Enter phone"
+                android:hint="Nhâp số điện thoại"
                 android:inputType="phone"
                 android:background="@drawable/edittext_selector"
                 android:paddingHorizontal="12dp"
@@ -165,7 +165,7 @@
             android:layout_marginBottom="12dp">
 
             <TextView
-                android:text="DOB:"
+                android:text="Ngày sinh:"
                 android:textSize="16sp"
                 android:textColor="@color/black"
                 android:layout_width="100dp"
@@ -178,7 +178,7 @@
                 android:layout_height="44dp"
                 android:layout_weight="1"
                 android:textSize="16sp"
-                android:hint="Tap to pick date"
+                android:hint="Nhấn để chọn ngày"
                 android:focusable="false"
                 android:clickable="true"
                 android:background="@drawable/edittext_selector"
@@ -196,7 +196,7 @@
             android:layout_marginBottom="12dp">
 
             <TextView
-                android:text="Job:"
+                android:text="Nghề:"
                 android:textSize="16sp"
                 android:textColor="@color/black"
                 android:layout_width="100dp"
@@ -209,7 +209,7 @@
                 android:layout_height="44dp"
                 android:layout_weight="1"
                 android:textSize="16sp"
-                android:hint="Enter job"
+                android:hint="Nhập nghề nghiệp"
                 android:inputType="text"
                 android:background="@drawable/edittext_selector"
                 android:paddingHorizontal="12dp"
@@ -226,7 +226,7 @@
             android:layout_marginBottom="20dp">
 
             <TextView
-                android:text="Address:"
+                android:text="Địa chỉ:"
                 android:textSize="16sp"
                 android:textColor="@color/black"
                 android:layout_width="100dp"
@@ -239,7 +239,7 @@
                 android:layout_height="44dp"
                 android:layout_weight="1"
                 android:textSize="16sp"
-                android:hint="Enter address"
+                android:hint="Nhập địa chỉ"
                 android:inputType="textPostalAddress"
                 android:background="@drawable/edittext_selector"
                 android:paddingHorizontal="12dp"
@@ -252,7 +252,7 @@
             android:id="@+id/btnSave"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Save Changes"
+            android:text="Lưu"
             android:textSize="16sp"
             android:textColor="@android:color/white"
             android:backgroundTint="@color/primary_green"

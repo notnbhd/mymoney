@@ -34,6 +34,9 @@ public interface CategoryDao {
     @Query("SELECT * FROM category")
     List<Category> getAllCategories();
     
+    @Query("SELECT * FROM category WHERE name = :name LIMIT 1")
+    Category getCategoryByName(String name);
+    
     @Query("DELETE FROM category WHERE id = :categoryId")
     void deleteById(int categoryId);
 }

@@ -9,12 +9,6 @@ import androidx.room.PrimaryKey;
 @Entity(tableName = "budget",
         foreignKeys = {
                 @ForeignKey(
-                        entity = Category.class,
-                        parentColumns = "id",
-                        childColumns = "category_id",
-                        onDelete = ForeignKey.CASCADE
-                ),
-                @ForeignKey(
                         entity = Wallet.class,
                         parentColumns = "id",
                         childColumns = "wallet_id",
@@ -62,7 +56,7 @@ public class Budget {
     private long updatedAt;
     
     @ColumnInfo(name = "category_id")
-    private int categoryId;
+    private Integer categoryId; // Nullable - 0 or null means global budget
     
     @ColumnInfo(name = "wallet_id")
     private int walletId;
@@ -157,11 +151,11 @@ public class Budget {
         this.updatedAt = updatedAt;
     }
 
-    public int getCategoryId() {
+    public Integer getCategoryId() {
         return categoryId;
     }
 
-    public void setCategoryId(int categoryId) {
+    public void setCategoryId(Integer categoryId) {
         this.categoryId = categoryId;
     }
 

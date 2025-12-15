@@ -1,5 +1,9 @@
 package com.example.mymoney.chatbot;
 
+import android.graphics.Typeface;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +17,8 @@ import com.example.mymoney.R;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private List<ChatMessage> chatMessages;
@@ -118,7 +124,42 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
 
         public void bind(ChatMessage message) {
-            messageText.setText(message.getMessage());
+            CharSequence formattedText = parseMarkdownBold(message.getMessage());
+            messageText.setText(formattedText);
+        }
+        
+        /**
+         * Parse markdown bold syntax (**text**) and convert to SpannableString with bold style
+         */
+        private CharSequence parseMarkdownBold(String text) {
+            if (text == null || !text.contains("**")) {
+                return text;
+            }
+            
+            SpannableStringBuilder builder = new SpannableStringBuilder();
+            Pattern pattern = Pattern.compile("\\*\\*(.+?)\\*\\*");
+            Matcher matcher = pattern.matcher(text);
+            
+            int lastEnd = 0;
+            while (matcher.find()) {
+                // Add text before the match
+                builder.append(text.substring(lastEnd, matcher.start()));
+                
+                // Add bold text (without the **)
+                String boldText = matcher.group(1);
+                int start = builder.length();
+                builder.append(boldText);
+                builder.setSpan(new StyleSpan(Typeface.BOLD), start, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                
+                lastEnd = matcher.end();
+            }
+            
+            // Add remaining text after last match
+            if (lastEnd < text.length()) {
+                builder.append(text.substring(lastEnd));
+            }
+            
+            return builder;
         }
     }
 

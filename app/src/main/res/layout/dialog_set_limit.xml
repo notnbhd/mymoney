@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="20dp"
+    android:background="@drawable/border_dialog_pink">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nhập giới hạn chi tiêu"
+            android:textColor="#FF4081"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="20dp"/>
+
+        <!-- Ăn uống -->
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="15dp"
+            android:background="@drawable/rounded_option"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ăn uống"
+                android:textColor="#FF4081"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/limitFood"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nhập giới hạn..."
+                android:inputType="number"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/rounded_edittext" />
+        </LinearLayout>
+
+        <!-- Nhà cửa -->
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="15dp"
+            android:background="@drawable/rounded_option"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nhà cửa"
+                android:textColor="#FF4081"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/limitHome"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nhập giới hạn..."
+                android:inputType="number"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/rounded_edittext" />
+        </LinearLayout>
+
+        <!-- Đi lại -->
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="15dp"
+            android:background="@drawable/rounded_option"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Đi lại"
+                android:textColor="#FF4081"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/limitTransport"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nhập giới hạn..."
+                android:inputType="number"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/rounded_edittext"/>
+        </LinearLayout>
+
+        <!-- Tình yêu / Quan hệ -->
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="15dp"
+            android:background="@drawable/rounded_option"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tình yêu / Quan hệ"
+                android:textColor="#FF4081"
+                android:textStyle="bold"/>
+
+            <EditText
+                android:id="@+id/limitRelationship"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nhập giới hạn..."
+                android:inputType="number"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/rounded_edittext"/>
+        </LinearLayout>
+
+        <!-- Giải trí -->
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="15dp"
+            android:background="@drawable/rounded_option"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Giải trí"
+                android:textColor="#FF4081"
+                android:textStyle="bold"/>
+
+            <EditText
+                android:id="@+id/limitEntertainment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nhập giới hạn..."
+                android:inputType="number"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/rounded_edittext"/>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnStartSaving"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Bắt đầu tiết kiệm"
+            android:backgroundTint="#FF80AB"
+            android:textColor="#FFF"
+            android:layout_marginTop="20dp"/>
+    </LinearLayout>
+</ScrollView>

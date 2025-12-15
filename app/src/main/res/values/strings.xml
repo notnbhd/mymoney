@@ -48,6 +48,14 @@
     <string name="nav_home">Home</string>
     <string name="nav_history">History</string>
     <string name="nav_statistics">Statistics</string>
+    <string name="nav_more">More</string>
+
+    <!-- More Fragment -->
+    <string name="more_history_desc">View all your transactions</string>
+    <string name="more_budget">Budget</string>
+    <string name="more_budget_desc">Manage your spending budgets</string>
+    <string name="more_saving_goal">Saving Goal</string>
+    <string name="more_saving_goal_desc">Track your savings progress</string>
     
     <!-- Categories -->
     <string name="category_home">Home</string>
@@ -120,5 +128,26 @@
     <string name="select_year" >Chọn năm</string>
     <string name="logout_success">Logout successful</string>
 
+    <!-- Date Period Selector -->
+    <string name="period_today">Today</string>
+    <string name="period_this_week">This Week</string>
+    <string name="period_this_month">This Month</string>
+    <string name="period_this_year">This Year</string>
+    <string name="period_custom">Custom</string>
+    <string name="select_period">Select Period</string>
+
+    <!-- Filter Dialog -->
+    <string name="filter_transactions">Filter Transactions</string>
+    <string name="filter_type">Type</string>
+    <string name="filter_all">All</string>
+    <string name="filter_expense">Expense</string>
+    <string name="filter_income">Income</string>
+    <string name="filter_category">Category</string>
+    <string name="filter_date">Date</string>
+    <string name="filter_from_date">From</string>
+    <string name="filter_to_date">To</string>
+    <string name="apply_filter">Apply</string>
+    <string name="reset_filter">Reset</string>
+    <string name="all_categories">All Categories</string>
 
 </resources>

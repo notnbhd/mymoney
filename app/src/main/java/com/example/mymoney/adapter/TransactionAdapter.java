@@ -94,19 +94,22 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
                 }
             }).start();
             
-            // Format date and description
-            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
+            // Format date and description - show full date for history
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
             String dateStr = sdf.format(new Date(transaction.getCreatedAt()));
             transactionDetails.setText(dateStr);
+            
+            // Get currency from MainActivity
+            String currency = com.example.mymoney.MainActivity.getSelectedWalletCurrency();
             
             // Format amount with 2 decimal places
             String amountStr;
             int textColor;
             if (transaction.getType().equals("expense")) {
-                amountStr = String.format(Locale.getDefault(), "-%,.2f VND", transaction.getAmount());
+                amountStr = String.format(Locale.getDefault(), "-%,.2f %s", transaction.getAmount(), currency);
                 textColor = itemView.getContext().getColor(R.color.expense_red);
             } else {
-                amountStr = String.format(Locale.getDefault(), "+%,.2f VND", transaction.getAmount());
+                amountStr = String.format(Locale.getDefault(), "+%,.2f %s", transaction.getAmount(), currency);
                 textColor = itemView.getContext().getColor(R.color.primary_green);
             }
             transactionAmount.setText(amountStr);

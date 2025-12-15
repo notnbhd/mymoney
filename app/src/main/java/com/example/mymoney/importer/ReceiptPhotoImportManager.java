@@ -26,10 +26,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-/**
- * Orchestrates the end-to-end flow for importing a receipt image: requesting permissions,
- * capturing or selecting an image, sending it to the backend, and reporting the result.
- */
 public class ReceiptPhotoImportManager {
 
     private static final String TAG = "ReceiptPhotoImporter";
@@ -40,7 +36,6 @@ public class ReceiptPhotoImportManager {
         void onError(String message);
     }
 
-    private final Fragment fragment;
     private final Context context;
     private final Listener listener;
     private final ReceiptOcrRepository repository;
@@ -55,7 +50,6 @@ public class ReceiptPhotoImportManager {
     private Uri pendingCameraUri;
 
     public ReceiptPhotoImportManager(@NonNull Fragment fragment, @NonNull Listener listener) {
-        this.fragment = fragment;
         this.context = fragment.requireContext();
         this.listener = listener;
         this.repository = new ReceiptOcrRepository();
@@ -218,7 +212,7 @@ public class ReceiptPhotoImportManager {
         if (file == null) {
             return;
         }
-        if (pendingCameraFile != null && file.equals(pendingCameraFile)) {
+        if (file.equals(pendingCameraFile)) {
             cleanupPendingCameraFile();
             return;
         }

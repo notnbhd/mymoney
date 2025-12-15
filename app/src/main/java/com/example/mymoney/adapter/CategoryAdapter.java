@@ -139,6 +139,9 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
                 case "gifts":
                     iconRes = R.drawable.ic_gift;
                     break;
+                case "groceries":
+                    iconRes = R.drawable.ic_groceries;
+                    break;
                 case "others":
                 default:
                     iconRes = R.drawable.ic_more_apps;

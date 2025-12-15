@@ -48,6 +48,14 @@
     <string name="nav_home">Trang chủ</string>
     <string name="nav_history">Lịch sử</string>
     <string name="nav_statistics">Thống kê</string>
+    <string name="nav_more">Thêm</string>
+
+    <!-- More Fragment -->
+    <string name="more_history_desc">Xem tất cả giao dịch của bạn</string>
+    <string name="more_budget">Ngân sách</string>
+    <string name="more_budget_desc">Quản lý ngân sách chi tiêu</string>
+    <string name="more_saving_goal">Mục tiêu tiết kiệm</string>
+    <string name="more_saving_goal_desc">Theo dõi tiến độ tiết kiệm</string>
 
     <!-- Categories -->
     <string name="category_home">Trang chủ</string>
@@ -110,4 +118,27 @@
     <string name="select_date_range">Chọn khoảng thời gian</string>
     <string name="select_year" >Chọn năm</string>
     <string name="logout_success">Đăng xuất thành công</string>
+
+    <!-- Date Period Selector -->
+    <string name="period_today">Hôm nay</string>
+    <string name="period_this_week">Tuần này</string>
+    <string name="period_this_month">Tháng này</string>
+    <string name="period_this_year">Năm nay</string>
+    <string name="period_custom">Tùy chọn</string>
+    <string name="select_period">Chọn thời gian</string>
+
+    <!-- Filter Dialog -->
+    <string name="filter_transactions">Lọc giao dịch</string>
+    <string name="filter_type">Loại</string>
+    <string name="filter_all">Tất cả</string>
+    <string name="filter_expense">Chi tiêu</string>
+    <string name="filter_income">Thu nhập</string>
+    <string name="filter_category">Danh mục</string>
+    <string name="filter_date">Ngày</string>
+    <string name="filter_from_date">Từ</string>
+    <string name="filter_to_date">Đến</string>
+    <string name="apply_filter">Áp dụng</string>
+    <string name="reset_filter">Đặt lại</string>
+    <string name="all_categories">Tất cả danh mục</string>
+
 </resources>

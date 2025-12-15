@@ -1,0 +1,19 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- nền -->
+    <item android:id="@android:id/background">
+        <shape>
+            <corners android:radius="20dp"/>
+            <solid android:color="#FFE4EC"/> <!-- màu hồng nhạt -->
+        </shape>
+    </item>
+
+    <!-- tiến độ -->
+    <item android:id="@android:id/progress">
+        <clip>
+            <shape>
+                <corners android:radius="20dp"/>
+                <solid android:color="#FF8BA0"/> <!-- hồng đậm -->
+            </shape>
+        </clip>
+    </item>
+</layer-list>
