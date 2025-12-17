@@ -83,12 +83,20 @@ public class TestDataGenerator {
     }
     
     /**
-     * Generate 6 months of realistic test data
+     * Generate realistic test data (includes current month)
      */
     public void generateTestData(int userId, int walletId, GeneratorCallback callback) {
+        generateTestData(userId, walletId, false, callback);
+    }
+    
+    /**
+     * Generate realistic test data with option to exclude current month
+     * @param excludeCurrentMonth if true, only generates data up to last month (useful for testing)
+     */
+    public void generateTestData(int userId, int walletId, boolean excludeCurrentMonth, GeneratorCallback callback) {
         Executors.newSingleThreadExecutor().execute(() -> {
             try {
-                Log.d(TAG, "Starting test data generation for user: " + userId + ", wallet: " + walletId);
+                Log.d(TAG, "Starting test data generation for user: " + userId + ", wallet: " + walletId + ", excludeCurrentMonth: " + excludeCurrentMonth);
                 
                 // Validate user exists
                 if (userId <= 0) {
@@ -120,8 +128,8 @@ public class TestDataGenerator {
                     return;
                 }
                 
-                // Step 2: Generate 6 months of transactions
-                int transactionCount = generateTransactions(userId, walletId);
+                // Step 2: Generate transactions from beginning of year
+                int transactionCount = generateTransactions(userId, walletId, excludeCurrentMonth);
                 
                 // Step 3: Generate budgets
                 int budgetCount = generateBudgets(userId, walletId);
@@ -133,12 +141,16 @@ public class TestDataGenerator {
                 // Get wallet currency
                 String currency = wallet.getCurrency() != null ? wallet.getCurrency() : "VND";
                 
+                String periodInfo = excludeCurrentMonth ? 
+                    "📋 Dữ liệu từ đầu năm " + Calendar.getInstance().get(Calendar.YEAR) + " đến tháng trước (không bao gồm tháng hiện tại)" :
+                    "📋 Dữ liệu từ đầu năm " + Calendar.getInstance().get(Calendar.YEAR) + " đến nay";
+                
                 String message = String.format(Locale.getDefault(),
                     "✅ Đã tạo dữ liệu test thành công!\n\n" +
                     "📊 Giao dịch: %d\n" +
                     "💰 Ngân sách: %d\n" +
                     "💵 Số dư mới: %,.0f %s\n\n" +
-                    "📋 Dữ liệu từ đầu năm %d đến nay:\n\n" +
+                    "%s\n\n" +
                     "🎯 Demo SpendingPatternAnalyzer:\n" +
                     "• Regular Habits: Food, Transport (100%%)\n" +
                     "• Missing Purchase: Beauty (không có tháng này)\n" +
@@ -152,7 +164,7 @@ public class TestDataGenerator {
                     "• On Track: Transport (tốt)\n" +
                     "• Period Ending: Weekly Budget\n\n" +
                     "⚠️ Hãy vào Chatbot hoặc Statistics để xem kết quả phân tích!",
-                    transactionCount, budgetCount, newBalance, currency, Calendar.getInstance().get(Calendar.YEAR)
+                    transactionCount, budgetCount, newBalance, currency, periodInfo
                 );
                 
                 callback.onComplete(message);
@@ -202,7 +214,7 @@ public class TestDataGenerator {
     }
     
     /**
-     * Generate transactions from beginning of this year until now
+     * Generate transactions from beginning of this year until now (or last month)
      * Designed to demonstrate all SpendingPatternAnalyzer features:
      * 1. Regular Habits (60%+ occurrence): Food, Transport, Clothing
      * 2. Missing Purchases: Beauty skipped current month (but present in history)
@@ -210,8 +222,10 @@ public class TestDataGenerator {
      * 4. Unusual Spending Drops: Education significantly lower
      * 5. Saving Opportunities: Clothing shows increasing trend over months
      * 6. Monthly Comparison: Varied totals to show trends
+     * 
+     * @param excludeCurrentMonth if true, only generate data up to last month
      */
-    private int generateTransactions(int userId, int walletId) {
+    private int generateTransactions(int userId, int walletId, boolean excludeCurrentMonth) {
         List<Transaction> transactions = new ArrayList<>();
         Calendar cal = Calendar.getInstance();
         
@@ -221,11 +235,22 @@ public class TestDataGenerator {
         int currentMonth = now.get(Calendar.MONTH);
         int currentDayOfMonth = now.get(Calendar.DAY_OF_MONTH);
         
+        // Determine the last month to generate
+        int lastMonth = excludeCurrentMonth ? currentMonth - 1 : currentMonth;
+        
+        // If excluding current month and we're in January, go back to previous year December
+        int startYear = currentYear;
+        if (excludeCurrentMonth && currentMonth == 0) {
+            // If January and excluding current month, generate from last year
+            lastMonth = 11; // December
+            startYear = currentYear - 1;
+        }
+        
         // Track spending for pattern demo purposes
         int monthsGenerated = 0;
         
-        // Generate from January (month 0) of this year until current month
-        for (int month = 0; month <= currentMonth; month++) {
+        // Generate from January (month 0) until last month (or current month if not excluded)
+        for (int month = 0; month <= lastMonth; month++) {
             cal.set(currentYear, month, 1, 0, 0, 0);
             
             // For current month, only generate up to current day

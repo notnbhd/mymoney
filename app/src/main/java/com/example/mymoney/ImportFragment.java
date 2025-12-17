@@ -36,6 +36,7 @@ import com.example.mymoney.importer.ReceiptReviewDialog;
 import com.example.mymoney.database.AppDatabase;
 import com.example.mymoney.database.entity.Category;
 import com.example.mymoney.database.entity.Transaction;
+import com.example.mymoney.utils.BudgetExceedHelper;
 
 
 import android.text.TextUtils;
@@ -54,10 +55,6 @@ public class ImportFragment extends Fragment {
     private LinearLayout dateSelector, categorySelector;
     private TextView dateText, categoryText;
     private ImageView categoryIcon;
-    private RadioGroup repeatRadioGroup;
-    private RadioButton repeatYes, repeatNo;
-    private LinearLayout recurringSection;
-    private Spinner recurringSpinner;
     private Button saveButton;
     
     // OCR related fields
@@ -162,11 +159,6 @@ public class ImportFragment extends Fragment {
         categorySelector = view.findViewById(R.id.category_selector);
         categoryText = view.findViewById(R.id.category_text);
         categoryIcon = view.findViewById(R.id.category_icon);
-        repeatRadioGroup = view.findViewById(R.id.repeat_radio_group);
-        repeatYes = view.findViewById(R.id.repeat_yes);
-        repeatNo = view.findViewById(R.id.repeat_no);
-        recurringSection = view.findViewById(R.id.recurring_section);
-        recurringSpinner = view.findViewById(R.id.recurring_spinner);
         saveButton = view.findViewById(R.id.save_button);
         btnCamera = view.findViewById(R.id.btnCamera);
         btnScan = view.findViewById(R.id.btnScan);
@@ -174,29 +166,9 @@ public class ImportFragment extends Fragment {
         selectedDate = Calendar.getInstance();
         updateDateDisplay();
         
-        setupRecurringSpinner();
-        
         setupListeners();
 
         loadDefaultCategory();
-    }
-    
-    private void setupRecurringSpinner() {
-        String[] recurringOptions = {
-            getString(R.string.daily),
-            getString(R.string.weekly),
-            getString(R.string.monthly),
-            getString(R.string.yearly)
-        };
-        
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-            requireContext(),
-            android.R.layout.simple_spinner_item,
-            recurringOptions
-        );
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        recurringSpinner.setAdapter(adapter);
-        recurringSpinner.setSelection(2); // Default to Monthly
     }
     
     private void setupListeners() {
@@ -231,15 +203,6 @@ public class ImportFragment extends Fragment {
         
         // Category selector
         categorySelector.setOnClickListener(v -> showCategoryDialog());
-        
-        // Repeat radio group
-        repeatRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-            if (checkedId == R.id.repeat_yes) {
-                recurringSection.setVisibility(View.VISIBLE);
-            } else {
-                recurringSection.setVisibility(View.GONE);
-            }
-        });
         
         // Save button
         saveButton.setOnClickListener(v -> saveTransaction());
@@ -585,13 +548,106 @@ public class ImportFragment extends Fragment {
     }
     
     private void saveBatchTransactionsWithWallet(List<PendingReceipt> approvedReceipts) {
+        // First, check all transactions for budget exceed in background
+        new Thread(() -> {
+            try {
+                AppDatabase db = AppDatabase.getInstance(requireContext());
+                int walletId = MainActivity.getSelectedWalletId();
+                int userId = MainActivity.getCurrentUserId();
+                
+                // Check which transactions exceed budget
+                java.util.ArrayList<BudgetExceedHelper.BatchExceedItem> exceedItems = new java.util.ArrayList<>();
+                java.util.ArrayList<Integer> exceedIndices = new java.util.ArrayList<>();
+                
+                for (int i = 0; i < approvedReceipts.size(); i++) {
+                    PendingReceipt receipt = approvedReceipts.get(i);
+                    Double amount = receipt.getEditedAmount();
+                    int categoryId = receipt.getSelectedCategoryId();
+                    
+                    if (amount != null && amount > 0 && categoryId != -1) {
+                        // Check budget for this transaction
+                        java.util.List<BudgetExceedHelper.BudgetExceedInfo> exceeded = 
+                            BudgetExceedHelper.checkBudgetsSync(requireContext(), categoryId, amount, walletId, userId);
+                        
+                        if (!exceeded.isEmpty()) {
+                            // Get category name
+                            Category cat = db.categoryDao().getCategoryById(categoryId);
+                            String catName = cat != null ? cat.getName() : "Unknown";
+                            
+                            exceedItems.add(new BudgetExceedHelper.BatchExceedItem(i, catName, amount, exceeded));
+                            exceedIndices.add(i);
+                        }
+                    }
+                }
+                
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        if (exceedItems.isEmpty()) {
+                            // No budgets exceeded, save all directly
+                            proceedWithBatchSave(approvedReceipts, null);
+                        } else {
+                            // Show confirmation dialog for exceeded budgets
+                            BudgetExceedHelper.showBatchExceedConfirmationDialog(requireContext(), 
+                                exceedItems,
+                                new BudgetExceedHelper.BatchBudgetCheckCallback() {
+                                    @Override
+                                    public void onProceedAll() {
+                                        // Save all transactions
+                                        proceedWithBatchSave(approvedReceipts, null);
+                                    }
+                                    
+                                    @Override
+                                    public void onSkipExceeded() {
+                                        // Skip transactions that exceed budget
+                                        proceedWithBatchSave(approvedReceipts, exceedIndices);
+                                    }
+                                    
+                                    @Override
+                                    public void onDismissAll() {
+                                        // Cancel all
+                                        Toast.makeText(requireContext(), "Đã hủy tất cả khoản chi tiêu", Toast.LENGTH_SHORT).show();
+                                        if (batchReceiptManager != null) {
+                                            batchReceiptManager.cleanupTempFiles();
+                                        }
+                                    }
+                                });
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                android.util.Log.e("ImportFragment", "Error checking batch budgets", e);
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        // If budget check fails, proceed with saving anyway
+                        proceedWithBatchSave(approvedReceipts, null);
+                    });
+                }
+            }
+        }).start();
+    }
+    
+    /**
+     * Actually save the batch transactions after budget check
+     * @param approvedReceipts All approved receipts
+     * @param skipIndices Indices to skip (null to save all)
+     */
+    private void proceedWithBatchSave(List<PendingReceipt> approvedReceipts, 
+                                       java.util.ArrayList<Integer> skipIndices) {
         new Thread(() -> {
             try {
                 AppDatabase db = AppDatabase.getInstance(requireContext());
                 int successCount = 0;
                 int failCount = 0;
+                int skippedCount = 0;
                 
-                for (PendingReceipt receipt : approvedReceipts) {
+                for (int i = 0; i < approvedReceipts.size(); i++) {
+                    // Check if this index should be skipped
+                    if (skipIndices != null && skipIndices.contains(i)) {
+                        skippedCount++;
+                        continue;
+                    }
+                    
+                    PendingReceipt receipt = approvedReceipts.get(i);
                     try {
                         Transaction transaction = createTransactionFromReceipt(receipt);
                         if (transaction != null) {
@@ -609,12 +665,15 @@ public class ImportFragment extends Fragment {
                 
                 final int finalSuccessCount = successCount;
                 final int finalFailCount = failCount;
+                final int finalSkippedCount = skippedCount;
                 
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         String message;
-                        if (finalFailCount == 0) {
+                        if (finalFailCount == 0 && finalSkippedCount == 0) {
                             message = finalSuccessCount + " transaction(s) saved successfully!";
+                        } else if (finalSkippedCount > 0) {
+                            message = finalSuccessCount + " saved, " + finalSkippedCount + " skipped (over budget)";
                         } else {
                             message = finalSuccessCount + " saved, " + finalFailCount + " failed";
                         }
@@ -733,6 +792,36 @@ public class ImportFragment extends Fragment {
             return;
         }
         
+        // Only check budget for expense type
+        if (selectedType.equals("expense")) {
+            int walletId = MainActivity.getSelectedWalletId();
+            int userId = MainActivity.getCurrentUserId();
+            
+            // Check if expense will exceed any budget
+            BudgetExceedHelper.checkAndConfirm(requireContext(), selectedCategoryId, amount, 
+                walletId, userId, new BudgetExceedHelper.BudgetCheckCallback() {
+                    @Override
+                    public void onProceed() {
+                        // User confirmed to proceed, save the transaction
+                        proceedWithSaveTransaction(amount);
+                    }
+                    
+                    @Override
+                    public void onDismiss() {
+                        // User dismissed the expense
+                        Toast.makeText(requireContext(), "Chi tiêu đã bị hủy", Toast.LENGTH_SHORT).show();
+                    }
+                });
+        } else {
+            // For income, save directly without budget check
+            proceedWithSaveTransaction(amount);
+        }
+    }
+    
+    /**
+     * Actually save the transaction after budget check passed or confirmed
+     */
+    private void proceedWithSaveTransaction(double amount) {
         // Create transaction object
         Transaction transaction = new Transaction();
         transaction.setWalletId(MainActivity.getSelectedWalletId());
@@ -744,17 +833,9 @@ public class ImportFragment extends Fragment {
         transaction.setCreatedAt(selectedDate.getTimeInMillis());
         transaction.setUpdatedAt(System.currentTimeMillis());
         
-        // Handle recurring
-        boolean isRecurring = repeatYes.isChecked();
-        transaction.setRecurring(isRecurring);
-        
-        if (isRecurring) {
-            String[] intervals = {"daily", "weekly", "monthly", "yearly"};
-            int selectedPosition = recurringSpinner.getSelectedItemPosition();
-            transaction.setRecurringInterval(intervals[selectedPosition]);
-        } else {
-            transaction.setRecurringInterval(null);
-        }
+        // Set non-recurring by default
+        transaction.setRecurring(false);
+        transaction.setRecurringInterval(null);
         
         // Save to database in background thread
         new Thread(() -> {
@@ -835,8 +916,6 @@ public class ImportFragment extends Fragment {
     private void clearForm() {
         amountInput.setText("");
         notesInput.setText("");
-        repeatNo.setChecked(true);
-        recurringSection.setVisibility(View.GONE);
         selectedDate = Calendar.getInstance();
         updateDateDisplay();
         selectedType = "expense";

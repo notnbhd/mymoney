@@ -248,14 +248,15 @@
                     android:textColor="@color/text_primary" />
             </LinearLayout>
 
-            <!-- Repeat Section -->
+            <!-- Repeat Section - Hidden -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp">
+                android:layout_marginBottom="8dp"
+                android:visibility="gone">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -290,7 +291,7 @@
                 </RadioGroup>
             </LinearLayout>
 
-            <!-- Recurring Section -->
+            <!-- Recurring Section - Hidden -->
             <LinearLayout
                 android:id="@+id/recurring_section"
                 android:layout_width="match_parent"

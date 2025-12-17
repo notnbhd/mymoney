@@ -222,30 +222,44 @@ public class AIChatFragment extends Fragment {
      * Show dialog to generate or clear test data
      */
     private void showTestDataDialog() {
+        String[] options = {
+            "📅 Tạo dữ liệu (bao gồm tháng này)",
+            "📆 Tạo dữ liệu (không bao gồm tháng này)",
+            "🗑️ Xóa tất cả dữ liệu test"
+        };
+        
         new AlertDialog.Builder(requireContext())
             .setTitle("🧪 Dữ liệu Test")
-            .setMessage("Tạo dữ liệu test để kiểm tra tính năng phân tích thói quen chi tiêu?\n\n" +
-                "Sẽ tạo:\n" +
-                "• 6 tháng giao dịch\n" +
-                "• Thu nhập hàng tháng\n" +
-                "• Chi tiêu đa dạng\n" +
-                "• Ngân sách mẫu")
-            .setPositiveButton("Tạo dữ liệu", (dialog, which) -> {
-                generateTestData();
+            .setItems(options, (dialog, which) -> {
+                switch (which) {
+                    case 0:
+                        // Generate with current month
+                        generateTestData(false);
+                        break;
+                    case 1:
+                        // Generate without current month
+                        generateTestData(true);
+                        break;
+                    case 2:
+                        // Clear data
+                        clearTestData();
+                        break;
+                }
             })
-            .setNegativeButton("Xóa dữ liệu", (dialog, which) -> {
-                clearTestData();
-            })
-            .setNeutralButton("Hủy", null)
+            .setNegativeButton("Hủy", null)
             .show();
     }
     
     /**
      * Generate test data
+     * @param excludeCurrentMonth if true, only generates data up to last month
      */
-    private void generateTestData() {
+    private void generateTestData(boolean excludeCurrentMonth) {
         // Show loading message
-        ChatMessage loadingMessage = new ChatMessage("🔄 Đang tạo dữ liệu test...", false);
+        String loadingText = excludeCurrentMonth ? 
+            "🔄 Đang tạo dữ liệu test (không bao gồm tháng này)..." :
+            "🔄 Đang tạo dữ liệu test...";
+        ChatMessage loadingMessage = new ChatMessage(loadingText, false);
         chatAdapter.addMessage(loadingMessage);
         scrollToBottom();
         
@@ -253,7 +267,7 @@ public class AIChatFragment extends Fragment {
         int userId = MainActivity.getCurrentUserId();
         int walletId = MainActivity.getSelectedWalletId();
         
-        generator.generateTestData(userId, walletId, new TestDataGenerator.GeneratorCallback() {
+        generator.generateTestData(userId, walletId, excludeCurrentMonth, new TestDataGenerator.GeneratorCallback() {
             @Override
             public void onComplete(String message) {
                 if (getActivity() != null) {
