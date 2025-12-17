@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/dialog_rounded_background"
+    android:background="@drawable/search_background"
     android:padding="20dp">
 
     <!-- Close Button -->
@@ -64,7 +64,7 @@
         android:text="Salary"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:textColor="@color/black"
+        android:textColor="?attr/colorOnSurface"
         app:layout_constraintTop_toBottomOf="@id/iv_category_icon"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -91,7 +91,7 @@
         android:layout_marginTop="24dp"
         android:orientation="vertical"
         android:padding="16dp"
-        android:background="@color/light_gray"
+        android:background="@drawable/search_background"
         app:layout_constraintTop_toBottomOf="@id/tv_amount">
 
         <!-- Date Row -->
@@ -115,7 +115,7 @@
                 android:layout_weight="1"
                 android:text="10/2/2025 23:36:19"
                 android:textSize="14sp"
-                android:textColor="@color/black" />
+                android:textColor="?attr/colorOnSurface" />
         </LinearLayout>
 
         <!-- wallet Row -->
@@ -139,7 +139,7 @@
                 android:layout_weight="1"
                 android:text="Default Wallet"
                 android:textSize="14sp"
-                android:textColor="@color/black" />
+                android:textColor="?attr/colorOnSurface" />
         </LinearLayout>
 
 
@@ -164,7 +164,7 @@
                 android:layout_weight="1"
                 android:text="..."
                 android:textSize="14sp"
-                android:textColor="@color/black" />
+                android:textColor="?attr/colorOnSurface" />
         </LinearLayout>
 
     </LinearLayout>

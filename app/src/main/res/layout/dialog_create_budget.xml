@@ -3,14 +3,13 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="24dp"
-    android:background="@android:color/white">
+    android:padding="24dp">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Create Budget"
-        android:textColor="@color/text_primary"
+        android:textColor="#FF4081"
         android:textSize="22sp"
         android:textStyle="bold"
         android:gravity="center"
@@ -21,7 +20,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Budget Name"
-        android:textColor="@color/text_primary"
+        android:textColor="?attr/colorOnSurface"
         android:textSize="14sp"
         android:textStyle="bold"
         android:layout_marginBottom="8dp" />
@@ -32,7 +31,7 @@
         android:layout_height="48dp"
         android:hint="Enter budget name"
         android:paddingHorizontal="12dp"
-        android:background="@drawable/bg_edittext_rounded"
+        android:background="@drawable/search_background"
         android:textSize="15sp"
         android:layout_marginBottom="16dp" />
 
@@ -41,7 +40,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Category (Optional)"
-        android:textColor="@color/text_primary"
+        android:textColor="?attr/colorOnSurface"
         android:textSize="14sp"
         android:textStyle="bold"
         android:layout_marginBottom="8dp" />
@@ -51,7 +50,7 @@
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:paddingHorizontal="12dp"
-        android:background="@drawable/bg_edittext_rounded"
+        android:background="@drawable/search_background"
         android:layout_marginBottom="16dp" />
 
     <!-- Budget Amount -->
@@ -59,7 +58,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Budget Amount"
-        android:textColor="@color/text_primary"
+        android:textColor="?attr/colorOnSurface"
         android:textSize="14sp"
         android:textStyle="bold"
         android:layout_marginBottom="8dp" />
@@ -71,7 +70,7 @@
         android:hint="Enter amount"
         android:inputType="numberDecimal"
         android:paddingHorizontal="12dp"
-        android:background="@drawable/bg_edittext_rounded"
+        android:background="@drawable/search_background"
         android:textSize="15sp"
         android:layout_marginBottom="16dp" />
 
@@ -80,7 +79,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Period Type"
-        android:textColor="@color/text_primary"
+        android:textColor="?attr/colorOnSurface"
         android:textSize="14sp"
         android:textStyle="bold"
         android:layout_marginBottom="8dp" />
@@ -196,7 +195,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Alert Threshold (%)"
-        android:textColor="@color/text_primary"
+        android:textColor="?attr/colorOnSurface"
         android:textSize="14sp"
         android:textStyle="bold"
         android:layout_marginBottom="8dp" />
@@ -208,7 +207,7 @@
         android:hint="e.g., 80 (alert at 80%)"
         android:inputType="number"
         android:paddingHorizontal="12dp"
-        android:background="@drawable/bg_edittext_rounded"
+        android:background="@drawable/search_background"
         android:textSize="15sp"
         android:layout_marginBottom="24dp" />
 
