@@ -7,7 +7,8 @@ import androidx.room.ForeignKey;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
-@Entity(tableName = "saving_goals",
+@Entity(
+        tableName = "saving_goals",
         foreignKeys = {
                 @ForeignKey(
                         entity = Category.class,
@@ -28,59 +29,68 @@ import androidx.room.PrimaryKey;
                         onDelete = ForeignKey.CASCADE
                 )
         },
-        indices = {@Index("category_id"), @Index("wallet_id"), @Index("user_id")})
+        indices = {
+                @Index("category_id"),
+                @Index("wallet_id"),
+                @Index("user_id")
+        }
+)
 public class SavingGoal {
-    
+
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")
     private int id;
-    
+
     @ColumnInfo(name = "name")
     private String name;
-    
+
+    // 👉 MỤC TIÊU CẦN ĐẠT
     @ColumnInfo(name = "target")
     private double target;
-    
+
+    // 👉 SỐ TIỀN HIỆN TẠI
     @ColumnInfo(name = "current_amount")
     private double currentAmount;
-    
+
     @ColumnInfo(name = "start_date")
     private String startDate;
-    
+
     @ColumnInfo(name = "end_date")
     private String endDate;
-    
+
     @ColumnInfo(name = "description")
     private String description;
-    
+
     @ColumnInfo(name = "status")
-    private String status; // "active", "completed", "cancelled"
-    
+    private String status; // active | completed | cancelled
+
     @ColumnInfo(name = "created_at")
     private long createdAt;
-    
+
     @ColumnInfo(name = "updated_at")
     private long updatedAt;
-    
+
     @Nullable
     @ColumnInfo(name = "category_id")
-    private Integer categoryId;  // Nullable - saving goals don't require a category
-    
+    private Integer categoryId;
+
     @ColumnInfo(name = "wallet_id")
     private int walletId;
-    
+
     @ColumnInfo(name = "user_id")
     private int userId;
 
-    // Constructors
+    // ================= CONSTRUCTOR =================
+
     public SavingGoal() {
-        this.createdAt = System.currentTimeMillis();
-        this.updatedAt = System.currentTimeMillis();
         this.currentAmount = 0.0;
         this.status = "active";
+        this.createdAt = System.currentTimeMillis();
+        this.updatedAt = System.currentTimeMillis();
     }
 
-    // Getters and Setters
+    // ================= GETTERS & SETTERS =================
+
     public int getId() {
         return id;
     }
@@ -97,6 +107,7 @@ public class SavingGoal {
         this.name = name;
     }
 
+    // ❗❗ DÙNG getTarget() – KHÔNG PHẢI getTargetAmount()
     public double getTarget() {
         return target;
     }
@@ -184,5 +195,23 @@ public class SavingGoal {
 
     public void setUserId(int userId) {
         this.userId = userId;
+    }
+
+    // ================= HELPER METHODS (⭐ QUAN TRỌNG) =================
+
+    /**
+     * Tính % tiến độ saving goal (0–100)
+     * Dùng trực tiếp cho ProgressBar
+     */
+    public int getProgressPercent() {
+        if (target <= 0) return 0;
+        return (int) Math.min(100, (currentAmount * 100f) / target);
+    }
+
+    /**
+     * Kiểm tra đã hoàn thành hay chưa
+     */
+    public boolean isCompleted() {
+        return currentAmount >= target && target > 0;
     }
 }

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/back2"
     android:padding="24dp"
-    tools:context=".AccountActivity">
+    tools:context=".account.AccountActivity">
 
     <LinearLayout
         android:orientation="vertical"

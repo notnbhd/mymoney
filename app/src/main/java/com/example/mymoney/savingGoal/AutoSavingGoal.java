@@ -1,4 +1,4 @@
-package com.example.mymoney;
+package com.example.mymoney.savingGoal;
 
 import static com.example.mymoney.MainActivity.getCurrentUserId;
 
@@ -6,7 +6,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.text.TextUtils;
+
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,10 +17,11 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.Fragment;
 
+import com.example.mymoney.MainActivity;
+import com.example.mymoney.R;
+import com.example.mymoney.savingGoal .SavingGoalFragment;
 import com.example.mymoney.database.AppDatabase;
 import com.example.mymoney.database.dao.BudgetDao;
 import com.example.mymoney.database.dao.CategoryDao;
@@ -40,7 +41,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 
-public class BudgetFrag extends Fragment {
+public class AutoSavingGoal extends Fragment {
 
     // ==== Views ====
     private LinearLayout layoutSavingSection;
@@ -250,7 +251,7 @@ public class BudgetFrag extends Fragment {
 
             // Save to SharedPreferences (backwards compatibility)
             editor.putLong(goalName + "_limit_" + categoryName, limit);
-            
+
             // Store for budget creation
             categoryLimits.put(categoryId, limit);
         }
@@ -313,17 +314,17 @@ public class BudgetFrag extends Fragment {
      * Creates Budget entities in the database for each category limit
      */
     private int createBudgetsFromLimits(int userId, int walletId,
-                                         Map<Integer, Long> categoryLimits,
-                                         String startDate, String endDate) {
+                                        Map<Integer, Long> categoryLimits,
+                                        String startDate, String endDate) {
         int count = 0;
-        
+
         for (Map.Entry<Integer, Long> entry : categoryLimits.entrySet()) {
             int categoryId = entry.getKey();
             long limitAmount = entry.getValue();
-            
+
             // Skip categories with 0 limit
             if (limitAmount <= 0) continue;
-            
+
             // Find category name
             String categoryName = "";
             for (Category cat : expenseCategories) {
@@ -332,11 +333,11 @@ public class BudgetFrag extends Fragment {
                     break;
                 }
             }
-            
+
             // Check if a budget already exists for this goal + category
             String budgetName = goalName + " - " + categoryName;
             Budget existingBudget = budgetDao.getBudgetByName(budgetName);
-            
+
             if (existingBudget != null) {
                 // Update existing budget
                 existingBudget.setBudgetAmount(limitAmount);
@@ -359,12 +360,12 @@ public class BudgetFrag extends Fragment {
                 budget.setAlertThreshold(0.8); // 80% warning
                 budget.setCreatedAt(System.currentTimeMillis());
                 budget.setUpdatedAt(System.currentTimeMillis());
-                
+
                 budgetDao.insert(budget);
             }
             count++;
         }
-        
+
         return count;
     }
 
@@ -392,7 +393,24 @@ public class BudgetFrag extends Fragment {
                 progressSaving.setVisibility(View.VISIBLE);
 
                 long saved = prefs.getLong(goalName + "_savedManual", 0);
+                long target = prefs.getLong(goalName + "_target", 0);
                 long startTime = prefs.getLong(goalName + "_start", 0);
+
+// ✅ CHECK HOÀN THÀNH TIẾT KIỆM
+                boolean completedShown =
+                        prefs.getBoolean(goalName + "_completed_dialog_shown", false);
+
+                if (saved >= target && target > 0 && !completedShown) {
+
+                    showCompletedDialog(saved, target);
+
+                    // Đánh dấu đã hiện dialog (tránh hiện lại)
+                    prefs.edit()
+                            .putBoolean(goalName + "_completed_dialog_shown", true)
+                            .apply();
+                }
+
+
 
                 String startDate = dateFormat.format(new Date(startTime));
 
@@ -403,7 +421,6 @@ public class BudgetFrag extends Fragment {
                 tvResult.setText(android.text.Html.fromHtml(fullText));
                 tvResult.setGravity(Gravity.START);
 
-                long target = prefs.getLong(goalName + "_target", 0);
                 int percent = target == 0 ? 0 : (int) ((saved * 100) / target);
                 progressSaving.setProgress(Math.min(percent, 100));
                 tvSavingPercent.setText(percent + "%");
@@ -448,7 +465,7 @@ public class BudgetFrag extends Fragment {
         if (expenseCategories == null || expenseCategories.isEmpty()) {
             expenseCategories = categoryDao.getAllExpenseCategories();
         }
-        
+
         if (expenseCategories == null || expenseCategories.isEmpty()) {
             return; // No categories to check
         }
@@ -543,59 +560,77 @@ public class BudgetFrag extends Fragment {
     // ============================================================
     private void endSavingAction() {
 
-        SharedPreferences goalPrefs =
-                requireContext().getSharedPreferences("SAVING_GOALS", Context.MODE_PRIVATE);
-
-        Set<String> set = new HashSet<>(goalPrefs.getStringSet("goal_list", new HashSet<>()));
-        Set<String> newSet = new HashSet<>();
-
-        for (String item : set) {
-            if (!item.startsWith(goalName + "|")) newSet.add(item);
-        }
-
-        goalPrefs.edit().putStringSet("goal_list", newSet).apply();
-
-        // Lưu lịch sử
-        SharedPreferences historyPref =
-                requireContext().getSharedPreferences("SAVING_HISTORY", Context.MODE_PRIVATE);
-
-        Set<String> history = historyPref.getStringSet("history_list", new HashSet<>());
-
         long target = prefs.getLong(goalName + "_target", 0);
         long saved = prefs.getLong(goalName + "_savedManual", 0);
         long start = prefs.getLong(goalName + "_start", 0);
         long end = System.currentTimeMillis();
 
-        history.add(goalName + "|" + target + "|" + saved + "|" + start + "|" + end + "|auto");
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                int userId = getCurrentUserId();
+                int walletId = MainActivity.getSelectedWalletId();
 
-        historyPref.edit().putStringSet("history_list", history).apply();
+                AppDatabase db = AppDatabase.getInstance(requireContext());
 
-        // Xóa dữ liệu riêng
-        SharedPreferences.Editor ed = prefs.edit();
-        ed.remove(goalName + "_target");
-        ed.remove(goalName + "_months");
-        ed.remove(goalName + "_income");
-        ed.remove(goalName + "_savingPerMonth");
-        ed.remove(goalName + "_maxExpensePerMonth");
-        ed.remove(goalName + "_savedManual");
-        ed.remove(goalName + "_summary");
-        ed.remove(goalName + "_isSaving");
-        ed.remove(goalName + "_start");
-        ed.apply();
+                // 1️⃣ XÓA BUDGET LIÊN QUAN
+                db.budgetDao().deleteByNamePattern(goalName + " - %");
 
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Đã kết thúc mục tiêu")
-                .setMessage("Mục tiêu \"" + goalName + "\" đã được lưu vào lịch sử.")
-                .setPositiveButton("OK", (dialog, which) ->
-                        requireActivity().getSupportFragmentManager().popBackStack()
-                )
-                .show();
+                // 2️⃣ XÓA SAVING GOAL TRONG DB
+                com.example.mymoney.database.entity.SavingGoal dbGoal =
+                        db.savingGoalDao().getSavingGoalByName(userId, walletId, goalName);
+
+                if (dbGoal != null) {
+                    db.savingGoalDao().deleteById(dbGoal.getId());
+                }
+
+                // 3️⃣ LƯU HISTORY
+                SharedPreferences historyPref =
+                        requireContext().getSharedPreferences("SAVING_HISTORY", Context.MODE_PRIVATE);
+
+                Set<String> history =
+                        new HashSet<>(historyPref.getStringSet("history_list", new HashSet<>()));
+
+                history.add(goalName + "|" + target + "|" + saved + "|" + start + "|" + end + "|auto");
+
+                historyPref.edit().putStringSet("history_list", history).apply();
+
+                // 4️⃣ CLEAR PREFS
+                SharedPreferences.Editor ed = prefs.edit();
+                ed.remove(goalName + "_target");
+                ed.remove(goalName + "_months");
+                ed.remove(goalName + "_income");
+                ed.remove(goalName + "_savingPerMonth");
+                ed.remove(goalName + "_maxExpensePerMonth");
+                ed.remove(goalName + "_savedManual");
+                ed.remove(goalName + "_summary");
+                ed.remove(goalName + "_isSaving");
+                ed.remove(goalName + "_start");
+                ed.apply();
+
+                // 5️⃣ QUAY VỀ LIST SAU KHI XÓA XONG
+                requireActivity().runOnUiThread(() ->
+                        new AlertDialog.Builder(requireContext())
+                                .setTitle("Đã kết thúc mục tiêu")
+                                .setMessage("Mục tiêu \"" + goalName + "\" đã được lưu vào lịch sử.")
+                                .setPositiveButton("OK", (d, w) ->
+                                        requireActivity()
+                                                .getSupportFragmentManager()
+                                                .popBackStack()
+                                )
+                                .show()
+                );
+
+            } catch (Exception e) {
+                android.util.Log.e("AutoSavingGoal", "Error ending goal", e);
+            }
+        });
     }
 
 
+
     // ============================================================
-    public static BudgetFrag newInstance(String goalName, long target, long months, long income) {
-        BudgetFrag fragment = new BudgetFrag();
+    public static AutoSavingGoal newInstance(String goalName, long target, long months, long income) {
+        AutoSavingGoal fragment = new AutoSavingGoal();
         Bundle args = new Bundle();
         args.putString("goalName", goalName);
         args.putLong("target_arg", target);
@@ -639,7 +674,7 @@ public class BudgetFrag extends Fragment {
         if (expenseCategories == null || expenseCategories.isEmpty()) {
             expenseCategories = categoryDao.getAllExpenseCategories();
         }
-        
+
         if (expenseCategories != null) {
             for (Category category : expenseCategories) {
                 String categoryName = category.getName();
@@ -742,6 +777,22 @@ public class BudgetFrag extends Fragment {
                         requireActivity().runOnUiThread(this::loadSavedPlan);
                     });
                 })
+                .show();
+    }
+    private void showCompletedDialog(long saved, long target) {
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("🎉 Hoàn thành mục tiêu!")
+                .setMessage(
+                        "Chúc mừng bạn đã hoàn thành mục tiêu tiết kiệm:\n\n" +
+                                df.format(saved) + " / " + df.format(target) + " VND\n\n" +
+                                "Bạn muốn kết thúc mục tiêu này không?"
+                )
+                .setNegativeButton("Để sau", (dialog, which) -> dialog.dismiss())
+                .setPositiveButton("Kết thúc", (dialog, which) -> {
+                    endSavingAction(); // 🔥 KẾT THÚC TIẾT KIỆM
+                })
+                .setCancelable(false)
                 .show();
     }
 

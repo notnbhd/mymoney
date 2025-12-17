@@ -79,7 +79,7 @@ public class ReceiptOcrRepository {
             mimeType = "image/jpeg";
         }
 
-    RequestBody requestBody = RequestBody.create(MediaType.parse(mimeType), imageFile);
+        RequestBody requestBody = RequestBody.create(MediaType.parse(mimeType), imageFile);
         MultipartBody.Part imagePart = MultipartBody.Part.createFormData(
                 "image",
                 imageFile.getName(),

@@ -1,103 +1,141 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="20dp">
+    android:padding="16dp">
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
-        <!-- TIÊU ĐỀ -->
+        <!-- ================= TIÊU ĐỀ ================= -->
         <TextView
             android:id="@+id/txtTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Tiến độ tiết kiệm"
-            android:textSize="20sp"
+            android:text="TIẾN ĐỘ TIẾT KIỆM"
+            android:textSize="22sp"
             android:textStyle="bold"
-            android:textColor="#FF4081"
+            android:textColor="#E91E63"
             android:gravity="center"
-            android:paddingBottom="16dp" />
-
-        <!-- Progress percent -->
-        <TextView
-            android:id="@+id/txtTotalProgress"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0 / 0"
-            android:textStyle="bold"
-            android:textSize="18sp"
-            android:gravity="center"
-            android:layout_gravity="center"
-            android:paddingBottom="10dp" />
-
-        <!-- Progress bar -->
-        <ProgressBar
-            android:id="@+id/progressGoal"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="10dp"
-            android:progress="0"
-            android:max="100"
-            android:progressTint="#FF80AB"
-            android:backgroundTint="#FFE4EC"
             android:paddingBottom="20dp" />
-        <Button
-            android:id="@+id/btnEndSavingProgress"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Kết thúc tiết kiệm"
-            android:layout_marginTop="16dp"
-            android:backgroundTint="#FF4081"
-            android:textColor="@android:color/white"/>
 
-        <!-- Chi tiêu theo danh mục (LIST) -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Chi tiêu theo danh mục:"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:paddingTop="12dp"
-            android:paddingBottom="6dp" />
-
+        <!-- ================= CARD TIẾN ĐỘ ================= -->
         <LinearLayout
-            android:id="@+id/categoryContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:background="@drawable/search_background"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
 
-        <!-- Nhập tiền tiết kiệm -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Nhập số tiền tiết kiệm thêm:"
-            android:textSize="14sp"
-            android:paddingTop="20dp" />
+            <TextView
+                android:id="@+id/txtTotalProgress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mục tiêu: 0 VND"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurface"
+                android:layout_marginBottom="8dp" />
 
-        <EditText
-            android:id="@+id/inputSavedMoney"
+            <ProgressBar
+                android:id="@+id/progressGoal"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="12dp"
+                android:max="100"
+                android:progress="0"
+                android:progressDrawable="@drawable/progress_pink"
+                android:backgroundTint="#F8BBD0"
+                android:layout_marginBottom="12dp" />
+
+            <Button
+                android:id="@+id/btnEndSavingProgress"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="Kết thúc tiết kiệm"
+                android:textAllCaps="false"
+                android:textSize="13sp"
+                android:textColor="@android:color/white"
+                android:background="@drawable/bg_button_rounded"
+                android:layout_gravity="center" />
+        </LinearLayout>
+
+        <!-- ================= CARD CHI TIÊU THEO DANH MỤC ================= -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="VD: 500000"
-            android:inputType="number"
-            android:padding="10dp"
-            android:background="@android:drawable/edit_text" />
+            android:orientation="vertical"
+            android:background="@drawable/search_background"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
 
-        <!-- Button -->
-        <Button
-            android:id="@+id/btnSaveProgress"
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Chi tiêu theo danh mục"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurface"
+                android:layout_marginBottom="10dp" />
+
+            <LinearLayout
+                android:id="@+id/categoryContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </LinearLayout>
+
+        <!-- ================= CARD NHẬP TIỀN TIẾT KIỆM ================= -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="CẬP NHẬT TIẾN ĐỘ TIẾT KIỆM"
-            android:textStyle="bold"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#FF4081"
-            android:layout_marginTop="20dp"
-            android:padding="14dp" />
+            android:orientation="vertical"
+            android:background="@drawable/search_background"
+            android:padding="16dp"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nhập số tiền tiết kiệm thêm"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurface"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <EditText
+                    android:id="@+id/inputSavedMoney"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Ví dụ: 500000"
+                    android:inputType="number"
+                    android:padding="12dp"
+                    android:background="@drawable/search_background"
+                    android:layout_marginEnd="8dp" />
+
+                <Button
+                    android:id="@+id/btnSaveProgress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:text="Cập nhật"
+                    android:textAllCaps="false"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/white"
+                    android:background="@drawable/bg_button_rounded" />
+            </LinearLayout>
+        </LinearLayout>
 
     </LinearLayout>
-
 </ScrollView>

@@ -26,7 +26,7 @@ public class SavingGoalAdapter extends RecyclerView.Adapter<SavingGoalAdapter.Vi
     public interface OnGoalClickListener {
         void onGoalClick(SavingGoal goal);
     }
-    
+
     public interface OnGoalDeleteListener {
         void onGoalDelete(SavingGoal goal);
     }
@@ -38,7 +38,7 @@ public class SavingGoalAdapter extends RecyclerView.Adapter<SavingGoalAdapter.Vi
     public SavingGoalAdapter(List<SavingGoal> goals, OnGoalClickListener listener) {
         this(goals, listener, null);
     }
-    
+
     public SavingGoalAdapter(List<SavingGoal> goals, OnGoalClickListener listener, OnGoalDeleteListener deleteListener) {
         this.goals = goals;
         this.listener = listener;
@@ -89,7 +89,7 @@ public class SavingGoalAdapter extends RecyclerView.Adapter<SavingGoalAdapter.Vi
                 listener.onGoalClick(goal);
             }
         });
-        
+
         // ===== DELETE BUTTON =====
         if (holder.btnDelete != null) {
             holder.btnDelete.setOnClickListener(v -> {
@@ -123,7 +123,6 @@ public class SavingGoalAdapter extends RecyclerView.Adapter<SavingGoalAdapter.Vi
             tvLastUpdate = itemView.findViewById(R.id.tvLastUpdate);
             tvPercent = itemView.findViewById(R.id.tvPercent);
             progressCircle = itemView.findViewById(R.id.progressCircle);
-            btnDelete = itemView.findViewById(R.id.btnDeleteGoal);
         }
     }
 }

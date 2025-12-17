@@ -1,27 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+
+    <!-- ============================= -->
+    <!-- LIGHT THEME -->
+    <!-- ============================= -->
     <style name="Theme.MyMoney" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
+
+        <!-- Primary colors -->
         <item name="colorPrimary">@color/primary_pink</item>
         <item name="colorPrimaryVariant">@color/light_pink</item>
         <item name="colorOnPrimary">@color/white</item>
+
+        <!-- Secondary -->
         <item name="colorSecondary">@color/soft_pink</item>
         <item name="colorOnSecondary">@color/text_primary</item>
+
+        <!-- Background & Surface -->
         <item name="android:colorBackground">@color/background</item>
         <item name="colorSurface">@color/white</item>
         <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorOnBackground">@color/text_primary</item>
+
+        <!-- System bars -->
         <item name="android:statusBarColor">@color/light_pink</item>
         <item name="android:navigationBarColor">@color/soft_pink</item>
         <item name="android:windowLightStatusBar">true</item>
 
     </style>
-    
-    <!-- Full screen dialog style -->
+
+    <!-- ============================= -->
+    <!-- FULL SCREEN DIALOG - LIGHT -->
+    <!-- ============================= -->
     <style name="FullScreenDialog" parent="Theme.MaterialComponents.DayNight.Dialog">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowIsFloating">false</item>
+
         <item name="android:windowBackground">@color/background</item>
         <item name="colorPrimary">@color/primary_pink</item>
+        <item name="colorOnPrimary">@color/white</item>
     </style>
+
 </resources>

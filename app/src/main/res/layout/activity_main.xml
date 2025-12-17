@@ -2,8 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@drawable/back2_copy">
+    android:layout_height="match_parent">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -14,7 +13,7 @@
             android:layout_height="wrap_content"
             android:paddingBottom="80dp">
 
-            <!-- Period Selector -->
+            <!-- ================= PERIOD SELECTOR ================= -->
             <HorizontalScrollView
                 android:id="@+id/period_selector_container"
                 android:layout_width="match_parent"
@@ -30,8 +29,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="16dp"
-                    android:gravity="center">
+                    android:paddingHorizontal="16dp">
 
                     <TextView
                         android:id="@+id/period_today"
@@ -39,9 +37,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/period_today"
                         android:textSize="12sp"
-                        android:paddingHorizontal="16dp"
-                        android:paddingVertical="8dp"
-                        android:layout_marginEnd="8dp"
+                        android:padding="8dp"
                         android:background="@drawable/period_selector_bg"
                         android:textColor="@color/gray_text" />
 
@@ -51,9 +47,8 @@
                         android:layout_height="wrap_content"
                         android:text="@string/period_this_week"
                         android:textSize="12sp"
-                        android:paddingHorizontal="16dp"
-                        android:paddingVertical="8dp"
-                        android:layout_marginEnd="8dp"
+                        android:padding="8dp"
+                        android:layout_marginStart="8dp"
                         android:background="@drawable/period_selector_bg"
                         android:textColor="@color/gray_text" />
 
@@ -63,9 +58,8 @@
                         android:layout_height="wrap_content"
                         android:text="@string/period_this_month"
                         android:textSize="12sp"
-                        android:paddingHorizontal="16dp"
-                        android:paddingVertical="8dp"
-                        android:layout_marginEnd="8dp"
+                        android:padding="8dp"
+                        android:layout_marginStart="8dp"
                         android:background="@drawable/period_selector_bg_selected"
                         android:textColor="@color/white" />
 
@@ -75,9 +69,8 @@
                         android:layout_height="wrap_content"
                         android:text="@string/period_this_year"
                         android:textSize="12sp"
-                        android:paddingHorizontal="16dp"
-                        android:paddingVertical="8dp"
-                        android:layout_marginEnd="8dp"
+                        android:padding="8dp"
+                        android:layout_marginStart="8dp"
                         android:background="@drawable/period_selector_bg"
                         android:textColor="@color/gray_text" />
 
@@ -85,171 +78,199 @@
                         android:id="@+id/period_custom"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/period_custom"
+                        android:text="Tuỳ chọn"
                         android:textSize="12sp"
-                        android:paddingHorizontal="16dp"
-                        android:paddingVertical="8dp"
+                        android:padding="8dp"
+                        android:layout_marginStart="8dp"
                         android:background="@drawable/period_selector_bg"
-                        android:textColor="@color/gray_text"
-                        android:drawableEnd="@drawable/ic_calendar_small"
-                        android:drawablePadding="4dp" />
-
+                        android:textColor="@color/gray_text" />
                 </LinearLayout>
-
             </HorizontalScrollView>
 
-            <!-- Balance Circle Container with Half-Doughnut Chart -->
-        <RelativeLayout
-            android:id="@+id/balance_container"
-            android:layout_width="220dp"
-            android:layout_height="140dp"
-            android:layout_marginTop="8dp"
-            app:layout_constraintTop_toBottomOf="@id/period_selector_container"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-
-        <!-- Half-Doughnut Chart -->
-        <com.example.mymoney.view.HalfDoughnutChartView
-            android:id="@+id/half_doughnut_chart"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_centerHorizontal="true" />
-
-        <!-- Balance Content -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginBottom="16dp"
-            android:orientation="vertical"
-            android:gravity="center">
-
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- ================= OVERVIEW ================= -->
+            <LinearLayout
+                android:id="@+id/overview_container"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/total_balance"
-                android:textSize="11sp"
-                android:textColor="@color/gray_text" />
+                android:orientation="horizontal"
+                android:padding="25dp"
+                android:layout_marginTop="12dp"
+                app:layout_constraintTop_toBottomOf="@id/period_selector_container">
 
-            <TextView
-                android:id="@+id/balance_amount"
-                android:layout_width="wrap_content"
+                <!-- ===== LEFT: BALANCE ===== -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="140dp"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:background="@drawable/search_background"
+                    android:layout_marginEnd="8dp">
+
+                    <TextView
+                        android:id="@+id/balance_amount"
+                        android:text="0 VND"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorOnSurface"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
+                        android:id="@+id/expenses_amount"
+                        android:text="-0 VND"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/red_expense"
+                        android:layout_marginTop="8dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
+                        android:id="@+id/incomes_amount"
+                        android:text="+0 VND"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary_green"
+                        android:layout_marginTop="4dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+
+                <!-- ===== RIGHT: SAVING GOALS ===== -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="140dp"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:background="@drawable/search_background"
+                    android:layout_marginStart="8dp">
+
+                    <TextView
+                        android:id="@+id/tv_no_saving_goal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Không có kế hoạch tiết kiệm"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/gray_text"
+                        android:visibility="gone"
+                        android:layout_marginBottom="8dp"/>
+
+
+                    <!-- GOAL 1 -->
+                    <LinearLayout
+                        android:id="@+id/layoutGoal1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <FrameLayout
+                            android:id="@+id/layoutGoal1Circle"
+                            android:layout_width="42dp"
+                            android:layout_height="42dp">
+
+                            <ProgressBar
+                                android:id="@+id/progress_goal_1"
+                                style="?android:attr/progressBarStyleLarge"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:max="100"
+                                android:indeterminateOnly="false"
+                                android:progress="45"
+                                android:progressDrawable="@drawable/circle_progress"/>
+
+                            <TextView
+                                android:id="@+id/tv_goal_percent_1"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:gravity="center"
+                                android:text="45%"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                android:textColor="#FF4081"/>
+                        </FrameLayout>
+
+                        <TextView
+                            android:id="@+id/tv_goal_name_1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Mục tiêu"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textSize="15sp"
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-medium"
+                            android:layout_marginStart="8dp" />
+
+                    </LinearLayout>
+
+                    <!-- GOAL 2 (ĐÃ CÓ ID) -->
+                    <LinearLayout
+                        android:id="@+id/layout_goal_2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <FrameLayout
+                            android:layout_width="48dp"
+                            android:layout_height="48dp">
+
+                            <ProgressBar
+                                android:id="@+id/progress_goal_2"
+                                style="?android:attr/progressBarStyleLarge"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:max="100"
+                                android:indeterminateOnly="false"
+                                android:progress="45"
+                                android:progressDrawable="@drawable/circle_progress"/>
+
+                            <TextView
+                                android:id="@+id/tv_goal_percent_2"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:gravity="center"
+                                android:text="45%"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                android:textColor="#FF4081"/>
+                        </FrameLayout>
+
+                        <TextView
+                            android:id="@+id/tv_goal_name_2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Mục tiêu"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textSize="15sp"
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-medium"
+                            android:layout_marginStart="8dp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- TRANSACTIONS -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recent_transactions_recycler_view"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="@string/balance_amount"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="@color/black"
-                android:layout_marginTop="2dp" />
-
-            <TextView
-                android:id="@+id/balance_date"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/date"
-                android:textSize="10sp"
-                android:textColor="@color/gray_text"
-                android:layout_marginTop="2dp" />
-
-        </LinearLayout>
-
-    </RelativeLayout>
-
-    <!-- Income/Expense Summary -->
-    <LinearLayout
-        android:id="@+id/summary_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:baselineAligned="false"
-        android:orientation="horizontal"
-        android:layout_marginTop="12dp"
-        android:paddingHorizontal="32dp"
-        app:layout_constraintTop_toBottomOf="@id/balance_container"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
-
-            <TextView
-                android:id="@+id/expenses_amount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="-7.000.000 VND"
-                android:textSize="15sp"
-                android:textColor="@color/red_expense"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/expenses"
-                android:textSize="12sp"
-                android:textColor="@color/gray_text"
-                android:layout_marginTop="2dp" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
-
-            <TextView
-                android:id="@+id/incomes_amount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="+ 3.000.000 VND"
-                android:textSize="15sp"
-                android:textColor="@color/primary_green"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/incomes"
-                android:textSize="12sp"
-                android:textColor="@color/gray_text"
-                android:layout_marginTop="2dp" />
-
-        </LinearLayout>
-
-    </LinearLayout>
-
-    <!-- Divider -->
-    <View
-        android:id="@+id/divider"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginTop="12dp"
-        android:background="@color/light_gray"
-        app:layout_constraintTop_toBottomOf="@id/summary_layout"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-
-    <!-- Recent Transactions List -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recent_transactions_recycler_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="16dp"
-        android:paddingHorizontal="8dp"
-        android:nestedScrollingEnabled="false"
-        app:layout_constraintTop_toBottomOf="@id/summary_layout"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+                android:layout_marginTop="20dp"
+                android:paddingHorizontal="20dp"
+                android:nestedScrollingEnabled="false"
+                app:layout_constraintTop_toBottomOf="@id/overview_container"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
-
     </ScrollView>
 
     <!-- Floating Action Button for Import -->

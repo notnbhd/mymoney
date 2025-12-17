@@ -11,6 +11,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
+import com.example.mymoney.account.RegisterActivity;
 import com.example.mymoney.database.AppDatabase;
 import com.example.mymoney.database.entity.User;
 

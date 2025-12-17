@@ -61,7 +61,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         ChatMessage message = chatMessages.get(position);
-        
+
         if (holder instanceof UserMessageViewHolder) {
             ((UserMessageViewHolder) holder).bind(message);
         } else if (holder instanceof BotMessageViewHolder) {
@@ -91,11 +91,11 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         chatMessages.clear();
         notifyDataSetChanged();
     }
-    
+
     public List<ChatMessage> getAllMessages() {
         return new ArrayList<>(chatMessages);
     }
-    
+
     public void setMessages(List<ChatMessage> messages) {
         chatMessages.clear();
         chatMessages.addAll(messages);
@@ -127,7 +127,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             CharSequence formattedText = parseMarkdownBold(message.getMessage());
             messageText.setText(formattedText);
         }
-        
+
         /**
          * Parse markdown bold syntax (**text**) and convert to SpannableString with bold style
          */
@@ -135,30 +135,30 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             if (text == null || !text.contains("**")) {
                 return text;
             }
-            
+
             SpannableStringBuilder builder = new SpannableStringBuilder();
             Pattern pattern = Pattern.compile("\\*\\*(.+?)\\*\\*");
             Matcher matcher = pattern.matcher(text);
-            
+
             int lastEnd = 0;
             while (matcher.find()) {
                 // Add text before the match
                 builder.append(text.substring(lastEnd, matcher.start()));
-                
+
                 // Add bold text (without the **)
                 String boldText = matcher.group(1);
                 int start = builder.length();
                 builder.append(boldText);
                 builder.setSpan(new StyleSpan(Typeface.BOLD), start, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                
+
                 lastEnd = matcher.end();
             }
-            
+
             // Add remaining text after last match
             if (lastEnd < text.length()) {
                 builder.append(text.substring(lastEnd));
             }
-            
+
             return builder;
         }
     }

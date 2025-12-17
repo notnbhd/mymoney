@@ -68,28 +68,6 @@
                     app:tint="@color/text_primary" />
             </LinearLayout>
 
-            <!-- 🧾 Scan -->
-            <LinearLayout
-                android:id="@+id/btnScan"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:padding="16dp"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/transaction_item_background"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?android:attr/selectableItemBackground">
-
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_receipt"
-                    android:layout_marginBottom="8dp"
-                    app:tint="@color/text_primary" />
-            </LinearLayout>
         </LinearLayout>
 
         <!-- 🔹 Transaction Form -->
@@ -248,15 +226,14 @@
                     android:textColor="@color/text_primary" />
             </LinearLayout>
 
-            <!-- Repeat Section - Hidden -->
+            <!-- Repeat Section -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"
-                android:visibility="gone">
+                android:layout_marginBottom="8dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -291,7 +268,7 @@
                 </RadioGroup>
             </LinearLayout>
 
-            <!-- Recurring Section - Hidden -->
+            <!-- Recurring Section -->
             <LinearLayout
                 android:id="@+id/recurring_section"
                 android:layout_width="match_parent"

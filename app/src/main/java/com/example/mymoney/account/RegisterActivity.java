@@ -1,4 +1,4 @@
-package com.example.mymoney;
+package com.example.mymoney.account;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -12,6 +12,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.mymoney.LoginActivity;
+import com.example.mymoney.R;
 import com.example.mymoney.database.AppDatabase;
 import com.example.mymoney.database.entity.User;
 

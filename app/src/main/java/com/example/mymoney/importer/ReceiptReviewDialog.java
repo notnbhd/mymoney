@@ -112,7 +112,7 @@ public class ReceiptReviewDialog extends DialogFragment {
         initViews(view);
         setupListeners();
         loadCategories();
-        
+
         if (pendingReceipts != null && !pendingReceipts.isEmpty()) {
             displayReceipt(currentIndex);
         } else {
@@ -172,7 +172,7 @@ public class ReceiptReviewDialog extends DialogFragment {
             try {
                 AppDatabase db = AppDatabase.getInstance(requireContext());
                 availableCategories = db.categoryDao().getAllExpenseCategories();
-                
+
                 if (!availableCategories.isEmpty() && getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         if (selectedCategory == null) {
@@ -194,9 +194,9 @@ public class ReceiptReviewDialog extends DialogFragment {
         }
 
         PendingReceipt receipt = pendingReceipts.get(index);
-        
+
         // Update counter
-        tvCounter.setText(String.format(Locale.getDefault(), 
+        tvCounter.setText(String.format(Locale.getDefault(),
                 "Receipt %d of %d", index + 1, pendingReceipts.size()));
 
         // Update button text
@@ -307,7 +307,7 @@ public class ReceiptReviewDialog extends DialogFragment {
             } catch (ParseException ignored) {
             }
         }
-        
+
         // If all formats fail, use current date
         selectedDate = Calendar.getInstance();
     }
@@ -454,7 +454,7 @@ public class ReceiptReviewDialog extends DialogFragment {
         }
 
         PendingReceipt receipt = pendingReceipts.get(currentIndex);
-        
+
         if (listener != null) {
             listener.onReceiptDiscarded(receipt);
         }

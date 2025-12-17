@@ -1,4 +1,4 @@
-package com.example.mymoney;
+package com.example.mymoney.savingGoal;
 
 import static com.example.mymoney.MainActivity.getCurrentUserId;
 
@@ -13,7 +13,7 @@ import com.example.mymoney.database.dao.TransactionDao;
 import java.util.HashSet;
 import java.util.Set;
 
-public class BudgetChecker {
+public class SavingGoalChecker {
 
     public static void checkAllGoalsBackground(Context context, String category, double amount) {
         new Thread(() -> checkAllGoals(context, category, amount)).start();
@@ -28,54 +28,41 @@ public class BudgetChecker {
         if (set == null || set.isEmpty()) return;
 
         TransactionDao dao = AppDatabase.getInstance(context).transactionDao();
+        boolean warned = false;
+
 
         for (String item : set) {
+
+            if (warned) break; // ⛔ đã cảnh báo thì dừng luôn
+
             String[] arr = item.split("\\|");
             if (arr.length < 1) continue;
 
             String goalName = arr[0].trim();
             String type = (arr.length > 3 && arr[3] != null) ? arr[3].trim() : "manual";
 
+            long limit = prefs.getLong(goalName + "_limit_" + category, 0);
+            if (limit <= 0) continue;
+
+            long start = prefs.getLong(goalName + "_start", -1);
+            if (start <= 0) continue;
+
+            double spent;
+
             if ("manual".equals(type)) {
-
-                // ✅ KEY LIMIT ĐÚNG
-                long limit = prefs.getLong(goalName + "_limit_" + category, 0);
-
-                // ✅ Không check nếu chưa đặt limit
-                if (limit <= 0) continue;
-
-                // ✅ Lấy startTime của goal
-                long start = prefs.getLong(goalName + "_start", -1);
-                if (start <= 0) continue;
-
-                // ✅ Tính spent từ lúc bắt đầu tiết kiệm (DAO đúng)
-                double spent = dao.getTotalExpenseByCategorySince(category, start);
-
-                long newTotal = Math.round(spent + amount);
-
-                if (newTotal > limit) {
-                    showWarningOnUI(context, goalName, category, newTotal, limit);
-                }
-
+                spent = dao.getTotalExpenseByCategorySince(category, start);
+                // ❌ KHÔNG + amount nữa
             } else {
-                // ✅ limit theo danh mục (auto mode bạn vẫn đang lưu _limit_Food,...)
-                long limit = prefs.getLong(goalName + "_limit_" + category, 0);
-                if (limit <= 0) continue;
-
-                long start = prefs.getLong(goalName + "_start", -1);
-                if (start <= 0) continue;
-
-                // ✅ spent theo danh mục, từ lúc start (NHỚ lọc userId)
                 int userId = getCurrentUserId();
-                double spent = dao.getTotalExpenseByCategorySinceForUser(category, start, userId);
-
-                long newTotal = Math.round(spent); // ✅ KHÔNG + amount nếu đã insert vào DB
-                if (newTotal > limit) {
-                    showWarningOnUI(context, goalName, category, newTotal, limit);
-                }
+                spent = dao.getTotalExpenseByCategorySinceForUser(category, start, userId);
             }
 
+            if (spent > limit) {
+                warned = true;
+                showWarningOnUI(context, goalName, category, Math.round(spent), limit);
+            }
         }
+
     }
 
     private static void showWarningOnUI(Context context, String goalName,

@@ -2,7 +2,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:padding="20dp"
-    android:background="@drawable/border_dialog_pink"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
@@ -21,7 +20,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="15dp"
-        android:background="@drawable/rounded_option"
+        android:background="@drawable/search_background"
         android:orientation="vertical"
         android:layout_marginBottom="15dp">
 
@@ -37,6 +36,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Bạn sẽ tự nhập các giới hạn"
+            android:textColor="?attr/colorOnSurface"
             android:layout_marginTop="4dp"/>
     </LinearLayout>
 
@@ -46,7 +46,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="15dp"
-        android:background="@drawable/rounded_option"
+        android:background="@drawable/search_background"
         android:orientation="vertical">
 
         <TextView
@@ -61,6 +61,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="App tự tính giới hạn dựa trên lịch sử chi tiêu"
+            android:textColor="?attr/colorOnSurface"
             android:layout_marginTop="4dp"/>
     </LinearLayout>
 

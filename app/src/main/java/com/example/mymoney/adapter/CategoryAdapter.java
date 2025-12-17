@@ -72,10 +72,10 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
 
         public void bind(Category category) {
             categoryName.setText(category.getName());
-            
+
             // Set icon based on category name
             setCategoryIcon(category.getName());
-            
+
             // Show check icon if this category is selected
             if (category.getId() == selectedCategoryId) {
                 checkIcon.setVisibility(View.VISIBLE);

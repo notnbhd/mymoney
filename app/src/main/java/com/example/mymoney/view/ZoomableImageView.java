@@ -62,7 +62,7 @@ public class ZoomableImageView extends AppCompatImageView {
 
     private void init(Context context) {
         setScaleType(ScaleType.MATRIX);
-        
+
         scaleDetector = new ScaleGestureDetector(context, new ScaleListener());
         gestureDetector = new GestureDetector(context, new GestureListener());
     }
@@ -159,17 +159,17 @@ public class ZoomableImageView extends AppCompatImageView {
                     if (newDist > 10f) {
                         matrix.set(savedMatrix);
                         float scale = newDist / oldDist;
-                        
+
                         // Constrain scale
                         float currentScaleFromMatrix = getCurrentScale();
                         float targetScale = currentScaleFromMatrix * scale;
-                        
+
                         if (targetScale < MIN_SCALE) {
                             scale = MIN_SCALE / currentScaleFromMatrix;
                         } else if (targetScale > MAX_SCALE) {
                             scale = MAX_SCALE / currentScaleFromMatrix;
                         }
-                        
+
                         matrix.postScale(scale, scale, mid.x, mid.y);
                         constrainTranslation();
                     }

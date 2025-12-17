@@ -1,4 +1,4 @@
-package com.example.mymoney;
+package com.example.mymoney.notification;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
+
+import com.example.mymoney.notification.ReminderReceiver;
 
 import java.util.Calendar;
 

@@ -1,35 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- ============================= -->
+    <!-- DARK THEME -->
+    <!-- ============================= -->
     <style name="Theme.MyMoney" parent="Theme.MaterialComponents.DayNight.NoActionBar">
 
-        <!-- Màu chính tối -->
+        <!-- Primary colors -->
         <item name="colorPrimary">@color/primary_green</item>
         <item name="colorPrimaryVariant">@color/primary_dark</item>
         <item name="colorOnPrimary">@android:color/white</item>
 
-        <!-- Nền tổng thể -->
-        <item name="android:windowBackground">@color/black</item>
+        <!-- Background & Surface -->
         <item name="android:colorBackground">@color/background_dark</item>
-
-        <!-- Màu surface (khung, card, biểu đồ, thanh chọn, v.v.) -->
         <item name="colorSurface">@color/surface_dark</item>
 
-        <!-- Text -->
-        <item name="android:textColor">@color/text_primary_dark</item>
-        <item name="android:textColorHint">@color/text_secondary_dark</item>
+        <!-- Text colors -->
+        <item name="colorOnSurface">@color/text_primary_dark</item>
+        <item name="colorOnBackground">@color/text_primary_dark</item>
 
-        <!-- Giữ icon màu gốc -->
-        <item name="colorControlNormal">@null</item>
-        <item name="android:tint">@null</item>
+        <!-- System bars -->
+        <item name="android:statusBarColor">@color/background_dark</item>
+        <item name="android:navigationBarColor">@color/background_dark</item>
+        <item name="android:windowLightStatusBar">false</item>
+
     </style>
-    
-    <!-- Full screen dialog style (night mode) -->
+
+    <!-- ============================= -->
+    <!-- FULL SCREEN DIALOG - DARK -->
+    <!-- ============================= -->
     <style name="FullScreenDialog" parent="Theme.MaterialComponents.DayNight.Dialog">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowIsFloating">false</item>
+
         <item name="android:windowBackground">@color/background_dark</item>
         <item name="colorPrimary">@color/primary_green</item>
+        <item name="colorOnPrimary">@android:color/white</item>
     </style>
 
 </resources>

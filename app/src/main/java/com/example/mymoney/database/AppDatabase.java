@@ -125,22 +125,22 @@ public abstract class AppDatabase extends RoomDatabase {
 
         // Create expense categories with icons
         String[][] expenseCategories = {
-            {"Food", "ic_food"},
-            {"Home", "ic_home"},
-            {"Transport", "ic_transport"},
-            {"Relationship", "ic_love"},
-            {"Entertainment", "ic_entertainment"},
-            {"Medical", "ic_medical"},
-            {"Tax", "tax_accountant_fee_svgrepo_com"},
-            {"Gym & Fitness", "ic_gym"},
-            {"Beauty", "ic_beauty"},
-            {"Clothing", "ic_clothing"},
-            {"Education", "ic_education"},
-            {"Childcare", "ic_childcare"},
-            {"Groceries", "ic_groceries"},
-            {"Others", "ic_more_apps"}
+                {"Food", "ic_food"},
+                {"Home", "ic_home"},
+                {"Transport", "ic_transport"},
+                {"Relationship", "ic_love"},
+                {"Entertainment", "ic_entertainment"},
+                {"Medical", "ic_medical"},
+                {"Tax", "tax_accountant_fee_svgrepo_com"},
+                {"Gym & Fitness", "ic_gym"},
+                {"Beauty", "ic_beauty"},
+                {"Clothing", "ic_clothing"},
+                {"Education", "ic_education"},
+                {"Childcare", "ic_childcare"},
+                {"Groceries", "ic_groceries"},
+                {"Others", "ic_more_apps"}
         };
-        
+
         for (String[] categoryData : expenseCategories) {
             Category category = new Category();
             category.setName(categoryData[0]);
@@ -151,15 +151,15 @@ public abstract class AppDatabase extends RoomDatabase {
             long categoryId = db.categoryDao().insert(category);
             android.util.Log.d("AppDatabase", "Default expense category created: " + categoryData[0] + " with ID: " + categoryId);
         }
-        
+
         // Create income categories with icons
         String[][] incomeCategories = {
-            {"Salary", "ic_salary"},
-            {"Business", "ic_work"},
-            {"Gifts", "ic_gift"},
-            {"Others", "ic_more_apps"}
+                {"Salary", "ic_salary"},
+                {"Business", "ic_work"},
+                {"Gifts", "ic_gift"},
+                {"Others", "ic_more_apps"}
         };
-        
+
         for (String[] categoryData : incomeCategories) {
             Category category = new Category();
             category.setName(categoryData[0]);
@@ -189,25 +189,25 @@ public abstract class AppDatabase extends RoomDatabase {
                 defaultWallet.setActive(true);
                 db.walletDao().insert(defaultWallet);
             }
-            
+
             // Create expense categories with icons
             String[][] expenseCategories = {
-                {"Food", "ic_food"},
-                {"Home", "ic_home"},
-                {"Transport", "ic_transport"},
-                {"Relationship", "ic_love"},
-                {"Entertainment", "ic_entertainment"},
-                {"Medical", "ic_medical"},
-                {"Tax", "tax_accountant_fee_svgrepo_com"},
-                {"Gym & Fitness", "ic_gym"},
-                {"Beauty", "ic_beauty"},
-                {"Clothing", "ic_clothing"},
-                {"Education", "ic_education"},
-                {"Childcare", "ic_childcare"},
-                {"Groceries", "ic_groceries"},
-                {"Others", "ic_more_apps"}
+                    {"Food", "ic_food"},
+                    {"Home", "ic_home"},
+                    {"Transport", "ic_transport"},
+                    {"Relationship", "ic_love"},
+                    {"Entertainment", "ic_entertainment"},
+                    {"Medical", "ic_medical"},
+                    {"Tax", "tax_accountant_fee_svgrepo_com"},
+                    {"Gym & Fitness", "ic_gym"},
+                    {"Beauty", "ic_beauty"},
+                    {"Clothing", "ic_clothing"},
+                    {"Education", "ic_education"},
+                    {"Childcare", "ic_childcare"},
+                    {"Groceries", "ic_groceries"},
+                    {"Others", "ic_more_apps"}
             };
-            
+
             for (String[] categoryData : expenseCategories) {
                 Category category = new Category();
                 category.setName(categoryData[0]);
@@ -218,15 +218,15 @@ public abstract class AppDatabase extends RoomDatabase {
                 long categoryId = db.categoryDao().insert(category);
                 android.util.Log.d("AppDatabase", "Default expense category ensured: " + categoryData[0] + " with ID: " + categoryId);
             }
-            
+
             // Create income categories with icons
             String[][] incomeCategories = {
-                {"Salary", "ic_salary"},
-                {"Business", "ic_work"},
-                {"Gifts", "ic_gift"},
-                {"Others", "ic_more_apps"}
+                    {"Salary", "ic_salary"},
+                    {"Business", "ic_work"},
+                    {"Gifts", "ic_gift"},
+                    {"Others", "ic_more_apps"}
             };
-            
+
             for (String[] categoryData : incomeCategories) {
                 Category category = new Category();
                 category.setName(categoryData[0]);
@@ -240,4 +240,3 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     }
 }
-

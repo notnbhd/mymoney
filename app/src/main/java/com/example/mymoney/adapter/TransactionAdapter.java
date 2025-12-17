@@ -78,7 +78,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             new Thread(() -> {
                 try {
                     Category category = database.categoryDao().getCategoryById(transaction.getCategoryId());
-                    
+
                     // Update UI on main thread
                     itemView.post(() -> {
                         if (category != null) {
@@ -93,15 +93,15 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
                     e.printStackTrace();
                 }
             }).start();
-            
+
             // Format date and description - show full date for history
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
             String dateStr = sdf.format(new Date(transaction.getCreatedAt()));
             transactionDetails.setText(dateStr);
-            
+
             // Get currency from MainActivity
             String currency = com.example.mymoney.MainActivity.getSelectedWalletCurrency();
-            
+
             // Format amount with 2 decimal places
             String amountStr;
             int textColor;
@@ -114,7 +114,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             }
             transactionAmount.setText(amountStr);
             transactionAmount.setTextColor(textColor);
-            
+
             // Set click listener
             itemView.setOnClickListener(v -> {
                 if (listener != null) {

@@ -94,7 +94,7 @@ public class BudgetDetailFragment extends Fragment {
     private void loadBudgetData(int budgetId) {
         Executors.newSingleThreadExecutor().execute(() -> {
             currentBudget = budgetDao.getBudgetById(budgetId);
-            
+
             requireActivity().runOnUiThread(() -> {
                 if (currentBudget != null) {
                     displayBudgetInfo();
@@ -108,10 +108,10 @@ public class BudgetDetailFragment extends Fragment {
     private void displayBudgetInfo() {
         tvBudgetName.setText(currentBudget.getName());
         tvPeriodType.setText(capitalizeFirst(currentBudget.getBudgetType()));
-        
+
         String totalPeriod = "Total Period:" + currentBudget.getStartDate() + "~Permanent";
         tvTotalPeriod.setText(totalPeriod);
-        
+
         if (currentBudget.getCategoryId() == null) {
             tvGlobalBudget.setText("Global B... 🔔");
             tvGlobalBudget.setVisibility(View.VISIBLE);
@@ -125,7 +125,7 @@ public class BudgetDetailFragment extends Fragment {
         currentPeriodEnd = Calendar.getInstance();
 
         String budgetType = currentBudget.getBudgetType();
-        
+
         switch (budgetType) {
             case "daily":
                 // Same day
@@ -136,13 +136,13 @@ public class BudgetDetailFragment extends Fragment {
                 break;
             case "monthly":
                 currentPeriodStart.set(Calendar.DAY_OF_MONTH, 1);
-                currentPeriodEnd.set(Calendar.DAY_OF_MONTH, 
-                    currentPeriodEnd.getActualMaximum(Calendar.DAY_OF_MONTH));
+                currentPeriodEnd.set(Calendar.DAY_OF_MONTH,
+                        currentPeriodEnd.getActualMaximum(Calendar.DAY_OF_MONTH));
                 break;
             case "yearly":
                 currentPeriodStart.set(Calendar.DAY_OF_YEAR, 1);
-                currentPeriodEnd.set(Calendar.DAY_OF_YEAR, 
-                    currentPeriodEnd.getActualMaximum(Calendar.DAY_OF_YEAR));
+                currentPeriodEnd.set(Calendar.DAY_OF_YEAR,
+                        currentPeriodEnd.getActualMaximum(Calendar.DAY_OF_YEAR));
                 break;
             case "custom":
                 // Use budget's start and end dates
@@ -153,7 +153,7 @@ public class BudgetDetailFragment extends Fragment {
 
     private void navigatePeriod(int direction) {
         String budgetType = currentBudget.getBudgetType();
-        
+
         switch (budgetType) {
             case "daily":
                 currentPeriodStart.add(Calendar.DAY_OF_MONTH, direction);
@@ -166,8 +166,8 @@ public class BudgetDetailFragment extends Fragment {
             case "monthly":
                 currentPeriodStart.add(Calendar.MONTH, direction);
                 currentPeriodEnd.add(Calendar.MONTH, direction);
-                currentPeriodEnd.set(Calendar.DAY_OF_MONTH, 
-                    currentPeriodEnd.getActualMaximum(Calendar.DAY_OF_MONTH));
+                currentPeriodEnd.set(Calendar.DAY_OF_MONTH,
+                        currentPeriodEnd.getActualMaximum(Calendar.DAY_OF_MONTH));
                 break;
             case "yearly":
                 currentPeriodStart.add(Calendar.YEAR, direction);
@@ -179,9 +179,9 @@ public class BudgetDetailFragment extends Fragment {
     }
 
     private void updatePeriodDisplay() {
-        String periodText = dateFormat.format(currentPeriodStart.getTime()) + 
-                           " - " + 
-                           dateFormat.format(currentPeriodEnd.getTime());
+        String periodText = dateFormat.format(currentPeriodStart.getTime()) +
+                " - " +
+                dateFormat.format(currentPeriodEnd.getTime());
         tvCurrentPeriod.setText(periodText);
 
         // Calculate days left
@@ -201,19 +201,19 @@ public class BudgetDetailFragment extends Fragment {
         Executors.newSingleThreadExecutor().execute(() -> {
             // TODO: Query transactions for current period
             double totalSpent = transactionDao.getTotalExpenseSince(startMillis);
-            
+
             requireActivity().runOnUiThread(() -> {
                 double budgetAmount = currentBudget.getBudgetAmount();
-                
+
                 // Update spent amount
                 tvSpentAmount.setText(df.format(totalSpent) + " / " + df.format(budgetAmount));
-                
+
                 // Calculate and update progress
                 int progress = budgetAmount > 0 ? (int) ((totalSpent / budgetAmount) * 100) : 0;
                 if (progress > 100) progress = 100;
                 progressCircular.setProgress(progress);
                 tvProgressPercentage.setText(progress + "%");
-                
+
                 // Calculate daily average
                 Calendar today = Calendar.getInstance();
                 long daysPassed = (today.getTimeInMillis() - startMillis) / (1000 * 60 * 60 * 24) + 1;

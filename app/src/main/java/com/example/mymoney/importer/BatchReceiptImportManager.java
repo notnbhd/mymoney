@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class BatchReceiptImportManager {
 
     private static final String TAG = "BatchReceiptImporter";
-    
+
     public interface BatchListener {
         void onProcessingStarted(int totalCount);
         void onReceiptProcessed(int index, PendingReceipt receipt);
@@ -58,7 +58,7 @@ public class BatchReceiptImportManager {
     private boolean pendingGalleryAfterPermission = false;
     private File pendingCameraFile;
     private Uri pendingCameraUri;
-    
+
     private List<PendingReceipt> pendingReceipts = new ArrayList<>();
     private List<File> cameraFiles = new ArrayList<>();
     private boolean isCapturingMultiple = false;
@@ -99,7 +99,7 @@ public class BatchReceiptImportManager {
                     if (Boolean.TRUE.equals(success) && pendingCameraFile != null) {
                         cameraFiles.add(pendingCameraFile);
                         pendingCameraFile = null;
-                        
+
                         if (isCapturingMultiple) {
                             // Ask user if they want to capture another
                             showContinueCaptureDialog(fragment);
@@ -122,7 +122,7 @@ public class BatchReceiptImportManager {
                         listener.onError("No images selected");
                         return;
                     }
-                    
+
                     List<File> files = new ArrayList<>();
                     for (Uri uri : uris) {
                         try {
@@ -132,17 +132,17 @@ public class BatchReceiptImportManager {
                             Log.e(TAG, "Failed to copy gallery image: " + uri, e);
                         }
                     }
-                    
+
                     if (files.isEmpty()) {
                         listener.onError("Unable to read selected images");
                         return;
                     }
-                    
+
                     processMultipleFiles(files);
                 }
         );
     }
-    
+
     private void showContinueCaptureDialog(Fragment fragment) {
         new androidx.appcompat.app.AlertDialog.Builder(context)
                 .setTitle("Add More Receipts?")
@@ -156,7 +156,7 @@ public class BatchReceiptImportManager {
     public void startCameraImport() {
         isCapturingMultiple = true;
         cameraFiles.clear();
-        
+
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
                 == PackageManager.PERMISSION_GRANTED) {
             openCamera();
@@ -164,11 +164,11 @@ public class BatchReceiptImportManager {
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
         }
     }
-    
+
     public void startSingleCameraImport() {
         isCapturingMultiple = false;
         cameraFiles.clear();
-        
+
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
                 == PackageManager.PERMISSION_GRANTED) {
             openCamera();
@@ -208,7 +208,7 @@ public class BatchReceiptImportManager {
     private void openMultipleGallery() {
         multipleGalleryLauncher.launch(new String[]{"image/*"});
     }
-    
+
     private void processAllFiles() {
         if (cameraFiles.isEmpty()) {
             listener.onError("No receipts captured");
@@ -217,24 +217,24 @@ public class BatchReceiptImportManager {
         processMultipleFiles(new ArrayList<>(cameraFiles));
         cameraFiles.clear();
     }
-    
+
     private void processMultipleFiles(List<File> files) {
         pendingReceipts.clear();
-        
+
         for (File file : files) {
             pendingReceipts.add(new PendingReceipt(file));
         }
-        
+
         listener.onProcessingStarted(files.size());
-        
+
         AtomicInteger processedCount = new AtomicInteger(0);
         int total = files.size();
-        
+
         for (int i = 0; i < pendingReceipts.size(); i++) {
             final int index = i;
             final PendingReceipt receipt = pendingReceipts.get(i);
             receipt.setProcessing(true);
-            
+
             executor.execute(() -> {
                 repository.processReceipt(receipt.getImageFile(), new ReceiptOcrRepository.ReceiptOcrCallback() {
                     @Override
@@ -242,10 +242,10 @@ public class BatchReceiptImportManager {
                         receipt.setData(data);
                         receipt.setProcessing(false);
                         receipt.setProcessed(true);
-                        
+
                         int completed = processedCount.incrementAndGet();
                         listener.onReceiptProcessed(index, receipt);
-                        
+
                         if (completed == total) {
                             listener.onAllProcessed(new ArrayList<>(pendingReceipts));
                         }
@@ -256,10 +256,10 @@ public class BatchReceiptImportManager {
                         receipt.setErrorMessage(message != null ? message : "Failed to process receipt");
                         receipt.setProcessing(false);
                         receipt.setProcessed(true);
-                        
+
                         int completed = processedCount.incrementAndGet();
                         listener.onReceiptProcessed(index, receipt);
-                        
+
                         if (completed == total) {
                             listener.onAllProcessed(new ArrayList<>(pendingReceipts));
                         }
@@ -320,7 +320,7 @@ public class BatchReceiptImportManager {
             }
         }
         pendingReceipts.clear();
-        
+
         for (File file : cameraFiles) {
             if (file != null && file.exists() && !file.delete()) {
                 Log.w(TAG, "Unable to delete camera file: " + file.getAbsolutePath());
@@ -335,7 +335,7 @@ public class BatchReceiptImportManager {
         }
         return Manifest.permission.READ_EXTERNAL_STORAGE;
     }
-    
+
     public void shutdown() {
         executor.shutdown();
     }

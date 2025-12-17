@@ -1,4 +1,4 @@
-package com.example.mymoney;
+package com.example.mymoney.savingGoal;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -21,6 +21,8 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.mymoney.MainActivity;
+import com.example.mymoney.R;
 import com.example.mymoney.adapter.SavingGoalAdapter;
 import com.example.mymoney.database.AppDatabase;
 import com.example.mymoney.database.dao.BudgetDao;
@@ -29,6 +31,9 @@ import com.example.mymoney.database.dao.SavingGoalDao;
 import com.example.mymoney.database.entity.Budget;
 import com.example.mymoney.database.entity.Category;
 import com.example.mymoney.model.SavingGoal;
+import com.example.mymoney.savingGoal.AutoSavingGoal;
+import com.example.mymoney.savingGoal.ManualSavingGoal;
+import com.example.mymoney.savingGoal.SavingHistoryFragment;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -76,7 +81,7 @@ public class SavingGoalFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_saving_goal, container, false);
-        
+
         // Initialize database
         database = AppDatabase.getInstance(requireContext());
         savingGoalDao = database.savingGoalDao();
@@ -98,9 +103,6 @@ public class SavingGoalFragment extends Fragment {
                 budgetPrefs.edit().putString("current_goal_name", goal.getName()).apply();
                 openBudgetFragmentFromList(goal);
             }
-        }, goal -> {
-            // Delete listener
-            showDeleteGoalConfirmDialog(goal);
         });
 
         recyclerSavingGoals.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -121,7 +123,7 @@ public class SavingGoalFragment extends Fragment {
     // ============================================================
     // DATABASE OPERATIONS
     // ============================================================
-    
+
     private void loadGoalsFromDatabase() {
         int userId = MainActivity.getCurrentUserId();
         int walletId = MainActivity.getSelectedWalletId();
@@ -129,7 +131,7 @@ public class SavingGoalFragment extends Fragment {
         Executors.newSingleThreadExecutor().execute(() -> {
             try {
                 List<com.example.mymoney.database.entity.SavingGoal> dbGoals;
-                
+
                 if (walletId > 0) {
                     dbGoals = savingGoalDao.getSavingGoalsByUserAndWallet(userId, walletId);
                 } else {
@@ -163,7 +165,7 @@ public class SavingGoalFragment extends Fragment {
             }
         });
     }
-    
+
     /**
      * Show confirmation dialog before deleting a saving goal
      */
@@ -175,7 +177,7 @@ public class SavingGoalFragment extends Fragment {
                 .setNegativeButton("Hủy", null)
                 .show();
     }
-    
+
     /**
      * Delete a saving goal from database and related data
      */
@@ -183,17 +185,17 @@ public class SavingGoalFragment extends Fragment {
         Executors.newSingleThreadExecutor().execute(() -> {
             try {
                 String goalName = goal.getName();
-                
+
                 // Delete related budgets (budgets named "goalName - categoryName")
                 budgetDao.deleteByNamePattern(goalName + " - %");
                 Log.d(TAG, "Deleted budgets for goal: " + goalName);
-                
+
                 // Delete from database
                 savingGoalDao.deleteById(goal.getId());
-                
+
                 // Clear related SharedPreferences data
                 SharedPreferences.Editor editor = budgetPrefs.edit();
-                
+
                 // Remove all prefs related to this goal
                 editor.remove(goalName + "_start");
                 editor.remove(goalName + "_target");
@@ -204,17 +206,17 @@ public class SavingGoalFragment extends Fragment {
                 editor.remove(goalName + "_savedManual");
                 editor.remove(goalName + "_summary");
                 editor.remove(goalName + "_isSaving");
-                
+
                 // Remove category limits
                 List<Category> categories = categoryDao.getAllExpenseCategories();
                 for (Category cat : categories) {
                     editor.remove(goalName + "_limit_" + cat.getName());
                 }
-                
+
                 editor.apply();
-                
+
                 Log.d(TAG, "Deleted goal: " + goalName);
-                
+
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         Toast.makeText(getContext(), "Đã xóa mục tiêu \"" + goalName + "\"", Toast.LENGTH_SHORT).show();
@@ -232,8 +234,8 @@ public class SavingGoalFragment extends Fragment {
         });
     }
 
-    private void saveGoalToDatabase(String name, long targetAmount, String type, 
-                                     Map<Integer, Long> categoryLimits, Runnable onComplete) {
+    private void saveGoalToDatabase(String name, long targetAmount, String type,
+                                    Map<Integer, Long> categoryLimits, Runnable onComplete) {
         int userId = MainActivity.getCurrentUserId();
         int walletId = MainActivity.getSelectedWalletId();
 
@@ -254,11 +256,11 @@ public class SavingGoalFragment extends Fragment {
                 dbGoal.setCategoryId(null);  // Saving goals don't require a category
                 dbGoal.setDescription(type); // Store type in description field
                 dbGoal.setStatus("active");
-                
+
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
                 String today = sdf.format(new Date());
                 dbGoal.setStartDate(today);
-                
+
                 // Calculate end date based on tempMonths
                 java.util.Calendar cal = java.util.Calendar.getInstance();
                 cal.add(java.util.Calendar.MONTH, tempMonths);
@@ -267,7 +269,7 @@ public class SavingGoalFragment extends Fragment {
 
                 long goalId = savingGoalDao.insert(dbGoal);
                 Log.d(TAG, "Saved goal with ID: " + goalId);
-                
+
                 // Create Budget entries for each category limit
                 if (categoryLimits != null && !categoryLimits.isEmpty()) {
                     int budgetCount = createBudgetsForGoal(userId, walletId, name, categoryLimits, today, endDate);
@@ -292,7 +294,7 @@ public class SavingGoalFragment extends Fragment {
             }
         });
     }
-    
+
     /**
      * Create Budget entries for each category based on the limits set by user or recommendation engine
      * Only creates budgets for categories with limit > 0
@@ -301,20 +303,20 @@ public class SavingGoalFragment extends Fragment {
                                      Map<Integer, Long> categoryLimits,
                                      String startDate, String endDate) {
         int count = 0;
-        
+
         for (Map.Entry<Integer, Long> entry : categoryLimits.entrySet()) {
             int categoryId = entry.getKey();
             long limitAmount = entry.getValue();
-            
+
             // Skip categories with 0 or negative limit
             if (limitAmount <= 0) {
                 continue;
             }
-            
+
             // Get category name for budget naming
             Category category = categoryDao.getCategoryById(categoryId);
             String categoryName = category != null ? category.getName() : "Category " + categoryId;
-            
+
             Budget budget = new Budget();
             budget.setUserId(userId);
             budget.setWalletId(walletId);
@@ -326,11 +328,11 @@ public class SavingGoalFragment extends Fragment {
             budget.setStartDate(startDate);
             budget.setEndDate(endDate);
             budget.setAlertThreshold(80.0);  // Default 80% alert threshold
-            
+
             budgetDao.insert(budget);
             count++;
         }
-        
+
         return count;
     }
 
@@ -550,7 +552,7 @@ public class SavingGoalFragment extends Fragment {
             // Save limits to SharedPreferences (only for categories that have limits)
             SharedPreferences.Editor editor = budgetPrefs.edit();
             long now = System.currentTimeMillis();
-            
+
             for (Category category : categories) {
                 Long limit = tempCategoryLimits.get(category.getId());
                 if (limit != null && limit > 0) {
@@ -602,7 +604,7 @@ public class SavingGoalFragment extends Fragment {
     // Open Progress Screen
     // ============================================================
     private void openProgressScreen(SavingGoal goal) {
-        Fragment fragment = SavingProgressFragment.newInstance(goal.getName(), goal.getTargetAmount());
+        Fragment fragment = ManualSavingGoal.newInstance(goal.getName(), goal.getTargetAmount());
         budgetPrefs.edit().putString("current_goal_name", goal.getName()).apply();
 
         getParentFragmentManager().beginTransaction()
@@ -625,7 +627,7 @@ public class SavingGoalFragment extends Fragment {
         // For auto mode, budgets will be created by the recommendation engine in BudgetFrag
         // Pass null for categoryLimits - the BudgetFrag will handle budget creation
         saveGoalToDatabase(tempGoalName, tempGoalAmount, "auto", null, () -> {
-            BudgetFrag fragment = BudgetFrag.newInstance(
+            AutoSavingGoal fragment = AutoSavingGoal.newInstance(
                     tempGoalName,
                     tempGoalAmount,
                     tempMonths,
@@ -644,7 +646,7 @@ public class SavingGoalFragment extends Fragment {
         long months = budgetPrefs.getLong(goal.getName() + "_months", 1);
         long income = budgetPrefs.getLong(goal.getName() + "_income", 0);
 
-        BudgetFrag fragment = BudgetFrag.newInstance(
+        AutoSavingGoal fragment = AutoSavingGoal.newInstance(
                 goal.getName(),
                 target,
                 months,
@@ -675,9 +677,9 @@ public class SavingGoalFragment extends Fragment {
 
         Executors.newSingleThreadExecutor().execute(() -> {
             try {
-                com.example.mymoney.database.entity.SavingGoal goal = 
+                com.example.mymoney.database.entity.SavingGoal goal =
                         db.savingGoalDao().getSavingGoalByName(userId, walletId, goalName);
-                
+
                 if (goal != null) {
                     goal.setCurrentAmount(newSaved);
                     goal.setUpdatedAt(System.currentTimeMillis());

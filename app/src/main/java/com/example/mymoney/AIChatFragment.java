@@ -55,35 +55,35 @@ public class AIChatFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        
+
         currentUserId = MainActivity.getCurrentUserId();
         currentWalletId = MainActivity.getSelectedWalletId();
-        
+
         // Initialize views
         chatRecyclerView = view.findViewById(R.id.chat_recycler_view);
         messageInput = view.findViewById(R.id.message_input);
         sendButton = view.findViewById(R.id.send_button);
-        
+
         // Setup RecyclerView with cached or new adapter
         setupChatAdapter();
         chatRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         chatRecyclerView.setAdapter(chatAdapter);
-        
+
         // Initialize chatbot service
         chatbotService = new ChatbotService(requireContext());
-        
+
         // Setup suggested questions
         setupSuggestedQuestions(view);
-        
+
         // Setup quick action chips
         setupQuickActions(view);
-        
+
         // Setup send button
         sendButton.setOnClickListener(v -> sendMessage());
-        
+
         // Setup keyboard visibility listener
         setupKeyboardListener(view);
-        
+
         // Setup input focus listener to scroll when keyboard appears
         messageInput.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) {
@@ -91,7 +91,7 @@ public class AIChatFragment extends Fragment {
                 view.postDelayed(() -> scrollToBottom(), 200);
             }
         });
-        
+
         // Add welcome message if this is a new chat
         if (chatAdapter.getItemCount() == 0) {
             addWelcomeMessage();
@@ -100,13 +100,13 @@ public class AIChatFragment extends Fragment {
             scrollToBottom();
         }
     }
-    
+
     /**
      * Setup chat adapter - either restore from cache or create new one
      */
     private void setupChatAdapter() {
         String cacheKey = getCacheKey();
-        
+
         if (chatHistoryCache.containsKey(cacheKey)) {
             // Restore existing chat history
             chatAdapter = chatHistoryCache.get(cacheKey);
@@ -116,14 +116,14 @@ public class AIChatFragment extends Fragment {
             chatHistoryCache.put(cacheKey, chatAdapter);
         }
     }
-    
+
     /**
      * Generate unique cache key for user+wallet combination
      */
     private String getCacheKey() {
         return "user_" + currentUserId + "_wallet_" + currentWalletId;
     }
-    
+
     /**
      * Public method to clear chat history for current wallet
      */
@@ -135,7 +135,7 @@ public class AIChatFragment extends Fragment {
             addWelcomeMessage();
         }
     }
-    
+
     /**
      * Static method to clear all chat history (for logout, etc.)
      */
@@ -143,18 +143,18 @@ public class AIChatFragment extends Fragment {
         chatHistoryCache.clear();
     }
 
-    
+
     private void setupSuggestedQuestions(View view) {
         suggestedQuestion1 = view.findViewById(R.id.suggested_question_1);
         suggestedQuestion2 = view.findViewById(R.id.suggested_question_2);
-        
+
         if (suggestedQuestion1 != null) {
             suggestedQuestion1.setOnClickListener(v -> {
                 messageInput.setText("Tôi nên chi tiêu như thế nào?");
                 sendMessage();
             });
         }
-        
+
         if (suggestedQuestion2 != null) {
             suggestedQuestion2.setOnClickListener(v -> {
                 messageInput.setText("Nhận xét chi tiêu tháng qua của tôi");
@@ -162,13 +162,13 @@ public class AIChatFragment extends Fragment {
             });
         }
     }
-    
+
     /**
      * Setup quick action chips for budget recommendations
      */
     private void setupQuickActions(View view) {
         quickActionsScroll = view.findViewById(R.id.quick_actions_scroll);
-        
+
         // Budget status chip
         TextView chipBudgetStatus = view.findViewById(R.id.chip_budget_status);
         if (chipBudgetStatus != null) {
@@ -176,7 +176,7 @@ public class AIChatFragment extends Fragment {
                 sendQuickQuery("Tình trạng ngân sách của tôi thế nào? Tôi có đang đúng tiến độ không?");
             });
         }
-        
+
         // Spending tips chip
         TextView chipSpendingTips = view.findViewById(R.id.chip_spending_tips);
         if (chipSpendingTips != null) {
@@ -184,7 +184,7 @@ public class AIChatFragment extends Fragment {
                 sendQuickQuery("Dựa vào ngân sách của tôi, hãy đưa ra mẹo giảm chi tiêu cụ thể.");
             });
         }
-        
+
         // Daily limit chip
         TextView chipDailyLimit = view.findViewById(R.id.chip_daily_limit);
         if (chipDailyLimit != null) {
@@ -192,7 +192,7 @@ public class AIChatFragment extends Fragment {
                 sendQuickQuery("Hôm nay tôi có thể chi bao nhiêu tiền để không vượt ngân sách?");
             });
         }
-        
+
         // Save more chip
         TextView chipSaveMore = view.findViewById(R.id.chip_save_more);
         if (chipSaveMore != null) {
@@ -200,7 +200,7 @@ public class AIChatFragment extends Fragment {
                 sendQuickQuery("Dựa vào mô hình chi tiêu của tôi, làm sao tôi có thể tiết kiệm nhiều hơn?");
             });
         }
-        
+
         // Spending habits chip - NEW
         TextView chipSpendingHabits = view.findViewById(R.id.chip_spending_habits);
         if (chipSpendingHabits != null) {
@@ -208,7 +208,7 @@ public class AIChatFragment extends Fragment {
                 sendPatternAnalysisQuery();
             });
         }
-        
+
         // Generate test data chip - FOR TESTING
         TextView chipGenerateTestData = view.findViewById(R.id.chip_generate_test_data);
         if (chipGenerateTestData != null) {
@@ -217,56 +217,56 @@ public class AIChatFragment extends Fragment {
             });
         }
     }
-    
+
     /**
      * Show dialog to generate or clear test data
      */
     private void showTestDataDialog() {
         String[] options = {
-            "📅 Tạo dữ liệu (bao gồm tháng này)",
-            "📆 Tạo dữ liệu (không bao gồm tháng này)",
-            "🗑️ Xóa tất cả dữ liệu test"
+                "📅 Tạo dữ liệu (bao gồm tháng này)",
+                "📆 Tạo dữ liệu (không bao gồm tháng này)",
+                "🗑️ Xóa tất cả dữ liệu test"
         };
-        
+
         new AlertDialog.Builder(requireContext())
-            .setTitle("🧪 Dữ liệu Test")
-            .setItems(options, (dialog, which) -> {
-                switch (which) {
-                    case 0:
-                        // Generate with current month
-                        generateTestData(false);
-                        break;
-                    case 1:
-                        // Generate without current month
-                        generateTestData(true);
-                        break;
-                    case 2:
-                        // Clear data
-                        clearTestData();
-                        break;
-                }
-            })
-            .setNegativeButton("Hủy", null)
-            .show();
+                .setTitle("🧪 Dữ liệu Test")
+                .setItems(options, (dialog, which) -> {
+                    switch (which) {
+                        case 0:
+                            // Generate with current month
+                            generateTestData(false);
+                            break;
+                        case 1:
+                            // Generate without current month
+                            generateTestData(true);
+                            break;
+                        case 2:
+                            // Clear data
+                            clearTestData();
+                            break;
+                    }
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
     }
-    
+
     /**
      * Generate test data
      * @param excludeCurrentMonth if true, only generates data up to last month
      */
     private void generateTestData(boolean excludeCurrentMonth) {
         // Show loading message
-        String loadingText = excludeCurrentMonth ? 
-            "🔄 Đang tạo dữ liệu test (không bao gồm tháng này)..." :
-            "🔄 Đang tạo dữ liệu test...";
+        String loadingText = excludeCurrentMonth ?
+                "🔄 Đang tạo dữ liệu test (không bao gồm tháng này)..." :
+                "🔄 Đang tạo dữ liệu test...";
         ChatMessage loadingMessage = new ChatMessage(loadingText, false);
         chatAdapter.addMessage(loadingMessage);
         scrollToBottom();
-        
+
         TestDataGenerator generator = new TestDataGenerator(requireContext());
         int userId = MainActivity.getCurrentUserId();
         int walletId = MainActivity.getSelectedWalletId();
-        
+
         generator.generateTestData(userId, walletId, excludeCurrentMonth, new TestDataGenerator.GeneratorCallback() {
             @Override
             public void onComplete(String message) {
@@ -274,36 +274,36 @@ public class AIChatFragment extends Fragment {
                     getActivity().runOnUiThread(() -> {
                         // Remove loading message
                         chatAdapter.removeLastMessage();
-                        
+
                         // Add success message
                         ChatMessage successMessage = new ChatMessage(message, false);
                         chatAdapter.addMessage(successMessage);
                         scrollToBottom();
-                        
+
                         Toast.makeText(requireContext(), "✅ Đã tạo dữ liệu test!", Toast.LENGTH_SHORT).show();
                     });
                 }
             }
-            
+
             @Override
             public void onError(String error) {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         // Remove loading message
                         chatAdapter.removeLastMessage();
-                        
+
                         // Add error message
                         ChatMessage errorMessage = new ChatMessage("❌ " + error, false);
                         chatAdapter.addMessage(errorMessage);
                         scrollToBottom();
-                        
+
                         Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show();
                     });
                 }
             }
         });
     }
-    
+
     /**
      * Clear test data
      */
@@ -311,10 +311,10 @@ public class AIChatFragment extends Fragment {
         ChatMessage loadingMessage = new ChatMessage("🔄 Đang xóa dữ liệu...", false);
         chatAdapter.addMessage(loadingMessage);
         scrollToBottom();
-        
+
         TestDataGenerator generator = new TestDataGenerator(requireContext());
         int walletId = MainActivity.getSelectedWalletId();
-        
+
         generator.clearTestData(walletId, new TestDataGenerator.GeneratorCallback() {
             @Override
             public void onComplete(String message) {
@@ -327,7 +327,7 @@ public class AIChatFragment extends Fragment {
                     });
                 }
             }
-            
+
             @Override
             public void onError(String error) {
                 if (getActivity() != null) {
@@ -341,7 +341,7 @@ public class AIChatFragment extends Fragment {
             }
         });
     }
-    
+
     /**
      * Send a quick query with instant rule-based response + LLM enhancement
      */
@@ -350,7 +350,7 @@ public class AIChatFragment extends Fragment {
         ChatMessage userMessage = new ChatMessage(query, true);
         chatAdapter.addMessage(userMessage);
         scrollToBottom();
-        
+
         // Get quick budget recommendation first (rule-based)
         int walletId = MainActivity.getSelectedWalletId();
         chatbotService.getQuickBudgetRecommendation(walletId, new ChatbotService.ChatbotCallback() {
@@ -362,7 +362,7 @@ public class AIChatFragment extends Fragment {
                         ChatMessage quickMessage = new ChatMessage(quickResponse, false);
                         chatAdapter.addMessage(quickMessage);
                         scrollToBottom();
-                        
+
                         // Then get LLM response for more detailed advice
                         sendMessageToLLM(query);
                     });
@@ -380,7 +380,7 @@ public class AIChatFragment extends Fragment {
             }
         });
     }
-    
+
     /**
      * Send pattern analysis query - shows spending habits
      */
@@ -390,12 +390,12 @@ public class AIChatFragment extends Fragment {
         ChatMessage userMessage = new ChatMessage(query, true);
         chatAdapter.addMessage(userMessage);
         scrollToBottom();
-        
+
         // Add loading indicator
         ChatMessage loadingMessage = new ChatMessage(true);
         chatAdapter.addMessage(loadingMessage);
         scrollToBottom();
-        
+
         // Get pattern analysis
         int walletId = MainActivity.getSelectedWalletId();
         chatbotService.getSpendingPatternAnalysis(walletId, new ChatbotService.ChatbotCallback() {
@@ -405,12 +405,12 @@ public class AIChatFragment extends Fragment {
                     getActivity().runOnUiThread(() -> {
                         // Remove loading indicator
                         chatAdapter.removeLastMessage();
-                        
+
                         // Show pattern analysis response
                         ChatMessage patternMessage = new ChatMessage(patternResponse, false);
                         chatAdapter.addMessage(patternMessage);
                         scrollToBottom();
-                        
+
                         // Then get LLM response for personalized advice
                         sendMessageToLLM(query);
                     });
@@ -423,7 +423,7 @@ public class AIChatFragment extends Fragment {
                     getActivity().runOnUiThread(() -> {
                         // Remove loading indicator
                         chatAdapter.removeLastMessage();
-                        
+
                         // Show error and fallback to LLM
                         Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show();
                         sendMessageToLLM(query);
@@ -432,7 +432,7 @@ public class AIChatFragment extends Fragment {
             }
         });
     }
-    
+
     /**
      * Send message to LLM only (used after quick response)
      */
@@ -441,10 +441,10 @@ public class AIChatFragment extends Fragment {
         ChatMessage loadingMessage = new ChatMessage(true);
         chatAdapter.addMessage(loadingMessage);
         scrollToBottom();
-        
+
         int userId = MainActivity.getCurrentUserId();
         int walletId = MainActivity.getSelectedWalletId();
-        
+
         chatbotService.generateFinancialAdvice(userId, walletId, message, new ChatbotService.ChatbotCallback() {
             @Override
             public void onSuccess(String response) {
@@ -452,7 +452,7 @@ public class AIChatFragment extends Fragment {
                     getActivity().runOnUiThread(() -> {
                         // Remove loading indicator
                         chatAdapter.removeLastMessage();
-                        
+
                         // Add bot response
                         ChatMessage botMessage = new ChatMessage("🤖 " + response, false);
                         chatAdapter.addMessage(botMessage);
@@ -460,14 +460,14 @@ public class AIChatFragment extends Fragment {
                     });
                 }
             }
-            
+
             @Override
             public void onError(String error) {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         // Remove loading indicator
                         chatAdapter.removeLastMessage();
-                        
+
                         // Show error
                         Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show();
                     });
@@ -475,46 +475,46 @@ public class AIChatFragment extends Fragment {
             }
         });
     }
-    
+
     private void addWelcomeMessage() {
         ChatMessage welcomeMessage = new ChatMessage(
-            "Xin chào! 👋 Tôi là trợ lý tài chính của bạn.\n\n" +
-            "Tôi có thể giúp bạn:\n" +
-            "• Phân tích chi tiêu\n" +
-            "• Lời khuyên tiết kiệm\n" +
-            "• Đánh giá tình hình tài chính\n\n" +
-            "Hãy hỏi tôi bất cứ điều gì về tài chính của bạn!",
-            false
+                "Xin chào! 👋 Tôi là trợ lý tài chính của bạn.\n\n" +
+                        "Tôi có thể giúp bạn:\n" +
+                        "• Phân tích chi tiêu\n" +
+                        "• Lời khuyên tiết kiệm\n" +
+                        "• Đánh giá tình hình tài chính\n\n" +
+                        "Hãy hỏi tôi bất cứ điều gì về tài chính của bạn!",
+                false
         );
         chatAdapter.addMessage(welcomeMessage);
         scrollToBottom();
     }
-    
+
     private void sendMessage() {
         String message = messageInput.getText().toString().trim();
-        
+
         if (message.isEmpty()) {
             Toast.makeText(requireContext(), "Vui lòng nhập tin nhắn", Toast.LENGTH_SHORT).show();
             return;
         }
-        
+
         // Add user message
         ChatMessage userMessage = new ChatMessage(message, true);
         chatAdapter.addMessage(userMessage);
         scrollToBottom();
-        
+
         // Clear input
         messageInput.setText("");
-        
+
         // Add loading indicator
         ChatMessage loadingMessage = new ChatMessage(true);
         chatAdapter.addMessage(loadingMessage);
         scrollToBottom();
-        
+
         // Get AI response (wallet-specific)
         int userId = MainActivity.getCurrentUserId();
         int walletId = MainActivity.getSelectedWalletId(); // 🔹 Pass wallet ID
-        
+
         chatbotService.generateFinancialAdvice(userId, walletId, message, new ChatbotService.ChatbotCallback() {
             @Override
             public void onSuccess(String response) {
@@ -522,7 +522,7 @@ public class AIChatFragment extends Fragment {
                     getActivity().runOnUiThread(() -> {
                         // Remove loading indicator
                         chatAdapter.removeLastMessage();
-                        
+
                         // Add bot response
                         ChatMessage botMessage = new ChatMessage(response, false);
                         chatAdapter.addMessage(botMessage);
@@ -530,35 +530,35 @@ public class AIChatFragment extends Fragment {
                     });
                 }
             }
-            
+
             @Override
             public void onError(String error) {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         // Remove loading indicator
                         chatAdapter.removeLastMessage();
-                        
+
                         // Add error message
                         ChatMessage errorMessage = new ChatMessage(
-                            "Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau.",
-                            false
+                                "Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau.",
+                                false
                         );
                         chatAdapter.addMessage(errorMessage);
                         scrollToBottom();
-                        
+
                         Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show();
                     });
                 }
             }
         });
     }
-    
+
     private void scrollToBottom() {
         if (chatAdapter.getItemCount() > 0) {
             chatRecyclerView.smoothScrollToPosition(chatAdapter.getItemCount() - 1);
         }
     }
-    
+
     /**
      * Setup keyboard visibility listener to auto-scroll when keyboard appears
      */
@@ -567,20 +567,20 @@ public class AIChatFragment extends Fragment {
         ViewCompat.setOnApplyWindowInsetsListener(rootView, (v, windowInsets) -> {
             Insets imeInsets = windowInsets.getInsets(WindowInsetsCompat.Type.ime());
             Insets systemBarInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-            
+
             // Apply bottom padding when keyboard is visible
             int bottomPadding = Math.max(imeInsets.bottom, systemBarInsets.bottom);
             v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), bottomPadding);
-            
+
             // Scroll to bottom when keyboard appears
             if (imeInsets.bottom > 0) {
                 v.post(() -> scrollToBottom());
             }
-            
+
             return WindowInsetsCompat.CONSUMED;
         });
     }
-    
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -590,4 +590,3 @@ public class AIChatFragment extends Fragment {
         }
     }
 }
-

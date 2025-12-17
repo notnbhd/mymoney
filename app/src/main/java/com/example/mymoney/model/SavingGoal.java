@@ -17,7 +17,7 @@ public class SavingGoal {
     private String status; // "active", "completed", "cancelled"
 
     // Full constructor
-    public SavingGoal(int id, String name, long targetAmount, long currentSaved, 
+    public SavingGoal(int id, String name, long targetAmount, long currentSaved,
                       String type, long lastUpdatedTime, int userId, int walletId, String status) {
         this.id = id;
         this.name = name;
@@ -44,7 +44,7 @@ public class SavingGoal {
     }
 
     // ===== Getter/Setter =====
-    
+
     public int getId() {
         return id;
     }
