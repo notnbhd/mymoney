@@ -57,6 +57,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Switch from splash theme to main theme
+        setTheme(R.style.Theme_MyMoney);
         LocaleHelper.onAttach(this); // ✅ Language support
         ThemeUtils.applyTheme(this); // ✅ Apply current theme
         super.onCreate(savedInstanceState);

@@ -41,4 +41,14 @@
         <item name="colorOnPrimary">@color/white</item>
     </style>
 
+    <!-- ============================= -->
+    <!-- SPLASH SCREEN THEME -->
+    <!-- ============================= -->
+    <style name="Theme.MyMoney.Splash" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+        <item name="android:statusBarColor">@color/light_pink</item>
+        <item name="android:navigationBarColor">@color/light_pink</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
 </resources>

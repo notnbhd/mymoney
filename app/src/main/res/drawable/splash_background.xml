@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Background gradient matching app pink colorway -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="135"
+                android:startColor="#FFF5F7"
+                android:centerColor="#FFE4E9"
+                android:endColor="#FFB6C1"
+                android:type="linear" />
+        </shape>
+    </item>
+    
+    <!-- Centered logo - using vector drawable -->
+    <item
+        android:gravity="center"
+        android:drawable="@drawable/ic_splash_logo" />
+</layer-list>
