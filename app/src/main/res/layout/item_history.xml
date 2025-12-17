@@ -4,7 +4,7 @@
     android:padding="12dp"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/border_dialog_pink"
+    android:background="@drawable/search_background"
     android:layout_margin="8dp">
 
     <TextView

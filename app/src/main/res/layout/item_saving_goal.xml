@@ -1,10 +1,11 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="80dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="horizontal"
     android:padding="12dp"
     android:gravity="center_vertical"
-    android:background="@drawable/bg_saving_goal_item"
+    android:background="@drawable/search_background"
     android:layout_marginBottom="12dp"
     android:layout_marginHorizontal="16dp">
 
@@ -22,7 +23,7 @@
             android:text="Tiết kiệm Tết"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="#FF4081"/>
+            android:textColor="?attr/colorOnSurface"/>
 
         <TextView
             android:id="@+id/tvLastUpdate"
@@ -30,7 +31,7 @@
             android:layout_height="wrap_content"
             android:text="Cập nhật: 15/12/2025"
             android:textSize="12sp"
-            android:textColor="#888888"/>
+            android:textColor="?attr/colorOnSurface"/>
     </LinearLayout>
 
     <!-- RIGHT : VÒNG TRÒN % -->

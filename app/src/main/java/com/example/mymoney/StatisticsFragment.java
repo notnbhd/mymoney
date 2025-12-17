@@ -18,6 +18,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.mymoney.database.AppDatabase;
+import com.example.mymoney.utils.CategoryIconMapper;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
@@ -51,7 +52,7 @@ public class StatisticsFragment extends Fragment {
 
     // 🔹 Định dạng hiển thị ngày
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-    
+
     // 🔹 Track last user/wallet for refresh detection
     private int lastUserId = -1;
     private int lastWalletId = -1;
@@ -96,18 +97,18 @@ public class StatisticsFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        
+
         // Check if user or wallet has changed
         int currentUserId = MainActivity.getCurrentUserId();
         int currentWalletId = MainActivity.getSelectedWalletId();
-        
+
         if (currentUserId != lastUserId || currentWalletId != lastWalletId) {
             lastUserId = currentUserId;
             lastWalletId = currentWalletId;
             refreshData();
         }
     }
-    
+
     /**
      * Public method to refresh statistics data
      * Called when wallet is changed or user logs in/out
@@ -342,21 +343,9 @@ public class StatisticsFragment extends Fragment {
             tvAmount.setText(String.format(Locale.getDefault(), "%,.2f %s", item.total, currency));
 
             // Gán icon theo tên danh mục
-            String cat = item.category.toLowerCase(Locale.ROOT);
-            if (cat.contains("food") || cat.contains("ăn") || cat.contains("drink"))
-                imgIcon.setImageResource(R.drawable.ic_food);
-            else if (cat.contains("home") || cat.contains("house") || cat.contains("rent"))
-                imgIcon.setImageResource(R.drawable.ic_home);
-            else if (cat.contains("travel") || cat.contains("transport") || cat.contains("car"))
-                imgIcon.setImageResource(R.drawable.ic_travel);
-            else if (cat.contains("medicine") || cat.contains("health") || cat.contains("hospital"))
-                imgIcon.setImageResource(R.drawable.ic_medicine);
-            else if (cat.contains("entertainment") || cat.contains("movie") || cat.contains("game"))
-                imgIcon.setImageResource(R.drawable.ic_entertainment);
-            else if (cat.contains("gift") || cat.contains("love") || cat.contains("relationship"))
-                imgIcon.setImageResource(R.drawable.ic_love);
-            else
-                imgIcon.setImageResource(R.drawable.ic_other);
+            imgIcon.setImageResource(
+                    CategoryIconMapper.getIcon(item.category)
+            );
 
             expensesContainer.addView(row);
         }

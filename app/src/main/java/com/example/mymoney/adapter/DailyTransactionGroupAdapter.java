@@ -47,16 +47,16 @@ public class DailyTransactionGroupAdapter extends RecyclerView.Adapter<DailyTran
     public void onBindViewHolder(@NonNull DailyGroupViewHolder holder, int position) {
         DailyTransactionGroup group = dailyGroups.get(position);
         holder.bind(group, position);
-        
+
         // entrance anim
         holder.itemView.setAlpha(0f);
         holder.itemView.setTranslationY(50f);
         holder.itemView.animate()
-            .alpha(1f)
-            .translationY(0f)
-            .setDuration(300)
-            .setStartDelay(position * 50L)
-            .start();
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(300)
+                .setStartDelay(position * 50L)
+                .start();
     }
 
     @Override

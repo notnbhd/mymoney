@@ -69,18 +69,18 @@ public class TransactionDetailDialog extends Dialog {
         // Make dialog background transparent to show rounded corners
         if (getWindow() != null) {
             getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-            
+
             // Add fade-in animation
             View decorView = getWindow().getDecorView();
             decorView.setAlpha(0f);
             decorView.setScaleX(0.9f);
             decorView.setScaleY(0.9f);
             decorView.animate()
-                .alpha(1f)
-                .scaleX(1f)
-                .scaleY(1f)
-                .setDuration(250)
-                .start();
+                    .alpha(1f)
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(250)
+                    .start();
         }
 
         initViews();
@@ -105,7 +105,7 @@ public class TransactionDetailDialog extends Dialog {
         new Thread(() -> {
             try {
                 Category category = database.categoryDao().getCategoryById(transaction.getCategoryId());
-                
+
                 Wallet wallet = database.walletDao().getWalletById(transaction.getWalletId());
 
                 SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault());
@@ -118,13 +118,13 @@ public class TransactionDetailDialog extends Dialog {
                             // Category name and icon
                             if (category != null) {
                                 tvCategoryName.setText(category.getName());
-                                
+
                                 // Set category icon based on icon resource name
                                 if (category.getIcon() != null && !category.getIcon().isEmpty()) {
                                     int iconResId = getContext().getResources().getIdentifier(
-                                        category.getIcon(),
-                                        "drawable",
-                                        getContext().getPackageName()
+                                            category.getIcon(),
+                                            "drawable",
+                                            getContext().getPackageName()
                                     );
                                     if (iconResId != 0) {
                                         ivCategoryIcon.setImageDrawable(getContext().getDrawable(iconResId));
@@ -132,13 +132,13 @@ public class TransactionDetailDialog extends Dialog {
                                 }
                             }
 
-                            String amountText = String.format(Locale.getDefault(), 
-                                "%s%,.2f %s", 
-                                "income".equals(transaction.getType()) ? "+" : "-",
-                                transaction.getAmount(),
-                                wallet != null ? wallet.getCurrency() : "VND");
+                            String amountText = String.format(Locale.getDefault(),
+                                    "%s%,.2f %s",
+                                    "income".equals(transaction.getType()) ? "+" : "-",
+                                    transaction.getAmount(),
+                                    wallet != null ? wallet.getCurrency() : "VND");
                             tvAmount.setText(amountText);
-                            
+
                             // Set color based on type
                             if ("income".equals(transaction.getType())) {
                                 tvAmount.setTextColor(getContext().getResources().getColor(R.color.green, null));
@@ -229,7 +229,7 @@ public class TransactionDetailDialog extends Dialog {
                     tvCatName.setText(category.getName());
                     if (category.getIcon() != null && !category.getIcon().isEmpty()) {
                         int iconResId = context.getResources().getIdentifier(
-                            category.getIcon(), "drawable", context.getPackageName());
+                                category.getIcon(), "drawable", context.getPackageName());
                         if (iconResId != 0) {
                             ivCatIcon.setImageResource(iconResId);
                         }
@@ -241,16 +241,16 @@ public class TransactionDetailDialog extends Dialog {
         // Date picker
         layoutDate.setOnClickListener(v -> {
             DatePickerDialog datePicker = new DatePickerDialog(
-                context,
-                (view, year, month, dayOfMonth) -> {
-                    calendar.set(Calendar.YEAR, year);
-                    calendar.set(Calendar.MONTH, month);
-                    calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-                    tvDateEdit.setText(dateFormat.format(calendar.getTime()));
-                },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
+                    context,
+                    (view, year, month, dayOfMonth) -> {
+                        calendar.set(Calendar.YEAR, year);
+                        calendar.set(Calendar.MONTH, month);
+                        calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                        tvDateEdit.setText(dateFormat.format(calendar.getTime()));
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)
             );
             datePicker.show();
         });
@@ -258,15 +258,15 @@ public class TransactionDetailDialog extends Dialog {
         // Time picker
         layoutTime.setOnClickListener(v -> {
             TimePickerDialog timePicker = new TimePickerDialog(
-                context,
-                (view, hourOfDay, minute) -> {
-                    calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
-                    calendar.set(Calendar.MINUTE, minute);
-                    tvTime.setText(timeFormat.format(calendar.getTime()));
-                },
-                calendar.get(Calendar.HOUR_OF_DAY),
-                calendar.get(Calendar.MINUTE),
-                true
+                    context,
+                    (view, hourOfDay, minute) -> {
+                        calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                        calendar.set(Calendar.MINUTE, minute);
+                        tvTime.setText(timeFormat.format(calendar.getTime()));
+                    },
+                    calendar.get(Calendar.HOUR_OF_DAY),
+                    calendar.get(Calendar.MINUTE),
+                    true
             );
             timePicker.show();
         });
@@ -314,7 +314,7 @@ public class TransactionDetailDialog extends Dialog {
                                     newBalance = currentBalance - amountDifference;
                                 }
                                 database.walletDao().updateBalance(
-                                    wallet.getId(), newBalance, System.currentTimeMillis());
+                                        wallet.getId(), newBalance, System.currentTimeMillis());
                             }
                         }
 
@@ -330,8 +330,8 @@ public class TransactionDetailDialog extends Dialog {
 
                     } catch (Exception e) {
                         android.util.Log.e("EditTransaction", "Error saving", e);
-                        tvCatName.post(() -> 
-                            Toast.makeText(context, "Error saving: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                        tvCatName.post(() ->
+                                Toast.makeText(context, "Error saving: " + e.getMessage(), Toast.LENGTH_SHORT).show());
                     }
                 }).start();
 

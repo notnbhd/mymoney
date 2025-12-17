@@ -19,8 +19,10 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.example.mymoney.account.AccountActivity;
 import com.example.mymoney.database.AppDatabase;
 import com.example.mymoney.database.entity.Wallet;
+import com.example.mymoney.notification.NotificationSettingFragment;
 
 import java.util.List;
 
@@ -50,6 +52,8 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout headerLayout;
     private View headerDivider;
     private View bottomNavigation;
+    private LinearLayout settingsNotification;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +62,16 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main_container);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+                    != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(
+                        new String[]{android.Manifest.permission.POST_NOTIFICATIONS},
+                        1001
+                );
+            }
+        }
+
 
         View mainLayout = findViewById(R.id.main);
         ViewCompat.setOnApplyWindowInsetsListener(mainLayout, (v, insets) -> {
@@ -72,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
         settingsPanel = findViewById(R.id.settings_panel);
         btnWallet = findViewById(R.id.btn_wallet);
         btnSettings = findViewById(R.id.btn_settings);
+        settingsNotification = findViewById(R.id.settings_notification);
         settingsLogin = findViewById(R.id.settings_login);
         settingsLogout = findViewById(R.id.settings_logout);
         headerLayout = findViewById(R.id.header_layout);
@@ -183,6 +198,22 @@ public class MainActivity extends AppCompatActivity {
                     })
                     .show();
         });
+        settingsNotification.setOnClickListener(v -> {
+            hideSettingsPanel();
+
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .setCustomAnimations(
+                            R.anim.fade_in_up,
+                            R.anim.fade_out_down,
+                            R.anim.fade_in_up,
+                            R.anim.fade_out_down
+                    )
+                    .replace(R.id.fragment_container, new NotificationSettingFragment())
+                    .addToBackStack(null)
+                    .commit();
+        });
+
 
         // 🔐 Login button
         settingsLogin.setOnClickListener(v -> {
@@ -477,121 +508,123 @@ public class MainActivity extends AppCompatActivity {
     // ================= Navigation =================
 
     private void setupNavigationBar() {
-    LinearLayout navHome = findViewById(R.id.nav_home);
-    LinearLayout navAIChat = findViewById(R.id.nav_ai_chat);
-    LinearLayout navStatistics = findViewById(R.id.nav_statistics);
-    LinearLayout navMore = findViewById(R.id.nav_more);
+        LinearLayout navHome = findViewById(R.id.nav_home);
+        LinearLayout navAIChat = findViewById(R.id.nav_ai_chat);
+        LinearLayout navStatistics = findViewById(R.id.nav_statistics);
+        LinearLayout navMore = findViewById(R.id.nav_more);
 
-    navHome.setOnClickListener(v -> loadFragment(new HomeFragment(), "Home"));
-    navAIChat.setOnClickListener(v -> loadFragment(new AIChatFragment(), "AI Chat"));
-    navStatistics.setOnClickListener(v -> loadFragment(new StatisticsFragment(), "Statistics"));
-    navMore.setOnClickListener(v -> loadFragment(new MoreFragment(), "More"));
-}
+        navHome.setOnClickListener(v -> loadFragment(new HomeFragment(), "Home"));
+        navAIChat.setOnClickListener(v -> loadFragment(new AIChatFragment(), "AI Chat"));
+        navStatistics.setOnClickListener(v -> loadFragment(new StatisticsFragment(), "Statistics"));
+        navMore.setOnClickListener(v -> loadFragment(new MoreFragment(), "More"));
+    }
 
-/**
- * Load fragment from MoreFragment (with back stack)
- */
-public void loadFragmentFromMore(Fragment fragment, String title) {
-    showHeaderAndFooter();
-    headerTitle.setText(title);
+    /**
+     * Load fragment from MoreFragment (with back stack)
+     */
+    public void loadFragmentFromMore(Fragment fragment, String title) {
+        showHeaderAndFooter();
+        headerTitle.setText(title);
 
-    FragmentTransaction transaction = fragmentManager.beginTransaction();
-    transaction.setCustomAnimations(
-            R.anim.fade_in_up,
-            R.anim.fade_out_down,
-            R.anim.fade_in_up,
-            R.anim.fade_out_down
-    );
-    transaction.replace(R.id.fragment_container, fragment);
-    transaction.addToBackStack(null);
-    transaction.commit();
-}
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.setCustomAnimations(
+                R.anim.fade_in_up,
+                R.anim.fade_out_down,
+                R.anim.fade_in_up,
+                R.anim.fade_out_down
+        );
+        transaction.replace(R.id.fragment_container, fragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
 
-private void loadFragment(Fragment fragment, String title) {
-    // Show header and footer for normal fragments
-    showHeaderAndFooter();
+    private void loadFragment(Fragment fragment, String title) {
+        // Show header and footer for normal fragments
+        showHeaderAndFooter();
 
-    headerTitle.setText(title);
+        headerTitle.setText(title);
 
-    FragmentTransaction transaction = fragmentManager.beginTransaction();
-    transaction.setCustomAnimations(
-            R.anim.fade_in_up,
-            R.anim.fade_out_down,
-            R.anim.fade_in_up,
-            R.anim.fade_out_down
-    );
-    transaction.replace(R.id.fragment_container, fragment);
-    transaction.commit();
-}
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.setCustomAnimations(
+                R.anim.fade_in_up,
+                R.anim.fade_out_down,
+                R.anim.fade_in_up,
+                R.anim.fade_out_down
+        );
+        transaction.replace(R.id.fragment_container, fragment);
+        transaction.commit();
+    }
 
 // ================= Header & Footer Management =================
 
-private void hideHeaderAndFooter() {
-    if (headerLayout != null) {
-        headerLayout.setVisibility(View.GONE);
+    private void hideHeaderAndFooter() {
+        if (headerLayout != null) {
+            headerLayout.setVisibility(View.GONE);
+        }
+        if (headerDivider != null) {
+            headerDivider.setVisibility(View.GONE);
+        }
+        if (bottomNavigation != null) {
+            bottomNavigation.setVisibility(View.GONE);
+        }
     }
-    if (headerDivider != null) {
-        headerDivider.setVisibility(View.GONE);
-    }
-    if (bottomNavigation != null) {
-        bottomNavigation.setVisibility(View.GONE);
-    }
-}
 
-private void showHeaderAndFooter() {
-    if (headerLayout != null) {
-        headerLayout.setVisibility(View.VISIBLE);
+    private void showHeaderAndFooter() {
+        if (headerLayout != null) {
+            headerLayout.setVisibility(View.VISIBLE);
+        }
+        if (headerDivider != null) {
+            headerDivider.setVisibility(View.VISIBLE);
+        }
+        if (bottomNavigation != null) {
+            bottomNavigation.setVisibility(View.VISIBLE);
+        }
     }
-    if (headerDivider != null) {
-        headerDivider.setVisibility(View.VISIBLE);
-    }
-    if (bottomNavigation != null) {
-        bottomNavigation.setVisibility(View.VISIBLE);
-    }
-}
 
 // ================= Public Accessors & Helpers =================
 
-/**
- * Get the currently selected wallet ID
- */
-public static int getSelectedWalletId() {
-    return selectedWalletId;
-}
+    /**
+     * Get the currently selected wallet ID
+     */
+    public static int getSelectedWalletId() {
+        return selectedWalletId;
+    }
 
-/**
- * Set the selected wallet ID
- */
-public static void setSelectedWalletId(int walletId) {
-    selectedWalletId = walletId;
-    android.util.Log.d("MainActivity", "Wallet ID set to: " + walletId);
-}
+    /**
+     * Set the selected wallet ID
+     */
+    public static void setSelectedWalletId(int walletId) {
+        selectedWalletId = walletId;
+        android.util.Log.d("MainActivity", "Wallet ID set to: " + walletId);
+    }
 
-/**
- * Get the current logged-in user ID (for use in fragments)
- */
-public static int getCurrentUserId() {
-    return currentUserId;
-}
+    /**
+     * Get the current logged-in user ID (for use in fragments)
+     */
+    public static int getCurrentUserId() {
+        return currentUserId;
+    }
 
-/**
- * Get the selected wallet's currency (for use in fragments)
- */
-public static String getSelectedWalletCurrency() {
-    return selectedWalletCurrency != null ? selectedWalletCurrency : "VND";
-}
+    /**
+     * Get the selected wallet's currency (for use in fragments)
+     */
+    public static String getSelectedWalletCurrency() {
+        return selectedWalletCurrency != null ? selectedWalletCurrency : "VND";
+    }
 
-/**
- * Public method to hide header and footer (for use by fragments)
- */
-public void hideMainHeaderAndFooter() {
-    hideHeaderAndFooter();
-}
+    /**
+     * Public method to hide header and footer (for use by fragments)
+     */
+    public void hideMainHeaderAndFooter() {
+        hideHeaderAndFooter();
+    }
 
-/**
- * Public method to show header and footer (for use by fragments)
- */
-public void showMainHeaderAndFooter() {
-    showHeaderAndFooter();
-}
+    /**
+     * Public method to show header and footer (for use by fragments)
+     */
+    public void showMainHeaderAndFooter() {
+        showHeaderAndFooter();
+    }
+
+
 }

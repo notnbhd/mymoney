@@ -14,13 +14,15 @@
 
     <!-- For Android 13+ (API 33+) -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    
+    <uses-permission android:name="android.permission.VIBRATE" />
     <!-- Internet permission for AI Chatbot -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     
     <!-- Notification permission for Android 13+ -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
 
     <!-- Camera feature -->
     <uses-feature android:name="android.hardware.camera" android:required="false" />
@@ -36,7 +38,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyMoney"
         android:networkSecurityConfig="@xml/network_security_config">
-        
+        <receiver
+            android:name=".notification.ReminderReceiver"
+            android:exported="false" />
+
+
         <!-- FileProvider for camera image capture -->
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -59,9 +65,9 @@
             </intent-filter>
         </activity>
         <activity android:name=".LoginActivity" />
-        <activity android:name=".RegisterActivity" />
-        <activity android:name=".AccountActivity" />
-        <activity android:name=".EditProfileActivity" />
+        <activity android:name=".account.RegisterActivity" />
+        <activity android:name=".account.AccountActivity" />
+        <activity android:name=".account.EditProfileActivity" />
 
     </application>
 

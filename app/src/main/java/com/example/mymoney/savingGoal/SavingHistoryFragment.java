@@ -1,4 +1,4 @@
-package com.example.mymoney;
+package com.example.mymoney.savingGoal;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.mymoney.R;
 import com.example.mymoney.adapter.SavingHistoryAdapter;
 import com.example.mymoney.model.SavingHistoryItem;
 

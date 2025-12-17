@@ -1,4 +1,4 @@
-package com.example.mymoney;
+package com.example.mymoney.account;
 
 import android.app.DatePickerDialog;
 import android.content.SharedPreferences;
@@ -10,6 +10,8 @@ import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.mymoney.R;
 
 import java.util.Calendar;
 

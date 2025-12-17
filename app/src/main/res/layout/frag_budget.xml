@@ -4,7 +4,6 @@
     android:layout_height="match_parent"
     android:fillViewport="true"
     android:padding="20dp"
-    android:background="@drawable/back2_copy"
     android:descendantFocusability="afterDescendants"
     android:isScrollContainer="false"
     android:focusableInTouchMode="true">
@@ -19,7 +18,7 @@
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_card_rounded"
+            android:background="@drawable/search_background"
             android:padding="16dp">
 
             <!-- Nút kết thúc tiết kiệm góc phải -->
@@ -32,7 +31,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="40dp"
                     android:layout_alignParentEnd="true"
-                    android:background="@drawable/bg_button_rounded"
+                    android:background="@drawable/search_background"
                     android:text="Kết thúc tiết kiệm"
                     android:textColor="@android:color/white"
                     android:textStyle="bold"/>
@@ -43,7 +42,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="15sp"
-                android:textColor="@android:color/black"
+                android:textColor="?attr/colorOnSurface"
                 android:padding="6dp"
                 android:gravity="center_horizontal" />
         </LinearLayout>
@@ -71,7 +70,7 @@
                 android:gravity="center"
                 android:text="0%"
                 android:textSize="14sp"
-                android:textColor="#FFFFFF"
+                android:textColor="?attr/colorOnSurface"
                 android:textStyle="bold" />
             <TextView
                 android:id="@+id/tvWarning"
@@ -96,7 +95,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_marginTop="16dp"
-            android:background="@drawable/bg_card_rounded"
+            android:background="@drawable/search_background"
             android:padding="16dp"
             android:visibility="gone">
 

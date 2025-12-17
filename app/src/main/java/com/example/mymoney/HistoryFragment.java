@@ -43,7 +43,7 @@ public class HistoryFragment extends Fragment {
     private ImageView filterIcon;
 
     private List<Transaction> allTransactions = new ArrayList<>();
-    
+
     // Filter state
     private String filterType = "all"; // "all", "expense", "income"
     private int filterCategoryId = -1; // -1 means all categories
@@ -229,14 +229,14 @@ public class HistoryFragment extends Fragment {
         android.util.Log.d("HistoryFragment", "refreshData() called from MainActivity");
         loadTransactions();
     }
-    
+
     private void showFilterDialog() {
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_filter, null);
-        
+
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         builder.setView(dialogView);
         AlertDialog dialog = builder.create();
-        
+
         // Initialize views
         RadioGroup typeRadioGroup = dialogView.findViewById(R.id.type_radio_group);
         Spinner categorySpinner = dialogView.findViewById(R.id.category_spinner);
@@ -244,7 +244,7 @@ public class HistoryFragment extends Fragment {
         TextView toDateText = dialogView.findViewById(R.id.to_date_text);
         View resetButton = dialogView.findViewById(R.id.reset_button);
         View applyButton = dialogView.findViewById(R.id.apply_button);
-        
+
         // Set up type radio buttons based on current filter
         switch (filterType) {
             case "expense":
@@ -257,80 +257,80 @@ public class HistoryFragment extends Fragment {
                 typeRadioGroup.check(R.id.radio_all);
                 break;
         }
-        
+
         // Load categories
         loadCategoriesForFilter(categorySpinner);
-        
+
         // Set up date pickers
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-        
+
         if (filterStartDate > 0) {
             fromDateText.setText(sdf.format(new Date(filterStartDate)));
         }
         if (filterEndDate > 0) {
             toDateText.setText(sdf.format(new Date(filterEndDate)));
         }
-        
+
         fromDateText.setOnClickListener(v -> {
             Calendar cal = Calendar.getInstance();
             if (filterStartDate > 0) {
                 cal.setTimeInMillis(filterStartDate);
             }
-            
+
             DatePickerDialog datePicker = new DatePickerDialog(
-                requireContext(),
-                (view, year, month, dayOfMonth) -> {
-                    Calendar selectedCal = Calendar.getInstance();
-                    selectedCal.set(year, month, dayOfMonth, 0, 0, 0);
-                    selectedCal.set(Calendar.MILLISECOND, 0);
-                    filterStartDate = selectedCal.getTimeInMillis();
-                    fromDateText.setText(sdf.format(new Date(filterStartDate)));
-                },
-                cal.get(Calendar.YEAR),
-                cal.get(Calendar.MONTH),
-                cal.get(Calendar.DAY_OF_MONTH)
+                    requireContext(),
+                    (view, year, month, dayOfMonth) -> {
+                        Calendar selectedCal = Calendar.getInstance();
+                        selectedCal.set(year, month, dayOfMonth, 0, 0, 0);
+                        selectedCal.set(Calendar.MILLISECOND, 0);
+                        filterStartDate = selectedCal.getTimeInMillis();
+                        fromDateText.setText(sdf.format(new Date(filterStartDate)));
+                    },
+                    cal.get(Calendar.YEAR),
+                    cal.get(Calendar.MONTH),
+                    cal.get(Calendar.DAY_OF_MONTH)
             );
             datePicker.show();
         });
-        
+
         toDateText.setOnClickListener(v -> {
             Calendar cal = Calendar.getInstance();
             if (filterEndDate > 0) {
                 cal.setTimeInMillis(filterEndDate);
             }
-            
+
             DatePickerDialog datePicker = new DatePickerDialog(
-                requireContext(),
-                (view, year, month, dayOfMonth) -> {
-                    Calendar selectedCal = Calendar.getInstance();
-                    selectedCal.set(year, month, dayOfMonth, 23, 59, 59);
-                    selectedCal.set(Calendar.MILLISECOND, 999);
-                    filterEndDate = selectedCal.getTimeInMillis();
-                    toDateText.setText(sdf.format(new Date(filterEndDate)));
-                },
-                cal.get(Calendar.YEAR),
-                cal.get(Calendar.MONTH),
-                cal.get(Calendar.DAY_OF_MONTH)
+                    requireContext(),
+                    (view, year, month, dayOfMonth) -> {
+                        Calendar selectedCal = Calendar.getInstance();
+                        selectedCal.set(year, month, dayOfMonth, 23, 59, 59);
+                        selectedCal.set(Calendar.MILLISECOND, 999);
+                        filterEndDate = selectedCal.getTimeInMillis();
+                        toDateText.setText(sdf.format(new Date(filterEndDate)));
+                    },
+                    cal.get(Calendar.YEAR),
+                    cal.get(Calendar.MONTH),
+                    cal.get(Calendar.DAY_OF_MONTH)
             );
             datePicker.show();
         });
-        
+
         // Reset button
         resetButton.setOnClickListener(v -> {
             filterType = "all";
             filterCategoryId = -1;
             filterStartDate = 0;
             filterEndDate = 0;
-            
+
             typeRadioGroup.check(R.id.radio_all);
             categorySpinner.setSelection(0);
             fromDateText.setText("");
             toDateText.setText("");
-            
+
             applyFilters();
             dialog.dismiss();
         });
-        
+
         // Apply button
         applyButton.setOnClickListener(v -> {
             // Get type filter
@@ -342,7 +342,7 @@ public class HistoryFragment extends Fragment {
             } else {
                 filterType = "all";
             }
-            
+
             // Get category filter
             int categoryPosition = categorySpinner.getSelectedItemPosition();
             if (categoryPosition > 0 && categoryPosition <= categoryList.size()) {
@@ -350,38 +350,38 @@ public class HistoryFragment extends Fragment {
             } else {
                 filterCategoryId = -1;
             }
-            
+
             applyFilters();
             dialog.dismiss();
         });
-        
+
         dialog.show();
     }
-    
+
     private void loadCategoriesForFilter(Spinner categorySpinner) {
         new Thread(() -> {
             try {
                 AppDatabase db = AppDatabase.getInstance(requireContext());
                 categoryList = db.categoryDao().getAllCategories();
-                
+
                 // Create category names list with "All Categories" option
                 List<String> categoryNames = new ArrayList<>();
                 categoryNames.add(getString(R.string.all_categories));
-                
+
                 for (Category category : categoryList) {
                     categoryNames.add(category.getName());
                 }
-                
+
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                            requireContext(),
-                            android.R.layout.simple_spinner_item,
-                            categoryNames
+                                requireContext(),
+                                android.R.layout.simple_spinner_item,
+                                categoryNames
                         );
                         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                         categorySpinner.setAdapter(adapter);
-                        
+
                         // Set current selection
                         if (filterCategoryId != -1) {
                             for (int i = 0; i < categoryList.size(); i++) {
@@ -398,12 +398,12 @@ public class HistoryFragment extends Fragment {
             }
         }).start();
     }
-    
+
     private void applyFilters() {
         new Thread(() -> {
             try {
                 List<Transaction> filtered = new ArrayList<>();
-                
+
                 for (Transaction transaction : allTransactions) {
                     // Type filter
                     if (!filterType.equals("all")) {
@@ -411,30 +411,30 @@ public class HistoryFragment extends Fragment {
                             continue;
                         }
                     }
-                    
+
                     // Category filter
                     if (filterCategoryId != -1) {
                         if (transaction.getCategoryId() != filterCategoryId) {
                             continue;
                         }
                     }
-                    
+
                     // Date range filter
                     if (filterStartDate > 0) {
                         if (transaction.getCreatedAt() < filterStartDate) {
                             continue;
                         }
                     }
-                    
+
                     if (filterEndDate > 0) {
                         if (transaction.getCreatedAt() > filterEndDate) {
                             continue;
                         }
                     }
-                    
+
                     filtered.add(transaction);
                 }
-                
+
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> adapter.setTransactions(filtered));
                 }
@@ -448,7 +448,7 @@ public class HistoryFragment extends Fragment {
         new Thread(() -> {
             try {
                 AppDatabase db = AppDatabase.getInstance(requireContext());
-                
+
                 // Update wallet balance before deleting
                 Wallet wallet = db.walletDao().getWalletById(transaction.getWalletId());
                 if (wallet != null) {
@@ -463,14 +463,14 @@ public class HistoryFragment extends Fragment {
                     }
                     db.walletDao().updateBalance(wallet.getId(), newBalance, System.currentTimeMillis());
                 }
-                
+
                 // Delete the transaction
                 db.transactionDao().delete(transaction);
-                
+
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        android.widget.Toast.makeText(requireContext(), 
-                            "Transaction deleted", android.widget.Toast.LENGTH_SHORT).show();
+                        android.widget.Toast.makeText(requireContext(),
+                                "Transaction deleted", android.widget.Toast.LENGTH_SHORT).show();
                         loadTransactions();
                     });
                 }
@@ -478,8 +478,8 @@ public class HistoryFragment extends Fragment {
                 android.util.Log.e("HistoryFragment", "Error deleting transaction", e);
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        android.widget.Toast.makeText(requireContext(), 
-                            "Error deleting transaction", android.widget.Toast.LENGTH_SHORT).show();
+                        android.widget.Toast.makeText(requireContext(),
+                                "Error deleting transaction", android.widget.Toast.LENGTH_SHORT).show();
                     });
                 }
             }

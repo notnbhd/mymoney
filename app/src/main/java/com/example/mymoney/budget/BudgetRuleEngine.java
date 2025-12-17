@@ -65,7 +65,7 @@ public class BudgetRuleEngine {
         public double spendingVelocity;
         public String status;
         public String trend;
-        
+
         public boolean isCategorySpecific() {
             return categoryId != null;
         }
@@ -115,7 +115,7 @@ public class BudgetRuleEngine {
         public String budgetName;  // Related budget name
 
         public ActionRecommendation(String type, String priority, String title,
-                                    String description, String actionableAdvice, 
+                                    String description, String actionableAdvice,
                                     double suggestedAmount, String budgetName) {
             this.type = type;
             this.priority = priority;
@@ -144,8 +144,8 @@ public class BudgetRuleEngine {
      * @param categoryNames Map of category ID to category name (for translation)
      * @return Analysis result
      */
-    public static BudgetAnalysisResult analyzeBudgets(List<Budget> budgets, Map<Integer, Double> spentAmounts, 
-                                                       Map<Integer, String> categoryNames) {
+    public static BudgetAnalysisResult analyzeBudgets(List<Budget> budgets, Map<Integer, Double> spentAmounts,
+                                                      Map<Integer, String> categoryNames) {
         BudgetAnalysisResult result = new BudgetAnalysisResult();
 
         for (Budget budget : budgets) {
@@ -195,7 +195,7 @@ public class BudgetRuleEngine {
         insight.recommendedDailyLimit = insight.daysRemaining > 0 ?
                 insight.remainingAmount / insight.daysRemaining : 0;
 
-        double expectedSpentByNow = insight.totalDays > 0 ? 
+        double expectedSpentByNow = insight.totalDays > 0 ?
                 (budget.getBudgetAmount() / insight.totalDays) * insight.daysElapsed : budget.getBudgetAmount();
         insight.spendingVelocity = expectedSpentByNow > 0 ? spent / expectedSpentByNow : 1.0;
 
@@ -363,7 +363,7 @@ public class BudgetRuleEngine {
                     String.format("Với tốc độ hiện tại, bạn sẽ vượt ngân sách %s trong %d ngày",
                             budgetNameVi, daysUntil),
                     String.format("Với tốc độ chi tiêu hiện tại cho %s, bạn có nguy cơ vượt ngân sách trong %d ngày nữa. " +
-                            "Hãy hạn chế chi tối đa %.0f VNĐ/ngày trong %d ngày còn lại.",
+                                    "Hãy hạn chế chi tối đa %.0f VNĐ/ngày trong %d ngày còn lại.",
                             budgetNameVi.toLowerCase(), daysUntil, insight.recommendedDailyLimit, insight.daysRemaining),
                     insight.recommendedDailyLimit,
                     budgetNameVi
@@ -388,7 +388,7 @@ public class BudgetRuleEngine {
                     String.format("Ngân sách %s gần hết - chỉ còn %.0f VNĐ",
                             budgetNameVi, insight.remainingAmount),
                     String.format("Bạn đã dùng %.0f%% ngân sách %s và chỉ còn %.0f VNĐ cho %d ngày tới. " +
-                            "Hãy cân nhắc kỹ trước mỗi khoản chi và chỉ chi tiêu cho những việc thực sự cần thiết.",
+                                    "Hãy cân nhắc kỹ trước mỗi khoản chi và chỉ chi tiêu cho những việc thực sự cần thiết.",
                             insight.usagePercentage, budgetNameVi.toLowerCase(), insight.remainingAmount, insight.daysRemaining),
                     insight.recommendedDailyLimit,
                     budgetNameVi
@@ -413,7 +413,7 @@ public class BudgetRuleEngine {
                     String.format("Còn %.0f VNĐ trong ngân sách %s",
                             insight.remainingAmount, budgetNameVi),
                     String.format("Bạn còn %.0f VNĐ cho %s trong %d ngày tới. Để an toàn, hãy cố gắng chi không quá %.0f VNĐ/ngày " +
-                            "và tạm hoãn các khoản chi tiêu không cấp bách.",
+                                    "và tạm hoãn các khoản chi tiêu không cấp bách.",
                             insight.remainingAmount, budgetNameVi.toLowerCase(), insight.daysRemaining, insight.recommendedDailyLimit),
                     insight.recommendedDailyLimit,
                     budgetNameVi
@@ -438,7 +438,7 @@ public class BudgetRuleEngine {
                     String.format("Ngân sách %s đang chi nhanh hơn dự kiến",
                             budgetNameVi),
                     String.format("Bạn đang chi tiêu cho %s nhanh hơn %.0f%% so với kế hoạch. Còn %.0f VNĐ cho %d ngày tới. " +
-                            "Nên giảm xuống còn %.0f VNĐ/ngày để đảm bảo không vượt ngân sách.",
+                                    "Nên giảm xuống còn %.0f VNĐ/ngày để đảm bảo không vượt ngân sách.",
                             budgetNameVi.toLowerCase(), (insight.spendingVelocity - 1) * 100, insight.remainingAmount,
                             insight.daysRemaining, insight.recommendedDailyLimit),
                     insight.recommendedDailyLimit,
@@ -465,7 +465,7 @@ public class BudgetRuleEngine {
                         "Bạn đang làm tốt!",
                         String.format("Bạn đã tiết kiệm được %.0f VNĐ cho %s", surplus, budgetNameVi.toLowerCase()),
                         String.format("Tuyệt vời! Bạn đang kiểm soát chi tiêu cho %s rất tốt và đã tiết kiệm được %.0f VNĐ. " +
-                                "Tiếp tục duy trì nhé! Bạn có thể cân nhắc để dành phần tiết kiệm này vào quỹ dự phòng.",
+                                        "Tiếp tục duy trì nhé! Bạn có thể cân nhắc để dành phần tiết kiệm này vào quỹ dự phòng.",
                                 budgetNameVi.toLowerCase(), surplus),
                         surplus,
                         budgetNameVi
@@ -493,7 +493,7 @@ public class BudgetRuleEngine {
                     String.format("Bạn còn %.0f VNĐ cho %s trong %s",
                             insight.remainingAmount, budgetNameVi.toLowerCase(), dayText),
                     String.format("Kỳ ngân sách %s sắp kết thúc. Bạn còn %.0f VNĐ, có thể chi tối đa %.0f VNĐ/ngày. " +
-                            "Hãy ưu tiên những khoản chi thực sự cần thiết.",
+                                    "Hãy ưu tiên những khoản chi thực sự cần thiết.",
                             budgetNameVi, insight.remainingAmount, dailyRemaining),
                     dailyRemaining,
                     budgetNameVi
@@ -578,7 +578,7 @@ public class BudgetRuleEngine {
                     "Xem xét lại toàn bộ chi tiêu",
                     "Nhiều ngân sách đang gặp rủi ro. Cần đánh giá lại chi tiêu tổng thể.",
                     String.format("Hiện có %d ngân sách đang có vấn đề. Bạn nên dừng lại và xem xét lại toàn bộ chi tiêu. " +
-                            "Hãy xác định 3 danh mục chi nhiều nhất và tìm cách giảm thiểu ở mỗi danh mục.",
+                                    "Hãy xác định 3 danh mục chi nhiều nhất và tìm cách giảm thiểu ở mỗi danh mục.",
                             health.budgetsAtRisk + health.budgetsExceeded),
                     0,
                     "Tổng thể"
@@ -693,10 +693,10 @@ public class BudgetRuleEngine {
      */
     private static String getCategoryVietnamese(String categoryName) {
         if (categoryName == null || categoryName.isEmpty()) return categoryName;
-        
+
         // Normalize: trim and lowercase for comparison
         String normalized = categoryName.trim().toLowerCase();
-        
+
         switch (normalized) {
             // Default expense categories from AppDatabase
             case "food": return "Ăn uống";
@@ -718,13 +718,13 @@ public class BudgetRuleEngine {
             case "grocery": return "Tạp hóa";
             case "others":
             case "other": return "Khác";
-            
+
             // Default income categories from AppDatabase
             case "salary": return "Lương";
             case "business": return "Kinh doanh";
             case "gifts":
             case "gift": return "Quà tặng";
-            
+
             // Additional common categories
             case "food & drinks":
             case "food and drinks":
@@ -732,31 +732,31 @@ public class BudgetRuleEngine {
             case "food and drink": return "Ăn uống";
             case "transportation": return "Di chuyển";
             case "shopping": return "Mua sắm";
-            case "bills": 
+            case "bills":
             case "bill": return "Hóa đơn";
-            case "health": 
+            case "health":
             case "healthcare": return "Sức khỏe";
             case "personal care": return "Chăm sóc cá nhân";
-            case "sports": 
+            case "sports":
             case "sport": return "Thể thao";
             case "travel": return "Du lịch";
-            case "pets": 
+            case "pets":
             case "pet": return "Thú cưng";
             case "housing":
             case "rent": return "Thuê nhà";
-            case "utilities": 
+            case "utilities":
             case "utility": return "Tiện ích";
             case "insurance": return "Bảo hiểm";
-            case "savings": 
+            case "savings":
             case "saving": return "Tiết kiệm";
-            case "charity": 
+            case "charity":
             case "donation": return "Từ thiện";
             case "family": return "Gia đình";
-            case "electronics": 
+            case "electronics":
             case "electronic":
             case "tech":
             case "technology": return "Điện tử";
-            case "subscriptions": 
+            case "subscriptions":
             case "subscription": return "Đăng ký dịch vụ";
             case "cafe":
             case "coffee": return "Cà phê";
@@ -777,7 +777,7 @@ public class BudgetRuleEngine {
             case "income": return "Thu nhập";
             case "other income": return "Thu nhập khác";
             case "other expense": return "Chi khác";
-            
+
             default: return categoryName;
         }
     }
@@ -787,7 +787,7 @@ public class BudgetRuleEngine {
      */
     private static String getBudgetTypeVietnamese(String budgetType) {
         if (budgetType == null) return "";
-        
+
         switch (budgetType.toLowerCase()) {
             case "daily": return "ngày";
             case "weekly": return "tuần";
@@ -812,13 +812,13 @@ public class BudgetRuleEngine {
             // Category name is already Vietnamese or not in dictionary
             return insight.categoryName;
         }
-        
+
         // Fall back to translating budget name
         String translated = getCategoryVietnamese(insight.budgetName);
         if (!translated.equals(insight.budgetName)) {
             return translated;
         }
-        
+
         return insight.budgetName;
     }
 
@@ -854,10 +854,10 @@ public class BudgetRuleEngine {
                 if (count >= 3) break;
                 String emoji = rec.priority.equals("high") ? "🔴" :
                         rec.priority.equals("medium") ? "🟡" : "🟢";
-                
+
                 // Display budget name and advice
-                String budgetDisplay = rec.budgetName != null && !rec.budgetName.equals("Tổng thể") 
-                        ? String.format("**[%s]** ", rec.budgetName) 
+                String budgetDisplay = rec.budgetName != null && !rec.budgetName.equals("Tổng thể")
+                        ? String.format("**[%s]** ", rec.budgetName)
                         : "";
                 response.append(String.format("%s %s%s\n\n", emoji, budgetDisplay, rec.actionableAdvice));
                 count++;

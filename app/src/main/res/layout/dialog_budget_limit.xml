@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:background="@drawable/bg_dialog_card">
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Chỉnh sửa giới hạn chi tiêu"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#E91E63"
+            android:gravity="center"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Ăn uống -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ăn uống"
+            android:textStyle="bold"
+            android:textColor="#FF4081"/>
+
+        <EditText
+            android:id="@+id/limitFood"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Giới hạn ăn uống"
+            android:inputType="number"
+            android:background="@drawable/search_background"
+            android:padding="10dp"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- Nhà cửa -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nhà cửa"
+            android:textStyle="bold"
+            android:textColor="?attr/colorOnSurface"/>
+
+        <EditText
+            android:id="@+id/limitHome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Giới hạn nhà cửa"
+            android:inputType="number"
+            android:background="@drawable/search_background"
+            android:padding="10dp"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- Đi lại -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Đi lại"
+            android:textStyle="bold"
+            android:textColor="?attr/colorOnSurface"/>
+
+        <EditText
+            android:id="@+id/limitTransport"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Giới hạn đi lại"
+            android:inputType="number"
+            android:background="@drawable/search_background"
+            android:padding="10dp"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- Tình yêu / Quan hệ -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tình yêu / Quan hệ"
+            android:textStyle="bold"
+            android:textColor="?attr/colorOnSurface"/>
+
+        <EditText
+            android:id="@+id/limitRelationship"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Giới hạn quan hệ"
+            android:inputType="number"
+            android:background="@drawable/search_background"
+            android:padding="10dp"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- Giải trí -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Giải trí"
+            android:textStyle="bold"
+            android:textColor="?attr/colorOnSurface"/>
+
+        <EditText
+            android:id="@+id/limitEntertainment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Giới hạn giải trí"
+            android:inputType="number"
+            android:background="@drawable/search_background"
+            android:padding="10dp"
+            android:layout_marginBottom="20dp"/>
+
+        <!-- Button -->
+        <Button
+            android:id="@+id/btnStartSaving"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Lưu "
+            android:textAllCaps="false"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/bg_button_rounded_pink"
+            android:paddingHorizontal="24dp"
+            android:paddingVertical="10dp"
+            android:layout_gravity="center"/>
+
+    </LinearLayout>
+</ScrollView>

@@ -3,6 +3,7 @@ package com.example.mymoney.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -20,18 +21,28 @@ import java.util.Locale;
 public class SavingGoalAdapter extends RecyclerView.Adapter<SavingGoalAdapter.ViewHolder> {
 
     // =======================
-    // CLICK LISTENER
+    // CLICK LISTENERS
     // =======================
     public interface OnGoalClickListener {
         void onGoalClick(SavingGoal goal);
     }
 
+    public interface OnGoalDeleteListener {
+        void onGoalDelete(SavingGoal goal);
+    }
+
     private final List<SavingGoal> goals;
     private final OnGoalClickListener listener;
+    private final OnGoalDeleteListener deleteListener;
 
     public SavingGoalAdapter(List<SavingGoal> goals, OnGoalClickListener listener) {
+        this(goals, listener, null);
+    }
+
+    public SavingGoalAdapter(List<SavingGoal> goals, OnGoalClickListener listener, OnGoalDeleteListener deleteListener) {
         this.goals = goals;
         this.listener = listener;
+        this.deleteListener = deleteListener;
     }
 
     // =======================
@@ -47,7 +58,7 @@ public class SavingGoalAdapter extends RecyclerView.Adapter<SavingGoalAdapter.Vi
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 
-        SavingGoal goal = goals.get(position); // ✅ ĐÚNG
+        SavingGoal goal = goals.get(position);
 
         // ===== TÊN GOAL =====
         holder.tvGoalName.setText(goal.getName());
@@ -78,6 +89,15 @@ public class SavingGoalAdapter extends RecyclerView.Adapter<SavingGoalAdapter.Vi
                 listener.onGoalClick(goal);
             }
         });
+
+        // ===== DELETE BUTTON =====
+        if (holder.btnDelete != null) {
+            holder.btnDelete.setOnClickListener(v -> {
+                if (deleteListener != null) {
+                    deleteListener.onGoalDelete(goal);
+                }
+            });
+        }
     }
 
     // =======================
@@ -93,6 +113,7 @@ public class SavingGoalAdapter extends RecyclerView.Adapter<SavingGoalAdapter.Vi
         TextView tvLastUpdate;
         TextView tvPercent;
         ProgressBar progressCircle;
+        ImageButton btnDelete;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);

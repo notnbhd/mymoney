@@ -34,7 +34,7 @@ public class SpendingPatternAnalyzer {
      */
     private static String getCategoryVietnamese(String englishName) {
         if (englishName == null) return "Khác";
-        
+
         switch (englishName.toLowerCase()) {
             case "food":
                 return "Ăn uống";
@@ -118,7 +118,7 @@ public class SpendingPatternAnalyzer {
         public boolean isEssential; // Food, transport, etc.
 
         public SpendingHabit(String categoryName, int categoryId, double averageAmount,
-                            int occurrenceCount, int totalMonths, boolean isEssential) {
+                             int occurrenceCount, int totalMonths, boolean isEssential) {
             this.categoryName = getCategoryVietnamese(categoryName);
             this.categoryId = categoryId;
             this.averageAmount = averageAmount;
@@ -141,7 +141,7 @@ public class SpendingPatternAnalyzer {
         public String suggestion;
 
         public MissingPurchase(String categoryName, int categoryId, double usualAmount,
-                              int consecutiveMonths, String lastPurchaseDate) {
+                               int consecutiveMonths, String lastPurchaseDate) {
             this.categoryName = getCategoryVietnamese(categoryName);
             this.categoryId = categoryId;
             this.usualAmount = usualAmount;
@@ -165,7 +165,7 @@ public class SpendingPatternAnalyzer {
         public String analysis;
 
         public UnusualSpending(String categoryName, int categoryId, double currentAmount,
-                              double averageAmount, String type) {
+                               double averageAmount, String type) {
             this.categoryName = getCategoryVietnamese(categoryName);
             this.categoryId = categoryId;
             this.currentAmount = currentAmount;
@@ -192,8 +192,8 @@ public class SpendingPatternAnalyzer {
         public String reason;
         public String suggestion;
 
-        public SavingOpportunity(String categoryName, double potentialSaving, 
-                                String reason, String suggestion) {
+        public SavingOpportunity(String categoryName, double potentialSaving,
+                                 String reason, String suggestion) {
             this.categoryName = getCategoryVietnamese(categoryName);
             this.potentialSaving = potentialSaving;
             this.reason = reason;
@@ -294,7 +294,7 @@ public class SpendingPatternAnalyzer {
         Map<Integer, List<MonthlySpending>> history = new HashMap<>();
 
         Calendar cal = Calendar.getInstance();
-        
+
         for (int i = 0; i < MONTHS_TO_ANALYZE; i++) {
             int year = cal.get(Calendar.YEAR);
             int month = cal.get(Calendar.MONTH);
@@ -650,7 +650,7 @@ public class SpendingPatternAnalyzer {
         Calendar cal = Calendar.getInstance();
         int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
         int daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
-        
+
         if (dayOfMonth >= daysInMonth - 5) { // Last 5 days of month
             for (MissingPurchase missing : analysis.missingPurchases) {
                 recommendations.add(new SmartRecommendation(
@@ -731,12 +731,12 @@ public class SpendingPatternAnalyzer {
 
         // Calculate percentages
         if (comparison.lastMonthTotal > 0) {
-            comparison.percentageVsLastMonth = 
+            comparison.percentageVsLastMonth =
                     ((comparison.thisMonthTotal - comparison.lastMonthTotal) / comparison.lastMonthTotal) * 100;
         }
 
         if (comparison.averageMonthly > 0) {
-            comparison.percentageVsAverage = 
+            comparison.percentageVsAverage =
                     ((comparison.thisMonthTotal - comparison.averageMonthly) / comparison.averageMonthly) * 100;
         }
 
@@ -758,12 +758,12 @@ public class SpendingPatternAnalyzer {
     private boolean isEssentialCategory(String categoryName) {
         String lower = categoryName.toLowerCase();
         return lower.contains("food") || lower.contains("ăn") || lower.contains("thực phẩm") ||
-               lower.contains("transport") || lower.contains("đi lại") || lower.contains("xăng") ||
-               lower.contains("medical") || lower.contains("y tế") || lower.contains("thuốc") ||
-               lower.contains("home") || lower.contains("nhà") || lower.contains("điện") ||
-               lower.contains("water") || lower.contains("nước") ||
-               lower.contains("groceries") || lower.contains("siêu thị") ||
-               lower.contains("utilities") || lower.contains("tiện ích");
+                lower.contains("transport") || lower.contains("đi lại") || lower.contains("xăng") ||
+                lower.contains("medical") || lower.contains("y tế") || lower.contains("thuốc") ||
+                lower.contains("home") || lower.contains("nhà") || lower.contains("điện") ||
+                lower.contains("water") || lower.contains("nước") ||
+                lower.contains("groceries") || lower.contains("siêu thị") ||
+                lower.contains("utilities") || lower.contains("tiện ích");
     }
 
     /**
@@ -778,9 +778,9 @@ public class SpendingPatternAnalyzer {
         if (result.monthlyComparison != null) {
             sb.append("SO SÁNH HÀNG THÁNG:\n");
             sb.append(String.format("- Tháng này: %.0f VNĐ\n", result.monthlyComparison.thisMonthTotal));
-            sb.append(String.format("- Tháng trước: %.0f VNĐ (%.1f%%)\n", 
+            sb.append(String.format("- Tháng trước: %.0f VNĐ (%.1f%%)\n",
                     result.monthlyComparison.lastMonthTotal, result.monthlyComparison.percentageVsLastMonth));
-            sb.append(String.format("- Trung bình 6 tháng: %.0f VNĐ (%.1f%%)\n", 
+            sb.append(String.format("- Trung bình 6 tháng: %.0f VNĐ (%.1f%%)\n",
                     result.monthlyComparison.averageMonthly, result.monthlyComparison.percentageVsAverage));
             sb.append(String.format("- Xu hướng: %s\n\n", getTrendVietnamese(result.monthlyComparison.trend)));
         }
@@ -789,7 +789,7 @@ public class SpendingPatternAnalyzer {
         if (!result.regularHabits.isEmpty()) {
             sb.append("THÓI QUEN CHI TIÊU THƯỜNG XUYÊN:\n");
             for (SpendingHabit habit : result.regularHabits) {
-                sb.append(String.format("- %s: %.0f VNĐ/tháng (%s)\n", 
+                sb.append(String.format("- %s: %.0f VNĐ/tháng (%s)\n",
                         habit.categoryName, habit.averageAmount, habit.pattern));
             }
             sb.append("\n");
@@ -799,7 +799,7 @@ public class SpendingPatternAnalyzer {
         if (!result.missingPurchases.isEmpty()) {
             sb.append("KHOẢN CHI THƯỜNG XUYÊN CHƯA CÓ THÁNG NÀY:\n");
             for (MissingPurchase missing : result.missingPurchases) {
-                sb.append(String.format("- %s: thường %.0f VNĐ (mua %d/%d tháng gần đây)\n", 
+                sb.append(String.format("- %s: thường %.0f VNĐ (mua %d/%d tháng gần đây)\n",
                         missing.categoryName, missing.usualAmount, missing.consecutiveMonths, MONTHS_TO_ANALYZE));
             }
             sb.append("\n");
@@ -818,7 +818,7 @@ public class SpendingPatternAnalyzer {
         if (!result.recommendations.isEmpty()) {
             sb.append("ĐỀ XUẤT THÔNG MINH:\n");
             for (SmartRecommendation rec : result.recommendations) {
-                sb.append(String.format("- [%s] %s: %s\n", 
+                sb.append(String.format("- [%s] %s: %s\n",
                         rec.type.toUpperCase(), rec.title, rec.actionableAdvice));
             }
         }
@@ -849,7 +849,7 @@ public class SpendingPatternAnalyzer {
         // Monthly trend
         if (result.monthlyComparison != null) {
             String emoji = result.monthlyComparison.trend.equals("decreasing") ? "📉" :
-                          result.monthlyComparison.trend.equals("increasing") ? "📈" : "➡️";
+                    result.monthlyComparison.trend.equals("increasing") ? "📈" : "➡️";
             response.append(String.format("%s **Xu hướng chi tiêu: %s**\n",
                     emoji, getTrendVietnameseStatic(result.monthlyComparison.trend)));
             response.append(String.format("Tháng này bạn đã chi: %.0f VNĐ (so với trung bình 6 tháng: %+.1f%%)\n\n",

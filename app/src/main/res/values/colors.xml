@@ -3,12 +3,12 @@
     <!-- Base colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    
+
     <!-- Main theme colors - Light Pink & White -->
     <color name="background">#FFF5F7</color>
     <color name="text_primary">#4A2C2A</color>
     <color name="text_secondary">#8B7E7D</color>
-    
+
     <!-- App specific colors - Pink theme -->
     <color name="primary_color">#FFB6C1</color>
     <color name="primary_pink">#FFB6C1</color>
@@ -20,7 +20,7 @@
     <color name="income_green">#98D8C8</color>
     <color name="gray_text">#B8A9A8</color>
     <color name="light_gray">#FFF5F7</color>
-    
+
     <!-- Chart colors - Pink palette -->
     <color name="chart_red">#FF6B9D</color>
     <color name="chart_green">#98D8C8</color>
@@ -28,11 +28,12 @@
     <color name="chart_orange">#FFB88C</color>
     <color name="chart_purple">#D8B5E8</color>
     <color name="chart_yellow">#FFE699</color>
+    <color name="surface">#FFFFFFFF</color>
     <color name="chart_teal">#89CFF0</color>
     <color name="chart_pink">#FFB6C1</color>
     <color name="mint_green">#98D8C8</color>
     <color name="hard_pink">#FF6B9D</color>
-    
+
     <!-- UI element colors - Pink theme -->
     <color name="item_background">#30FFB6C1</color>
     <color name="search_hint">#76000000</color>
@@ -45,7 +46,7 @@
     <color name="blue">#A8C5E8</color>
     <color name="green">#98D8C8</color>
     <color name='primary_green'>#CE099972</color>
-    
+
     <!-- Additional theme colors -->
     <color name="card_background">#FFFFFFFF</color>
     <color name="card_shadow">#20FFB6C1</color>

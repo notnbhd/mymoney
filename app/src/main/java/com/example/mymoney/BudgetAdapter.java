@@ -67,7 +67,7 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
         Calendar startCal = Calendar.getInstance();
         Calendar endCal = Calendar.getInstance();
         SimpleDateFormat dateParseFormat = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
-        
+
         switch (budget.getBudgetType()) {
             case "daily":
                 startCal.set(Calendar.HOUR_OF_DAY, 0);
@@ -88,7 +88,7 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
                 startCal.set(Calendar.MINUTE, 0);
                 startCal.set(Calendar.SECOND, 0);
                 startCal.set(Calendar.MILLISECOND, 0);
-                
+
                 // Set to Sunday of current week (6 days after Monday)
                 endCal.setTimeInMillis(startCal.getTimeInMillis());
                 endCal.add(Calendar.DAY_OF_MONTH, 6);
@@ -136,7 +136,7 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
                 }
                 break;
         }
-        
+
         return new long[]{startCal.getTimeInMillis(), endCal.getTimeInMillis()};
     }
 
@@ -183,7 +183,7 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
 
         public void bind(Budget budget, OnBudgetClickListener listener) {
             tvBudgetName.setText(budget.getName());
-            
+
             String periodType = budget.getBudgetType();
             tvPeriodType.setText(capitalizeFirst(periodType));
 
@@ -207,15 +207,15 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
             // Get pre-calculated spent amount from map
             double spent = spentAmountsMap.getOrDefault(budget.getId(), 0.0);
             double total = budget.getBudgetAmount();
-            
+
             // Get currency from MainActivity
             String currency = MainActivity.getSelectedWalletCurrency();
-            
+
             // Debug logging
-            android.util.Log.d("BudgetAdapter", "Binding budget: " + budget.getName() + 
-                    " (ID: " + budget.getId() + ") | Spent from map: " + spent + " " + currency + 
+            android.util.Log.d("BudgetAdapter", "Binding budget: " + budget.getName() +
+                    " (ID: " + budget.getId() + ") | Spent from map: " + spent + " " + currency +
                     " | Map size: " + spentAmountsMap.size());
-            
+
             tvSpent.setText(df.format(spent) + " " + currency);
             tvTotal.setText(df.format(total) + " " + currency);
 
@@ -251,7 +251,7 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
         private String calculateDateRange(Budget budget) {
             Calendar cal = Calendar.getInstance();
             String startDate = dateFormat.format(cal.getTime());
-            
+
             switch (budget.getBudgetType()) {
                 case "daily":
                     return startDate;

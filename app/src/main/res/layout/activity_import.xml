@@ -68,28 +68,6 @@
                     app:tint="@color/text_primary" />
             </LinearLayout>
 
-            <!-- 🧾 Scan -->
-            <LinearLayout
-                android:id="@+id/btnScan"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:padding="16dp"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/transaction_item_background"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?android:attr/selectableItemBackground">
-
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_scan"
-                    android:layout_marginBottom="8dp"
-                    app:tint="@color/text_primary" />
-            </LinearLayout>
         </LinearLayout>
 
         <!-- 🔹 Transaction Form -->

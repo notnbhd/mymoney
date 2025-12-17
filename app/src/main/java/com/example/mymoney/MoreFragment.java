@@ -12,6 +12,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.example.mymoney.savingGoal.SavingGoalFragment;
+
 public class MoreFragment extends Fragment {
 
     @Override

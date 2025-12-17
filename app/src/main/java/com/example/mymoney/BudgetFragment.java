@@ -40,7 +40,7 @@ public class BudgetFragment extends Fragment {
     private LinearLayout layoutEmptyState;
     private TextView btnAddBudget;
     private ImageButton btnRefresh;
-    
+
     private BudgetDao budgetDao;
     private CategoryDao categoryDao;
     private BudgetAdapter adapter;
@@ -48,7 +48,7 @@ public class BudgetFragment extends Fragment {
     private Map<Integer, Double> spentAmountsMap = new HashMap<>();
     private int lastWalletId = -1;
     private BudgetNotificationService notificationService;
-    
+
     // For category spinner in dialog
     private List<Category> expenseCategories = new ArrayList<>();
 
@@ -66,7 +66,7 @@ public class BudgetFragment extends Fragment {
         // Initialize database
         budgetDao = AppDatabase.getInstance(requireContext()).budgetDao();
         categoryDao = AppDatabase.getInstance(requireContext()).categoryDao();
-        
+
         // Initialize notification service
         notificationService = new BudgetNotificationService(requireContext());
 
@@ -104,20 +104,20 @@ public class BudgetFragment extends Fragment {
 
     private void setupRecyclerView() {
         adapter = new BudgetAdapter(
-            requireContext(),
-            budgetList,
-            budget -> {
-                // Budget clicked - detail screen removed for now
-                Toast.makeText(requireContext(), budget.getName() + ": $" + 
-                    new java.text.DecimalFormat("#,###").format(spentAmountsMap.getOrDefault(budget.getId(), 0.0)) + 
-                    " / $" + new java.text.DecimalFormat("#,###").format(budget.getBudgetAmount()), 
-                    Toast.LENGTH_SHORT).show();
-            },
-            budget -> {
-                // Delete budget
-                showDeleteConfirmDialog(budget);
-            },
-            spentAmountsMap
+                requireContext(),
+                budgetList,
+                budget -> {
+                    // Budget clicked - detail screen removed for now
+                    Toast.makeText(requireContext(), budget.getName() + ": $" +
+                                    new java.text.DecimalFormat("#,###").format(spentAmountsMap.getOrDefault(budget.getId(), 0.0)) +
+                                    " / $" + new java.text.DecimalFormat("#,###").format(budget.getBudgetAmount()),
+                            Toast.LENGTH_SHORT).show();
+                },
+                budget -> {
+                    // Delete budget
+                    showDeleteConfirmDialog(budget);
+                },
+                spentAmountsMap
         );
 
         rvBudgets.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -134,7 +134,7 @@ public class BudgetFragment extends Fragment {
             } else {
                 budgets = budgetDao.getAllBudgets();
             }
-            
+
             // Pre-calculate expenses for each budget (filtered by wallet and category)
             Map<Integer, Double> expensesMap = new HashMap<>();
             AppDatabase db = AppDatabase.getInstance(requireContext());
@@ -142,44 +142,44 @@ public class BudgetFragment extends Fragment {
                 long[] periodRange = BudgetAdapter.calculatePeriodRange(budget);
                 int walletId = budget.getWalletId();
                 Integer categoryId = budget.getCategoryId();
-                
+
                 double spent;
                 if (categoryId != null && categoryId > 0) {
                     // Category-specific budget - only count expenses for this category
                     spent = db.transactionDao().getTotalExpenseBetweenForWalletAndCategory(
-                        periodRange[0], periodRange[1], walletId, categoryId);
+                            periodRange[0], periodRange[1], walletId, categoryId);
                 } else {
                     // Global budget - count all expenses
                     spent = db.transactionDao().getTotalExpenseBetweenForWallet(
-                        periodRange[0], periodRange[1], walletId);
+                            periodRange[0], periodRange[1], walletId);
                 }
                 expensesMap.put(budget.getId(), spent);
-                
+
                 // Debug logging
-                String categoryInfo = (categoryId != null && categoryId > 0) ? 
-                    " CategoryID: " + categoryId : " (Global)";
-                android.util.Log.d("BudgetFragment", "Budget: " + budget.getName() + 
-                        " (ID: " + budget.getId() + ", Type: " + budget.getBudgetType() + 
+                String categoryInfo = (categoryId != null && categoryId > 0) ?
+                        " CategoryID: " + categoryId : " (Global)";
+                android.util.Log.d("BudgetFragment", "Budget: " + budget.getName() +
+                        " (ID: " + budget.getId() + ", Type: " + budget.getBudgetType() +
                         ", WalletID: " + walletId + categoryInfo + ")" +
                         " | Period: " + new java.text.SimpleDateFormat("MM/dd/yyyy HH:mm:ss", java.util.Locale.getDefault()).format(new java.util.Date(periodRange[0])) +
                         " to " + new java.text.SimpleDateFormat("MM/dd/yyyy HH:mm:ss", java.util.Locale.getDefault()).format(new java.util.Date(periodRange[1])) +
                         " | Spent: $" + spent);
             }
-            
+
             // Run rule-based analysis and check for notifications
             if (!budgets.isEmpty()) {
-                BudgetRuleEngine.BudgetAnalysisResult analysisResult = 
-                    BudgetRuleEngine.analyzeBudgets(budgets, expensesMap);
+                BudgetRuleEngine.BudgetAnalysisResult analysisResult =
+                        BudgetRuleEngine.analyzeBudgets(budgets, expensesMap);
                 notificationService.checkAndNotify(analysisResult);
             }
-            
+
             // Build category names map for display
             Map<Integer, String> categoryNamesMap = new HashMap<>();
             List<Category> allCategories = categoryDao.getAllCategories();
             for (Category category : allCategories) {
                 categoryNamesMap.put(category.getId(), category.getName());
             }
-            
+
             final Map<Integer, String> finalCategoryNamesMap = categoryNamesMap;
             requireActivity().runOnUiThread(() -> {
                 budgetList.clear();
@@ -219,7 +219,7 @@ public class BudgetFragment extends Fragment {
 
         final Calendar startCalendar = Calendar.getInstance();
         final Calendar endCalendar = Calendar.getInstance();
-        
+
         // Load categories for spinner
         loadCategoriesForSpinner(spinnerCategory);
 
@@ -312,8 +312,8 @@ public class BudgetFragment extends Fragment {
                 if (periodType.equals("custom")) {
                     String startDateText = tvStartDate.getText().toString();
                     String endDateText = tvEndDate.getText().toString();
-                    if (startDateText.isEmpty() || endDateText.isEmpty() || 
-                        startDateText.equals("Select start date") || endDateText.equals("Select end date")) {
+                    if (startDateText.isEmpty() || endDateText.isEmpty() ||
+                            startDateText.equals("Select start date") || endDateText.equals("Select end date")) {
                         Toast.makeText(requireContext(), "Please select start and end dates", Toast.LENGTH_SHORT).show();
                         return;
                     }
@@ -340,14 +340,14 @@ public class BudgetFragment extends Fragment {
                 // Get current user and wallet IDs from MainActivity
                 int userId = MainActivity.getCurrentUserId();
                 int walletId = MainActivity.getSelectedWalletId();
-                
+
                 // Fallback to default if not set
                 if (userId <= 0) userId = 1;
                 if (walletId <= 0) walletId = 1;
-                
+
                 budget.setUserId(userId);
                 budget.setWalletId(walletId);
-                
+
                 // Set category if selected (not "All Categories")
                 int selectedCategoryPosition = spinnerCategory.getSelectedItemPosition();
                 if (selectedCategoryPosition > 0 && selectedCategoryPosition <= expenseCategories.size()) {
@@ -395,29 +395,29 @@ public class BudgetFragment extends Fragment {
                 .setNegativeButton("Cancel", null)
                 .show();
     }
-    
+
     /**
      * Load expense categories for the spinner
      */
     private void loadCategoriesForSpinner(Spinner spinner) {
         Executors.newSingleThreadExecutor().execute(() -> {
             List<Category> categories = categoryDao.getAllExpenseCategories();
-            
+
             requireActivity().runOnUiThread(() -> {
                 expenseCategories.clear();
                 expenseCategories.addAll(categories);
-                
+
                 // Create list with "All Categories" option first
                 List<String> categoryNames = new ArrayList<>();
                 categoryNames.add("All Categories (Global)");
                 for (Category cat : categories) {
                     categoryNames.add(cat.getName());
                 }
-                
+
                 ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                    requireContext(),
-                    android.R.layout.simple_spinner_item,
-                    categoryNames
+                        requireContext(),
+                        android.R.layout.simple_spinner_item,
+                        categoryNames
                 );
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spinner.setAdapter(adapter);

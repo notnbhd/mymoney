@@ -33,7 +33,7 @@ public class ChatbotService {
     private static final String OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1/";
     private static final String API_TOKEN = BuildConfig.OPENROUTER_API_TOKEN;
     private static final String MODEL = "mistralai/devstral-2512:free";
-    
+
     private OpenRouterApiService apiService;
     private AppDatabase database;
     private Context context;
@@ -63,63 +63,63 @@ public class ChatbotService {
         new Thread(() -> {
             try {
                 String financialAnalysis = analyzeUserFinancialData(userId, walletId);
-                
+
                 // Get budget analysis from rule-based engine
-                BudgetRuleEngine.BudgetAnalysisResult budgetAnalysis = 
-                    budgetContextProvider.analyzeBudgetsSync(walletId);
-                
+                BudgetRuleEngine.BudgetAnalysisResult budgetAnalysis =
+                        budgetContextProvider.analyzeBudgetsSync(walletId);
+
                 // Get spending pattern analysis
-                SpendingPatternAnalyzer.PatternAnalysisResult patternResult = 
-                    patternAnalyzer.analyzePatterns(walletId);
-                
+                SpendingPatternAnalyzer.PatternAnalysisResult patternResult =
+                        patternAnalyzer.analyzePatterns(walletId);
+
                 // Check for notifications based on budget status
                 if (budgetAnalysis != null) {
                     notificationService.checkAndNotify(budgetAnalysis);
                 }
-                
+
                 // Build enhanced prompt with budget context
                 String budgetContext = "";
                 if (budgetAnalysis != null && isBudgetRelatedQuery(userMessage)) {
                     budgetContext = BudgetContextProvider.buildPromptEnhancement(budgetAnalysis);
                 }
-                
+
                 // Build pattern context for habit-related queries
                 String patternContext = "";
                 if (patternResult != null && isPatternRelatedQuery(userMessage)) {
                     patternContext = buildPatternPromptEnhancement(patternResult);
                 }
-                
+
                 Log.d(TAG, "Financial analysis: " + financialAnalysis);
 
                 // Create OpenRouter request with chat format
                 OpenRouterRequest request = new OpenRouterRequest(MODEL);
                 request.setTemperature(0.7);
                 request.setMax_tokens(500);
-                
+
                 // System message with budget and pattern context if applicable
                 String systemPrompt = "Bạn là trợ lý tài chính cá nhân chuyên nghiệp. " +
-                    "Hãy đưa ra lời khuyên ngắn gọn, thực tế và hữu ích bằng tiếng Việt. " +
-                    "Trả lời trong 3-4 câu, tập trung vào hành động cụ thể.";
-                
+                        "Hãy đưa ra lời khuyên ngắn gọn, thực tế và hữu ích bằng tiếng Việt. " +
+                        "Trả lời trong 3-4 câu, tập trung vào hành động cụ thể.";
+
                 if (!budgetContext.isEmpty()) {
                     systemPrompt += budgetContext;
                 }
-                
+
                 if (!patternContext.isEmpty()) {
                     systemPrompt += patternContext;
                 }
-                
+
                 request.addMessage("system", systemPrompt);
-                
+
                 // User message with financial data
                 String userPrompt = "Dữ liệu tài chính:\n" + financialAnalysis + "\n\nCâu hỏi: " + userMessage;
                 request.addMessage("user", userPrompt);
 
                 Call<OpenRouterResponse> call = apiService.generateResponse(
-                    "Bearer " + API_TOKEN,
-                    "https://github.com/notnbhd/mymoney", // Your app URL
-                    "MyMoney App", // Your app name
-                    request
+                        "Bearer " + API_TOKEN,
+                        "https://github.com/notnbhd/mymoney", // Your app URL
+                        "MyMoney App", // Your app name
+                        request
                 );
 
                 call.enqueue(new Callback<OpenRouterResponse>() {
@@ -128,7 +128,7 @@ public class ChatbotService {
                         if (response.isSuccessful() && response.body() != null) {
                             Log.d(TAG, "API Response successful");
                             String generatedText = response.body().getGeneratedText();
-                            
+
                             if (generatedText != null && !generatedText.isEmpty()) {
                                 String cleanedResponse = cleanGeneratedText(generatedText);
                                 callback.onSuccess(cleanedResponse);
@@ -155,7 +155,7 @@ public class ChatbotService {
                         callback.onSuccess(generateLocalFinancialAdvice(userId, walletId, userMessage, financialAnalysis));
                     }
                 });
-                
+
             } catch (Exception e) {
                 Log.e(TAG, "Error in financial analysis", e);
                 callback.onError("Đã xảy ra lỗi khi phân tích dữ liệu tài chính");
@@ -177,7 +177,7 @@ public class ChatbotService {
 
         // Get transactions for current month (wallet-specific)
         List<Transaction> monthlyTransactions = database.transactionDao()
-            .getTransactionsByWalletAndDateRange(walletId, monthStartTimestamp, currentTimestamp);
+                .getTransactionsByWalletAndDateRange(walletId, monthStartTimestamp, currentTimestamp);
 
         // Calculate totals
         double totalExpenses = 0;
@@ -188,8 +188,8 @@ public class ChatbotService {
             if ("expense".equals(transaction.getType())) {
                 totalExpenses += transaction.getAmount();
                 categoryExpenses.put(
-                    transaction.getCategoryId(),
-                    categoryExpenses.getOrDefault(transaction.getCategoryId(), 0.0) + transaction.getAmount()
+                        transaction.getCategoryId(),
+                        categoryExpenses.getOrDefault(transaction.getCategoryId(), 0.0) + transaction.getAmount()
                 );
             } else if ("income".equals(transaction.getType())) {
                 totalIncome += transaction.getAmount();
@@ -206,15 +206,15 @@ public class ChatbotService {
         if (!categoryExpenses.isEmpty()) {
             analysis.append("\n💰 Chi tiêu theo danh mục:\n");
             categoryExpenses.entrySet().stream()
-                .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
-                .limit(3)
-                .forEach(entry -> {
-                    Category category = database.categoryDao().getCategoryById(entry.getKey());
-                    if (category != null) {
-                        analysis.append(String.format("- %s: %.0f VNĐ\n", 
-                            category.getName(), entry.getValue()));
-                    }
-                });
+                    .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
+                    .limit(3)
+                    .forEach(entry -> {
+                        Category category = database.categoryDao().getCategoryById(entry.getKey());
+                        if (category != null) {
+                            analysis.append(String.format("- %s: %.0f VNĐ\n",
+                                    category.getName(), entry.getValue()));
+                        }
+                    });
         }
 
         return analysis.toString();
@@ -222,14 +222,14 @@ public class ChatbotService {
 
     private String cleanGeneratedText(String generatedText) {
         if (generatedText == null) return "";
-        
+
         // OpenRouter/DeepSeek returns clean text, just trim
         return generatedText.trim();
     }
 
     private String generateLocalFinancialAdvice(int userId, int walletId, String userMessage, String financialAnalysis) {
         StringBuilder advice = new StringBuilder();
-        
+
         advice.append(financialAnalysis);
         advice.append("\n\n💡 Lời khuyên:\n");
 
@@ -255,95 +255,95 @@ public class ChatbotService {
 
         return advice.toString();
     }
-    
+
     /**
      * Check if user message is related to budget
      */
     private boolean isBudgetRelatedQuery(String message) {
         String lowerMessage = message.toLowerCase();
         return lowerMessage.contains("ngân sách") ||
-               lowerMessage.contains("budget") ||
-               lowerMessage.contains("chi tiêu") ||
-               lowerMessage.contains("spending") ||
-               lowerMessage.contains("tiền") ||
-               lowerMessage.contains("money") ||
-               lowerMessage.contains("tiết kiệm") ||
-               lowerMessage.contains("save") ||
-               lowerMessage.contains("giới hạn") ||
-               lowerMessage.contains("limit") ||
-               lowerMessage.contains("còn bao nhiêu") ||
-               lowerMessage.contains("how much") ||
-               lowerMessage.contains("đề xuất") ||
-               lowerMessage.contains("recommend") ||
-               lowerMessage.contains("lời khuyên") ||
-               lowerMessage.contains("advice");
+                lowerMessage.contains("budget") ||
+                lowerMessage.contains("chi tiêu") ||
+                lowerMessage.contains("spending") ||
+                lowerMessage.contains("tiền") ||
+                lowerMessage.contains("money") ||
+                lowerMessage.contains("tiết kiệm") ||
+                lowerMessage.contains("save") ||
+                lowerMessage.contains("giới hạn") ||
+                lowerMessage.contains("limit") ||
+                lowerMessage.contains("còn bao nhiêu") ||
+                lowerMessage.contains("how much") ||
+                lowerMessage.contains("đề xuất") ||
+                lowerMessage.contains("recommend") ||
+                lowerMessage.contains("lời khuyên") ||
+                lowerMessage.contains("advice");
     }
-    
+
     /**
      * Get quick budget recommendation without LLM
      */
     public void getQuickBudgetRecommendation(int walletId, ChatbotCallback callback) {
         new Thread(() -> {
             try {
-                BudgetRuleEngine.BudgetAnalysisResult result = 
-                    budgetContextProvider.analyzeBudgetsSync(walletId);
-                
+                BudgetRuleEngine.BudgetAnalysisResult result =
+                        budgetContextProvider.analyzeBudgetsSync(walletId);
+
                 if (result == null) {
                     callback.onSuccess("Bạn chưa thiết lập ngân sách nào. " +
-                        "Hãy tạo ngân sách để tôi có thể đưa ra lời khuyên chi tiêu!");
+                            "Hãy tạo ngân sách để tôi có thể đưa ra lời khuyên chi tiêu!");
                     return;
                 }
-                
+
                 String quickResponse = BudgetRuleEngine.generateQuickResponse(result);
                 callback.onSuccess(quickResponse);
-                
+
                 // Also check for notifications
                 notificationService.checkAndNotify(result);
-                
+
             } catch (Exception e) {
                 callback.onError("Không thể phân tích ngân sách: " + e.getMessage());
             }
         }).start();
     }
-    
+
     /**
      * Get spending pattern analysis
      */
     public void getSpendingPatternAnalysis(int walletId, ChatbotCallback callback) {
         new Thread(() -> {
             try {
-                SpendingPatternAnalyzer.PatternAnalysisResult result = 
-                    patternAnalyzer.analyzePatterns(walletId);
-                
+                SpendingPatternAnalyzer.PatternAnalysisResult result =
+                        patternAnalyzer.analyzePatterns(walletId);
+
                 if (result == null || result.regularHabits.isEmpty()) {
                     callback.onSuccess("📊 Chưa đủ dữ liệu để phân tích thói quen chi tiêu. " +
-                        "Hãy tiếp tục ghi chép chi tiêu để tôi có thể đưa ra đề xuất phù hợp!");
+                            "Hãy tiếp tục ghi chép chi tiêu để tôi có thể đưa ra đề xuất phù hợp!");
                     return;
                 }
-                
+
                 StringBuilder response = new StringBuilder();
                 response.append("📊 **Phân tích thói quen chi tiêu của bạn:**\n\n");
-                
+
                 // Add regular habits
                 if (!result.regularHabits.isEmpty()) {
                     response.append("🔄 **Thói quen chi tiêu thường xuyên:**\n");
                     for (SpendingPatternAnalyzer.SpendingHabit habit : result.regularHabits) {
                         response.append(String.format("• %s: ~%.0f VNĐ/%s\n",
-                            habit.categoryName, habit.averageAmount, habit.pattern));
+                                habit.categoryName, habit.averageAmount, habit.pattern));
                     }
                     response.append("\n");
                 }
-                
+
                 // Add missing purchases
                 if (!result.missingPurchases.isEmpty()) {
                     response.append("💡 **Có thể bạn quên chi tiêu:**\n");
                     for (SpendingPatternAnalyzer.MissingPurchase missing : result.missingPurchases) {
                         response.append(String.format("• %s (thường ~%.0f VNĐ)\n",
-                            missing.categoryName, missing.usualAmount));
+                                missing.categoryName, missing.usualAmount));
                     }
                     response.append("\n");
                 }
-                
+
                 // Add recommendations
                 if (!result.recommendations.isEmpty()) {
                     response.append("💰 **Đề xuất:**\n");
@@ -353,46 +353,46 @@ public class ChatbotService {
                         response.append("   ").append(rec.actionableAdvice).append("\n");
                     }
                 }
-                
+
                 callback.onSuccess(response.toString());
-                
+
             } catch (Exception e) {
                 Log.e(TAG, "Error analyzing spending patterns", e);
                 callback.onError("Không thể phân tích thói quen chi tiêu: " + e.getMessage());
             }
         }).start();
     }
-    
+
     /**
      * Check if user message is related to spending patterns/habits
      */
     private boolean isPatternRelatedQuery(String message) {
         String lowerMessage = message.toLowerCase();
         return lowerMessage.contains("thói quen") ||
-               lowerMessage.contains("pattern") ||
-               lowerMessage.contains("habit") ||
-               lowerMessage.contains("thường xuyên") ||
-               lowerMessage.contains("frequently") ||
-               lowerMessage.contains("hay mua") ||
-               lowerMessage.contains("often buy") ||
-               lowerMessage.contains("tháng trước") ||
-               lowerMessage.contains("last month") ||
-               lowerMessage.contains("quần áo") ||
-               lowerMessage.contains("clothes") ||
-               lowerMessage.contains("định kỳ") ||
-               lowerMessage.contains("recurring") ||
-               lowerMessage.contains("phân tích") ||
-               lowerMessage.contains("analyze") ||
-               lowerMessage.contains("lịch sử") ||
-               lowerMessage.contains("history") ||
-               lowerMessage.contains("xu hướng") ||
-               lowerMessage.contains("trend") ||
-               lowerMessage.contains("nên mua") ||
-               lowerMessage.contains("should buy") ||
-               lowerMessage.contains("đề xuất") ||
-               lowerMessage.contains("suggest");
+                lowerMessage.contains("pattern") ||
+                lowerMessage.contains("habit") ||
+                lowerMessage.contains("thường xuyên") ||
+                lowerMessage.contains("frequently") ||
+                lowerMessage.contains("hay mua") ||
+                lowerMessage.contains("often buy") ||
+                lowerMessage.contains("tháng trước") ||
+                lowerMessage.contains("last month") ||
+                lowerMessage.contains("quần áo") ||
+                lowerMessage.contains("clothes") ||
+                lowerMessage.contains("định kỳ") ||
+                lowerMessage.contains("recurring") ||
+                lowerMessage.contains("phân tích") ||
+                lowerMessage.contains("analyze") ||
+                lowerMessage.contains("lịch sử") ||
+                lowerMessage.contains("history") ||
+                lowerMessage.contains("xu hướng") ||
+                lowerMessage.contains("trend") ||
+                lowerMessage.contains("nên mua") ||
+                lowerMessage.contains("should buy") ||
+                lowerMessage.contains("đề xuất") ||
+                lowerMessage.contains("suggest");
     }
-    
+
     /**
      * Build prompt enhancement from spending patterns
      */
@@ -400,40 +400,40 @@ public class ChatbotService {
         if (result == null || result.regularHabits.isEmpty()) {
             return "";
         }
-        
+
         StringBuilder enhancement = new StringBuilder();
         enhancement.append("\n\n[THÓI QUEN CHI TIÊU CỦA NGƯỜI DÙNG]\n");
-        
+
         // Add detected habits
         for (SpendingPatternAnalyzer.SpendingHabit habit : result.regularHabits) {
             if (habit.frequency >= 0.6) { // Only include high-frequency habits
                 enhancement.append(String.format("- %s: Chi tiêu %s, TB %.0f VNĐ (tần suất: %.0f%%)\n",
-                    habit.categoryName,
-                    habit.pattern,
-                    habit.averageAmount,
-                    habit.frequency * 100));
+                        habit.categoryName,
+                        habit.pattern,
+                        habit.averageAmount,
+                        habit.frequency * 100));
             }
         }
-        
+
         // Add missing purchases
         if (!result.missingPurchases.isEmpty()) {
             enhancement.append("\n[CHI TIÊU BỊ BỎ LỠ THÁNG NÀY]\n");
             for (SpendingPatternAnalyzer.MissingPurchase missing : result.missingPurchases) {
                 enhancement.append(String.format("- %s (thường ~%.0f VNĐ)\n",
-                    missing.categoryName, missing.usualAmount));
+                        missing.categoryName, missing.usualAmount));
             }
         }
-        
+
         // Add LLM summary if available
         if (result.summaryForLLM != null && !result.summaryForLLM.isEmpty()) {
             enhancement.append("\n").append(result.summaryForLLM);
         }
-        
+
         enhancement.append("\nDựa trên thói quen này, hãy đưa ra lời khuyên cụ thể về chi tiêu.");
-        
+
         return enhancement.toString();
     }
-    
+
     /**
      * Get emoji for recommendation type
      */
