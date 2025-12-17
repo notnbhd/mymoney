@@ -22,5 +22,14 @@
         <item name="colorControlNormal">@null</item>
         <item name="android:tint">@null</item>
     </style>
+    
+    <!-- Full screen dialog style (night mode) -->
+    <style name="FullScreenDialog" parent="Theme.MaterialComponents.DayNight.Dialog">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowBackground">@color/background_dark</item>
+        <item name="colorPrimary">@color/primary_green</item>
+    </style>
 
 </resources>

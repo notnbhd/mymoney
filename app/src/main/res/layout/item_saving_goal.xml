@@ -33,6 +33,17 @@
             android:textColor="#888888"/>
     </LinearLayout>
 
+    <!-- DELETE BUTTON -->
+    <ImageButton
+        android:id="@+id/btnDeleteGoal"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginEnd="12dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@android:drawable/ic_menu_delete"
+        android:contentDescription="Xóa mục tiêu"
+        android:tint="#FF4444"/>
+
     <!-- RIGHT : VÒNG TRÒN % -->
     <FrameLayout
         android:layout_width="48dp"

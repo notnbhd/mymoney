@@ -35,8 +35,8 @@ import java.util.concurrent.Executors;
 public class SavingProgressFragment extends Fragment {
 
     private String goalName;
-    private int goalAmount;
-    private int totalSaved = 0;
+    private long goalAmount;
+    private long totalSaved = 0;
 
     private ProgressBar progressBar;
     private TextView txtTotalProgress;
@@ -62,11 +62,11 @@ public class SavingProgressFragment extends Fragment {
             "Entertainment"
     };
 
-    public static SavingProgressFragment newInstance(String name, int amount) {
+    public static SavingProgressFragment newInstance(String name, long amount) {
         SavingProgressFragment f = new SavingProgressFragment();
         Bundle b = new Bundle();
         b.putString("goalName", name);
-        b.putInt("goalAmount", amount);
+        b.putLong("goalAmount", amount);
         f.setArguments(b);
         return f;
     }
@@ -111,7 +111,7 @@ public class SavingProgressFragment extends Fragment {
         if (a == null) return;
 
         goalName = a.getString("goalName", "");
-        goalAmount = a.getInt("goalAmount", 0);
+        goalAmount = a.getLong("goalAmount", 0);
     }
 
     private void mapViews(View v) {
@@ -124,20 +124,27 @@ public class SavingProgressFragment extends Fragment {
 
     }
 
-    // Đọc tổng tiền đã tiết kiệm cho goal này từ SAVING_GOALS
+    // Load saved amount from database
     private void loadSavedAmount() {
-        SharedPreferences prefs =
-                requireContext().getSharedPreferences("SAVING_GOALS", Context.MODE_PRIVATE);
-
-        Set<String> rawSet = prefs.getStringSet("goal_list", new HashSet<>());
-
-        for (String item : rawSet) {
-            String[] arr = item.split("\\|");
-            if (arr.length >= 3 && arr[0].equals(goalName)) {
-                totalSaved = Integer.parseInt(arr[2]);
-                break;
+        int userId = getCurrentUserId();
+        int walletId = MainActivity.getSelectedWalletId();
+        
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                com.example.mymoney.database.entity.SavingGoal dbGoal = 
+                        AppDatabase.getInstance(requireContext())
+                                .savingGoalDao()
+                                .getSavingGoalByName(userId, walletId, goalName);
+                
+                if (dbGoal != null) {
+                    totalSaved = (long) dbGoal.getCurrentAmount();
+                }
+                
+                // Update UI on main thread will happen in setupUI
+            } catch (Exception e) {
+                android.util.Log.e("SavingProgressFragment", "Error loading saved amount", e);
             }
-        }
+        });
     }
 
     // 🔥 LẤY DỮ LIỆU GIỐNG BUDGETFRAGMENT
@@ -160,7 +167,7 @@ public class SavingProgressFragment extends Fragment {
     private void setupUI() {
 
         // ====== 1. Hiển thị tiến độ tiết kiệm ======
-        int remain = Math.max(goalAmount - totalSaved, 0);
+        long remain = Math.max(goalAmount - totalSaved, 0);
 
         String progressText =
                 "Mục tiêu: " + df.format(goalAmount) + " VND\n" +
@@ -169,8 +176,8 @@ public class SavingProgressFragment extends Fragment {
 
         txtTotalProgress.setText(progressText);
 
-        progressBar.setMax(goalAmount);
-        progressBar.setProgress(totalSaved);
+        progressBar.setMax((int) goalAmount);
+        progressBar.setProgress((int) totalSaved);
         btnEndSavingProgress.setOnClickListener(v -> endSavingGoal());
 
         // ====== 2. Hiển thị chi tiêu / limit ======
@@ -233,14 +240,14 @@ public class SavingProgressFragment extends Fragment {
 // (có thể bỏ saveUpdatedGoal nếu muốn)
 
 
-            int newRemain = Math.max(goalAmount - totalSaved, 0);
+            long newRemain = Math.max(goalAmount - totalSaved, 0);
             txtTotalProgress.setText(
                     "Mục tiêu: " + df.format(goalAmount) + " VND\n" +
                             "Đã tiết kiệm: " + df.format(totalSaved) + " VND\n" +
                             "Còn thiếu: " + df.format(newRemain) + " VND"
             );
 
-            progressBar.setProgress(totalSaved);
+            progressBar.setProgress((int) totalSaved);
             inputSavedMoney.setText("");
         });
     }
@@ -314,7 +321,7 @@ public class SavingProgressFragment extends Fragment {
     }
     private void endSavingGoal() {
 
-        // 1) XÓA KHỎI DANH SÁCH GOAL
+        // 1) XÓA KHỎI DANH SÁCH GOAL (SharedPreferences - legacy)
         SharedPreferences prefs =
                 requireContext().getSharedPreferences("SAVING_GOALS", Context.MODE_PRIVATE);
 
@@ -360,10 +367,50 @@ public class SavingProgressFragment extends Fragment {
         );
 
         historyPref.edit().putStringSet("history_list", history).apply();
+        
+        // 5) XÓA KHỎI DATABASE
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                int userId = getCurrentUserId();
+                int walletId = MainActivity.getSelectedWalletId();
+                
+                // Delete related budgets (budgets named "goalName - categoryName")
+                AppDatabase.getInstance(requireContext())
+                        .budgetDao()
+                        .deleteByNamePattern(goalName + " - %");
+                android.util.Log.d("SavingProgressFragment", "Deleted budgets for goal: " + goalName);
+                
+                com.example.mymoney.database.entity.SavingGoal dbGoal = 
+                        AppDatabase.getInstance(requireContext())
+                                .savingGoalDao()
+                                .getSavingGoalByName(userId, walletId, goalName);
+                
+                if (dbGoal != null) {
+                    AppDatabase.getInstance(requireContext())
+                            .savingGoalDao()
+                            .deleteById(dbGoal.getId());
+                    android.util.Log.d("SavingProgressFragment", "Deleted goal from database: " + goalName);
+                }
+                
+                // Clear budget_prefs for this goal
+                SharedPreferences.Editor editor = prefsBudget.edit();
+                editor.remove(goalName + "_start");
+                editor.remove(goalName + "_target");
+                editor.remove(goalName + "_months");
+                editor.remove(goalName + "_income");
+                editor.remove(goalName + "_savingPerMonth");
+                editor.remove(goalName + "_maxExpensePerMonth");
+                editor.remove(goalName + "_savedManual");
+                editor.remove(goalName + "_summary");
+                editor.remove(goalName + "_isSaving");
+                editor.apply();
+                
+            } catch (Exception e) {
+                android.util.Log.e("SavingProgressFragment", "Error deleting goal from database", e);
+            }
+        });
 
-
-
-        // 5) Quay lại màn danh sách
+        // 6) Quay lại màn danh sách
         requireActivity().getSupportFragmentManager()
                 .popBackStack();
     }

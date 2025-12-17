@@ -1,5 +1,6 @@
 package com.example.mymoney.database.entity;
 
+import androidx.annotation.Nullable;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
@@ -12,7 +13,7 @@ import androidx.room.PrimaryKey;
                         entity = Category.class,
                         parentColumns = "id",
                         childColumns = "category_id",
-                        onDelete = ForeignKey.CASCADE
+                        onDelete = ForeignKey.SET_NULL
                 ),
                 @ForeignKey(
                         entity = Wallet.class,
@@ -61,8 +62,9 @@ public class SavingGoal {
     @ColumnInfo(name = "updated_at")
     private long updatedAt;
     
+    @Nullable
     @ColumnInfo(name = "category_id")
-    private int categoryId;
+    private Integer categoryId;  // Nullable - saving goals don't require a category
     
     @ColumnInfo(name = "wallet_id")
     private int walletId;
@@ -159,11 +161,12 @@ public class SavingGoal {
         this.updatedAt = updatedAt;
     }
 
-    public int getCategoryId() {
+    @Nullable
+    public Integer getCategoryId() {
         return categoryId;
     }
 
-    public void setCategoryId(int categoryId) {
+    public void setCategoryId(@Nullable Integer categoryId) {
         this.categoryId = categoryId;
     }
 

@@ -23,7 +23,9 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class ReceiptOcrRepository {
 
     private static final String TAG = "ReceiptOcrRepository";
-    private static final String DEFAULT_BASE_URL = "http://10.24.6.73:5000/";
+    // Use 10.0.2.2 for Android emulator to reach host machine's localhost
+    // For physical device, use your computer's actual IP address
+    private static final String DEFAULT_BASE_URL = "http://192.168.1.9:5000";
 
     private final ReceiptOcrApiService apiService;
 

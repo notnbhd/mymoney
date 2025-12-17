@@ -37,6 +37,15 @@ public interface BudgetDao {
     @Query("SELECT * FROM budget")
     List<Budget> getAllBudgets();
     
+    @Query("SELECT * FROM budget WHERE name = :name LIMIT 1")
+    Budget getBudgetByName(String name);
+    
     @Query("DELETE FROM budget WHERE id = :budgetId")
     void deleteById(int budgetId);
+    
+    @Query("DELETE FROM budget WHERE name LIKE :namePattern")
+    void deleteByNamePattern(String namePattern);
+    
+    @Query("SELECT * FROM budget WHERE name LIKE :namePattern")
+    List<Budget> getBudgetsByNamePattern(String namePattern);
 }

@@ -31,6 +31,12 @@ public interface SavingGoalDao {
     @Query("SELECT * FROM saving_goals WHERE wallet_id = :walletId")
     List<SavingGoal> getSavingGoalsByWalletId(int walletId);
     
+    @Query("SELECT * FROM saving_goals WHERE user_id = :userId AND wallet_id = :walletId")
+    List<SavingGoal> getSavingGoalsByUserAndWallet(int userId, int walletId);
+    
+    @Query("SELECT * FROM saving_goals WHERE user_id = :userId AND wallet_id = :walletId AND status = :status")
+    List<SavingGoal> getSavingGoalsByUserWalletAndStatus(int userId, int walletId, String status);
+    
     @Query("SELECT * FROM saving_goals WHERE user_id = :userId AND status = :status")
     List<SavingGoal> getSavingGoalsByUserAndStatus(int userId, String status);
     
@@ -42,6 +48,9 @@ public interface SavingGoalDao {
     
     @Query("UPDATE saving_goals SET current_amount = :amount, updated_at = :timestamp WHERE id = :goalId")
     void updateCurrentAmount(int goalId, double amount, long timestamp);
+    
+    @Query("SELECT * FROM saving_goals WHERE user_id = :userId AND wallet_id = :walletId AND name = :name LIMIT 1")
+    SavingGoal getSavingGoalByName(int userId, int walletId, String name);
     
     @Query("DELETE FROM saving_goals WHERE id = :goalId")
     void deleteById(int goalId);

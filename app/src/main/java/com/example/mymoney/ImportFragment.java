@@ -28,8 +28,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.mymoney.adapter.CategoryAdapter;
+import com.example.mymoney.importer.BatchReceiptImportManager;
+import com.example.mymoney.importer.PendingReceipt;
 import com.example.mymoney.importer.ReceiptOcrResponse;
 import com.example.mymoney.importer.ReceiptPhotoImportManager;
+import com.example.mymoney.importer.ReceiptReviewDialog;
 import com.example.mymoney.database.AppDatabase;
 import com.example.mymoney.database.entity.Category;
 import com.example.mymoney.database.entity.Transaction;
@@ -60,6 +63,7 @@ public class ImportFragment extends Fragment {
     // OCR related fields
     private LinearLayout btnCamera, btnScan;
     private ReceiptPhotoImportManager photoImportManager;
+    private BatchReceiptImportManager batchReceiptManager;
     
     private String selectedType = "expense"; // Default to expense
     private Calendar selectedDate;
@@ -99,6 +103,39 @@ public class ImportFragment extends Fragment {
                 }
                 Toast.makeText(requireContext(),
                         message != null ? message : "Failed to process receipt",
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+        
+        // Initialize batch receipt manager for multiple receipts
+        batchReceiptManager = new BatchReceiptImportManager(this, new BatchReceiptImportManager.BatchListener() {
+            @Override
+            public void onProcessingStarted(int totalCount) {
+                if (!isAdded()) return;
+                Toast.makeText(requireContext(), 
+                        "Processing " + totalCount + " receipt(s)...", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onReceiptProcessed(int index, PendingReceipt receipt) {
+                // Individual receipt processed - could show progress
+                if (!isAdded()) return;
+                android.util.Log.d("ImportFragment", "Receipt " + (index + 1) + " processed");
+            }
+
+            @Override
+            public void onAllProcessed(List<PendingReceipt> receipts) {
+                if (!isAdded()) return;
+                
+                // Show review dialog for all receipts
+                showBatchReviewDialog(receipts);
+            }
+
+            @Override
+            public void onError(String message) {
+                if (!isAdded()) return;
+                Toast.makeText(requireContext(),
+                        message != null ? message : "Failed to process receipts",
                         Toast.LENGTH_LONG).show();
             }
         });
@@ -173,16 +210,18 @@ public class ImportFragment extends Fragment {
             loadCategoriesForType("income");
         });
 
-        // Receipt photo import actions
+        // Receipt photo import actions - using batch mode for multiple receipts
         btnCamera.setOnClickListener(v -> {
-            if (photoImportManager != null) {
-                photoImportManager.startCameraImport();
+            if (batchReceiptManager != null) {
+                // Use batch camera import - allows capturing multiple receipts
+                batchReceiptManager.startCameraImport();
             }
         });
         if (btnScan != null) {
             btnScan.setOnClickListener(v -> {
-                if (photoImportManager != null) {
-                    photoImportManager.startGalleryImport();
+                if (batchReceiptManager != null) {
+                    // Use batch gallery import - allows selecting multiple images
+                    batchReceiptManager.startGalleryImport();
                 }
             });
         }
@@ -473,6 +512,173 @@ public class ImportFragment extends Fragment {
                 android.util.Log.e("ImportFragment", "Error assigning category", e);
             }
         }).start();
+    }
+    
+    /**
+     * Show batch review dialog for multiple scanned receipts
+     */
+    private void showBatchReviewDialog(List<PendingReceipt> receipts) {
+        if (receipts == null || receipts.isEmpty()) {
+            Toast.makeText(requireContext(), "No receipts to review", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        ReceiptReviewDialog reviewDialog = ReceiptReviewDialog.newInstance(receipts);
+        reviewDialog.setReviewListener(new ReceiptReviewDialog.ReviewListener() {
+            @Override
+            public void onReceiptApproved(PendingReceipt receipt) {
+                android.util.Log.d("ImportFragment", "Receipt approved: " + receipt.getEditedAmount());
+            }
+
+            @Override
+            public void onReceiptDiscarded(PendingReceipt receipt) {
+                android.util.Log.d("ImportFragment", "Receipt discarded");
+            }
+
+            @Override
+            public void onAllReviewsComplete(List<PendingReceipt> approvedReceipts) {
+                if (approvedReceipts.isEmpty()) {
+                    Toast.makeText(requireContext(), "No receipts approved", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
+                // Save all approved receipts as transactions
+                saveBatchTransactions(approvedReceipts);
+            }
+
+            @Override
+            public void onReviewCancelled() {
+                Toast.makeText(requireContext(), "Review cancelled", Toast.LENGTH_SHORT).show();
+            }
+        });
+        
+        reviewDialog.show(getParentFragmentManager(), "receipt_review");
+    }
+    
+    /**
+     * Save multiple approved receipts as transactions
+     */
+    private void saveBatchTransactions(List<PendingReceipt> approvedReceipts) {
+        int walletId = MainActivity.getSelectedWalletId();
+        
+        if (walletId == -1) {
+            new Thread(() -> {
+                AppDatabase db = AppDatabase.getInstance(requireContext());
+                var wallets = db.walletDao().getActiveWalletsByUserId(MainActivity.getCurrentUserId());
+                if (!wallets.isEmpty()) {
+                    MainActivity.setSelectedWalletId(wallets.get(0).getId());
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> saveBatchTransactionsWithWallet(approvedReceipts));
+                    }
+                } else {
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> 
+                            Toast.makeText(requireContext(), "Please create a wallet first", Toast.LENGTH_SHORT).show()
+                        );
+                    }
+                }
+            }).start();
+            return;
+        }
+        
+        saveBatchTransactionsWithWallet(approvedReceipts);
+    }
+    
+    private void saveBatchTransactionsWithWallet(List<PendingReceipt> approvedReceipts) {
+        new Thread(() -> {
+            try {
+                AppDatabase db = AppDatabase.getInstance(requireContext());
+                int successCount = 0;
+                int failCount = 0;
+                
+                for (PendingReceipt receipt : approvedReceipts) {
+                    try {
+                        Transaction transaction = createTransactionFromReceipt(receipt);
+                        if (transaction != null) {
+                            db.transactionDao().insert(transaction);
+                            updateWalletBalance(transaction);
+                            successCount++;
+                        } else {
+                            failCount++;
+                        }
+                    } catch (Exception e) {
+                        android.util.Log.e("ImportFragment", "Error saving receipt transaction", e);
+                        failCount++;
+                    }
+                }
+                
+                final int finalSuccessCount = successCount;
+                final int finalFailCount = failCount;
+                
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        String message;
+                        if (finalFailCount == 0) {
+                            message = finalSuccessCount + " transaction(s) saved successfully!";
+                        } else {
+                            message = finalSuccessCount + " saved, " + finalFailCount + " failed";
+                        }
+                        Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show();
+                        
+                        // Cleanup temp files
+                        if (batchReceiptManager != null) {
+                            batchReceiptManager.cleanupTempFiles();
+                        }
+                        
+                        // Refresh other fragments
+                        refreshHomeFragment();
+                    });
+                }
+            } catch (Exception e) {
+                android.util.Log.e("ImportFragment", "Error saving batch transactions", e);
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> 
+                        Toast.makeText(requireContext(), "Error saving transactions: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                    );
+                }
+            }
+        }).start();
+    }
+    
+    private Transaction createTransactionFromReceipt(PendingReceipt receipt) {
+        Double amount = receipt.getEditedAmount();
+        if (amount == null || amount <= 0) {
+            return null;
+        }
+        
+        int categoryId = receipt.getSelectedCategoryId();
+        if (categoryId == -1) {
+            return null;
+        }
+        
+        Transaction transaction = new Transaction();
+        transaction.setWalletId(MainActivity.getSelectedWalletId());
+        transaction.setCategoryId(categoryId);
+        transaction.setUserId(MainActivity.getCurrentUserId());
+        transaction.setAmount(amount);
+        transaction.setType("expense"); // Receipts are always expenses
+        transaction.setRecurring(false);
+        
+        // Set description from notes and merchant
+        String notes = receipt.getEditedNotes();
+        transaction.setDescription(notes != null ? notes : "");
+        
+        // Parse and set date
+        String dateStr = receipt.getEditedDate();
+        if (dateStr != null && !dateStr.isEmpty()) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                transaction.setCreatedAt(sdf.parse(dateStr).getTime());
+            } catch (Exception e) {
+                transaction.setCreatedAt(System.currentTimeMillis());
+            }
+        } else {
+            transaction.setCreatedAt(System.currentTimeMillis());
+        }
+        
+        transaction.setUpdatedAt(System.currentTimeMillis());
+        
+        return transaction;
     }
     
     private void saveTransaction() {

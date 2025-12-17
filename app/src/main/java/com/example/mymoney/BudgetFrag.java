@@ -22,7 +22,11 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.mymoney.database.AppDatabase;
+import com.example.mymoney.database.dao.BudgetDao;
+import com.example.mymoney.database.dao.CategoryDao;
 import com.example.mymoney.database.dao.TransactionDao;
+import com.example.mymoney.database.entity.Budget;
+import com.example.mymoney.database.entity.Category;
 import com.example.mymoney.model.CategoryExpense;
 
 import java.text.DecimalFormat;
@@ -53,7 +57,10 @@ public class BudgetFrag extends Fragment {
     // ==== Data ====
     private SharedPreferences prefs;
     private TransactionDao transactionDao;
+    private BudgetDao budgetDao;
+    private CategoryDao categoryDao;
     private String goalName = "";
+    private List<Category> expenseCategories;
 
     private final DecimalFormat df = new DecimalFormat("#,###");
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
@@ -79,7 +86,10 @@ public class BudgetFrag extends Fragment {
 
         // ==== INIT ====
         prefs = requireContext().getSharedPreferences("budget_prefs", Context.MODE_PRIVATE);
-        transactionDao = AppDatabase.getInstance(requireContext()).transactionDao();
+        AppDatabase db = AppDatabase.getInstance(requireContext());
+        transactionDao = db.transactionDao();
+        budgetDao = db.budgetDao();
+        categoryDao = db.categoryDao();
 
         // Ẩn mặc định
         hideAll();
@@ -140,6 +150,7 @@ public class BudgetFrag extends Fragment {
     // ============================================================
     // MAIN CALCULATE FUNCTION
     // ============================================================
+    // DEPRECATED: Keep for backwards compatibility with prefs lookup
     private static final String[] CATEGORIES = {
             "Food",
             "Home",
@@ -158,6 +169,15 @@ public class BudgetFrag extends Fragment {
         long maxExpensePerMonth = floorToThousand(incomeVal - savingPerMonth);
 
         // =====================================================
+        // 0️⃣ LOAD EXPENSE CATEGORIES FROM DATABASE
+        // =====================================================
+        expenseCategories = categoryDao.getAllExpenseCategories();
+        if (expenseCategories == null || expenseCategories.isEmpty()) {
+            android.util.Log.w("BudgetFrag", "No expense categories found in database");
+            return;
+        }
+
+        // =====================================================
         // 1️⃣ XÁC ĐỊNH MỐC 3 THÁNG TRƯỚC
         // =====================================================
         long startTime = prefs.getLong(goalName + "_start", 0);
@@ -173,6 +193,7 @@ public class BudgetFrag extends Fragment {
         long fromDate = fromCal.getTimeInMillis();
 
         int userId = getCurrentUserId();
+        int walletId = MainActivity.getSelectedWalletId();
 
         // =====================================================
         // 2️⃣ LẤY THÓI QUEN CHI TIÊU 3 THÁNG
@@ -206,19 +227,41 @@ public class BudgetFrag extends Fragment {
         editor.putLong(goalName + "_savingPerMonth", savingPerMonth);
         editor.putLong(goalName + "_maxExpensePerMonth", maxExpensePerMonth);
 
+        // Calculate start/end dates for budgets
+        Calendar endCal = Calendar.getInstance();
+        endCal.setTimeInMillis(startTime);
+        endCal.add(Calendar.MONTH, (int) monthsVal);
+        String startDateStr = dateFormat.format(new Date(startTime));
+        String endDateStr = dateFormat.format(endCal.getTime());
+
+        // Map to store limits for each category (categoryId -> limit)
+        Map<Integer, Long> categoryLimits = new HashMap<>();
+
         // =====================================================
         // 4️⃣ TÍNH LIMIT CHO TẤT CẢ DANH MỤC (QUAN TRỌNG)
         // =====================================================
-        for (String category : CATEGORIES) {
+        for (Category category : expenseCategories) {
+            String categoryName = category.getName();
+            int categoryId = category.getId();
 
-            long habit = habitMap.getOrDefault(category, 0L); // ⭐ DB không có → 0
+            long habit = habitMap.getOrDefault(categoryName, 0L); // ⭐ DB không có → 0
             double ratio = habit / totalExpense3M;
             long limit = floorToThousand(ratio * maxExpensePerMonth);
 
-            editor.putLong(goalName + "_limit_" + category, limit);
+            // Save to SharedPreferences (backwards compatibility)
+            editor.putLong(goalName + "_limit_" + categoryName, limit);
+            
+            // Store for budget creation
+            categoryLimits.put(categoryId, limit);
         }
 
         editor.commit(); // commit để đảm bảo dữ liệu đã ghi
+
+        // =====================================================
+        // 4.5️⃣ CREATE BUDGET ENTITIES IN DATABASE
+        // =====================================================
+        int budgetsCreated = createBudgetsFromLimits(userId, walletId, categoryLimits, startDateStr, endDateStr);
+        android.util.Log.d("BudgetFrag", "Created " + budgetsCreated + " budget entries for goal: " + goalName);
 
         // =====================================================
         // 5️⃣ LẤY CHI TIÊU KỂ TỪ KHI BẮT ĐẦU TIẾT KIỆM
@@ -248,11 +291,12 @@ public class BudgetFrag extends Fragment {
 
         sb.append("<b>🚀 Giới hạn theo thói quen (3 tháng trước):</b><br>");
 
-        for (String category : CATEGORIES) {
-            long spent = spentMap.getOrDefault(category, 0L);
-            long limit = prefs.getLong(goalName + "_limit_" + category, 0);
+        for (Category category : expenseCategories) {
+            String categoryName = category.getName();
+            long spent = spentMap.getOrDefault(categoryName, 0L);
+            long limit = prefs.getLong(goalName + "_limit_" + categoryName, 0);
 
-            sb.append("• ").append(category).append(": ")
+            sb.append("• ").append(categoryName).append(": ")
                     .append(df.format(spent))
                     .append(" / ")
                     .append(df.format(limit))
@@ -263,6 +307,65 @@ public class BudgetFrag extends Fragment {
                 .putString(goalName + "_summary", sb.toString())
                 .putBoolean(goalName + "_isSaving", true)
                 .apply();
+    }
+
+    /**
+     * Creates Budget entities in the database for each category limit
+     */
+    private int createBudgetsFromLimits(int userId, int walletId,
+                                         Map<Integer, Long> categoryLimits,
+                                         String startDate, String endDate) {
+        int count = 0;
+        
+        for (Map.Entry<Integer, Long> entry : categoryLimits.entrySet()) {
+            int categoryId = entry.getKey();
+            long limitAmount = entry.getValue();
+            
+            // Skip categories with 0 limit
+            if (limitAmount <= 0) continue;
+            
+            // Find category name
+            String categoryName = "";
+            for (Category cat : expenseCategories) {
+                if (cat.getId() == categoryId) {
+                    categoryName = cat.getName();
+                    break;
+                }
+            }
+            
+            // Check if a budget already exists for this goal + category
+            String budgetName = goalName + " - " + categoryName;
+            Budget existingBudget = budgetDao.getBudgetByName(budgetName);
+            
+            if (existingBudget != null) {
+                // Update existing budget
+                existingBudget.setBudgetAmount(limitAmount);
+                existingBudget.setStartDate(startDate);
+                existingBudget.setEndDate(endDate);
+                existingBudget.setUpdatedAt(System.currentTimeMillis());
+                budgetDao.update(existingBudget);
+            } else {
+                // Create new budget
+                Budget budget = new Budget();
+                budget.setUserId(userId);
+                budget.setWalletId(walletId);
+                budget.setCategoryId(categoryId);
+                budget.setName(budgetName);
+                budget.setBudgetAmount(limitAmount);
+                budget.setBudgetType("custom");
+                budget.setPeriodUnit("month");
+                budget.setStartDate(startDate);
+                budget.setEndDate(endDate);
+                budget.setAlertThreshold(0.8); // 80% warning
+                budget.setCreatedAt(System.currentTimeMillis());
+                budget.setUpdatedAt(System.currentTimeMillis());
+                
+                budgetDao.insert(budget);
+            }
+            count++;
+        }
+        
+        return count;
     }
 
 
@@ -341,19 +444,29 @@ public class BudgetFrag extends Fragment {
 
         Map<String, Long> spentMap = getExpenseByCategoryForWarning();
 
+        // Ensure expense categories are loaded
+        if (expenseCategories == null || expenseCategories.isEmpty()) {
+            expenseCategories = categoryDao.getAllExpenseCategories();
+        }
+        
+        if (expenseCategories == null || expenseCategories.isEmpty()) {
+            return; // No categories to check
+        }
+
         boolean hasExceeded = false;
         StringBuilder warningDetail = new StringBuilder();
 
-        for (String category : CATEGORIES) {
+        for (Category category : expenseCategories) {
+            String categoryName = category.getName();
 
-            long spent = spentMap.getOrDefault(category, 0L);
-            long limit = prefs.getLong(goalName + "_limit_" + category, 0);
+            long spent = spentMap.getOrDefault(categoryName, 0L);
+            long limit = prefs.getLong(goalName + "_limit_" + categoryName, 0);
 
             // 🔴 TRƯỜNG HỢP 1: LIMIT = 0 → CẤM CHI
             if (limit == 0 && spent > 0) {
                 hasExceeded = true;
                 warningDetail.append("• ")
-                        .append(category)
+                        .append(categoryName)
                         .append(": ")
                         .append(df.format(spent))
                         .append(" / 0 VND\n");
@@ -364,7 +477,7 @@ public class BudgetFrag extends Fragment {
             if (limit > 0 && spent > limit) {
                 hasExceeded = true;
                 warningDetail.append("• ")
-                        .append(category)
+                        .append(categoryName)
                         .append(": ")
                         .append(df.format(spent))
                         .append(" / ")
@@ -522,24 +635,32 @@ public class BudgetFrag extends Fragment {
 
         sb.append("<b>🚀 Giới hạn sau khi điều chỉnh:</b><br>");
 
-        for (String category : CATEGORIES) {
+        // Ensure expense categories are loaded
+        if (expenseCategories == null || expenseCategories.isEmpty()) {
+            expenseCategories = categoryDao.getAllExpenseCategories();
+        }
+        
+        if (expenseCategories != null) {
+            for (Category category : expenseCategories) {
+                String categoryName = category.getName();
 
-            long spent = spentMap.getOrDefault(category, 0L);
+                long spent = spentMap.getOrDefault(categoryName, 0L);
 
-            // ⭐ AUTO MODE: LUÔN LẤY LIMIT, KHÔNG CÓ = 0
-            long limit = prefs.getLong(goalName + "_limit_" + category, 0);
+                // ⭐ AUTO MODE: LUÔN LẤY LIMIT, KHÔNG CÓ = 0
+                long limit = prefs.getLong(goalName + "_limit_" + categoryName, 0);
 
-            sb.append("• ").append(category).append(": ")
-                    .append(df.format(spent))
-                    .append(" / ")
-                    .append(df.format(limit))
-                    .append(" VND");
+                sb.append("• ").append(categoryName).append(": ")
+                        .append(df.format(spent))
+                        .append(" / ")
+                        .append(df.format(limit))
+                        .append(" VND");
 
-            if (spent > limit && limit > 0) {
-                sb.append(" ⚠");
+                if (spent > limit && limit > 0) {
+                    sb.append(" ⚠");
+                }
+
+                sb.append("<br>");
             }
-
-            sb.append("<br>");
         }
 
         prefs.edit()
@@ -555,14 +676,24 @@ public class BudgetFrag extends Fragment {
 
         Map<String, EditText> editMap = new HashMap<>();
 
-        for (String category : CATEGORIES) {
+        // Ensure expense categories are loaded
+        if (expenseCategories == null || expenseCategories.isEmpty()) {
+            Executors.newSingleThreadExecutor().execute(() -> {
+                expenseCategories = categoryDao.getAllExpenseCategories();
+                requireActivity().runOnUiThread(() -> showEditAllLimitsDialog(spentMap));
+            });
+            return;
+        }
 
-            long spent = spentMap.getOrDefault(category, 0L);
-            long limit = prefs.getLong(goalName + "_limit_" + category, 0);
+        for (Category category : expenseCategories) {
+            String categoryName = category.getName();
+
+            long spent = spentMap.getOrDefault(categoryName, 0L);
+            long limit = prefs.getLong(goalName + "_limit_" + categoryName, 0);
 
             // ===== Label =====
             TextView tv = new TextView(requireContext());
-            tv.setText(category + " (đã chi: " + df.format(spent) + " VND)");
+            tv.setText(categoryName + " (đã chi: " + df.format(spent) + " VND)");
             tv.setPadding(0, 16, 0, 4);
             tv.setTextSize(14);
 
@@ -580,7 +711,7 @@ public class BudgetFrag extends Fragment {
             container.addView(tv);
             container.addView(edt);
 
-            editMap.put(category, edt);
+            editMap.put(categoryName, edt);
         }
 
         new AlertDialog.Builder(requireContext())
@@ -591,16 +722,17 @@ public class BudgetFrag extends Fragment {
 
                     SharedPreferences.Editor editor = prefs.edit();
 
-                    for (String category : CATEGORIES) {
+                    for (Category category : expenseCategories) {
+                        String categoryName = category.getName();
 
-                        EditText edt = editMap.get(category);
+                        EditText edt = editMap.get(categoryName);
                         if (edt == null) continue;
 
                         String val = edt.getText().toString().trim();
                         if (val.isEmpty()) continue;
 
                         long newLimit = floorToThousand(Long.parseLong(val));
-                        editor.putLong(goalName + "_limit_" + category, newLimit);
+                        editor.putLong(goalName + "_limit_" + categoryName, newLimit);
                     }
 
                     editor.apply();

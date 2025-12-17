@@ -15,4 +15,13 @@
         <item name="android:windowLightStatusBar">true</item>
 
     </style>
+    
+    <!-- Full screen dialog style -->
+    <style name="FullScreenDialog" parent="Theme.MaterialComponents.DayNight.Dialog">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowBackground">@color/background</item>
+        <item name="colorPrimary">@color/primary_pink</item>
+    </style>
 </resources>

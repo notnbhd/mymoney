@@ -7,8 +7,11 @@
         <domain includeSubdomains="true">localhost</domain>
         <domain includeSubdomains="true">127.0.0.1</domain>
         <!-- For Physical Device - Your computer's local IP -->
+        <domain includeSubdomains="true">192.168.1.9</domain>
         <domain includeSubdomains="true">192.168.1.12</domain>
         <domain includeSubdomains="true">10.24.6.73</domain>
+        <!-- Allow entire local network range for convenience -->
+        <domain includeSubdomains="true">192.168.1.*</domain>
     </domain-config>
     
     <!-- For production, only allow HTTPS -->

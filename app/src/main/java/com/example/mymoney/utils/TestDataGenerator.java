@@ -90,6 +90,12 @@ public class TestDataGenerator {
             try {
                 Log.d(TAG, "Starting test data generation for user: " + userId + ", wallet: " + walletId);
                 
+                // Validate user exists
+                if (userId <= 0) {
+                    callback.onError("Vui lòng đăng nhập trước khi tạo dữ liệu test.");
+                    return;
+                }
+                
                 // Validate wallet exists
                 if (walletId <= 0) {
                     callback.onError("Vui lòng chọn ví trước khi tạo dữ liệu test.");
@@ -99,6 +105,12 @@ public class TestDataGenerator {
                 Wallet wallet = walletDao.getWalletById(walletId);
                 if (wallet == null) {
                     callback.onError("Không tìm thấy ví. Vui lòng chọn ví khác.");
+                    return;
+                }
+                
+                // Verify wallet belongs to user
+                if (wallet.getUserId() != userId) {
+                    callback.onError("Ví không thuộc về người dùng hiện tại.");
                     return;
                 }
                 

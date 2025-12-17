@@ -61,6 +61,9 @@ dependencies {
     implementation(libs.room.runtime)
     annotationProcessor(libs.room.compiler)
 
+    // ExifInterface for reading image orientation
+    implementation("androidx.exifinterface:exifinterface:1.3.7")
+
     // ML Kit Text Recognition for OCR
     implementation("com.google.mlkit:text-recognition:16.0.0")
 
