@@ -68,6 +68,29 @@
                     app:tint="@color/text_primary" />
             </LinearLayout>
 
+            <!-- 🧾 Scan -->
+            <LinearLayout
+                android:id="@+id/btnScan"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="16dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/transaction_item_background"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?android:attr/selectableItemBackground">
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_receipt"
+                    android:layout_marginBottom="8dp"
+                    app:tint="@color/text_primary" />
+            </LinearLayout>
+
         </LinearLayout>
 
         <!-- 🔹 Transaction Form -->
@@ -225,76 +248,6 @@
                     android:textSize="14sp"
                     android:textColor="@color/text_primary" />
             </LinearLayout>
-
-            <!-- Repeat Section -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Repeat"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/text_primary" />
-
-                <RadioGroup
-                    android:id="@+id/repeat_radio_group"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginStart="16dp">
-
-                    <RadioButton
-                        android:id="@+id/repeat_yes"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Yes"
-                        android:textSize="14sp"
-                        android:layout_marginEnd="16dp" />
-
-                    <RadioButton
-                        android:id="@+id/repeat_no"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="No"
-                        android:textSize="14sp"
-                        android:checked="true" />
-                </RadioGroup>
-            </LinearLayout>
-
-            <!-- Recurring Section -->
-            <LinearLayout
-                android:id="@+id/recurring_section"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone"
-                android:layout_marginBottom="16dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Recurring cycle"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/text_primary"
-                    android:layout_marginBottom="8dp" />
-
-                <Spinner
-                    android:id="@+id/recurring_spinner"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="12dp"
-                    android:background="@drawable/search_background"
-                    android:spinnerMode="dropdown" />
-            </LinearLayout>
-
             <!-- Notes -->
             <TextView
                 android:layout_width="wrap_content"

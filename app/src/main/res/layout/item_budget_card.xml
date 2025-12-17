@@ -63,7 +63,7 @@
                         android:paddingHorizontal="8dp"
                         android:paddingVertical="2dp"
                         android:background="@drawable/chip_background"
-                        android:textColor="@color/white"
+                        android:textColor="@color/green"
                         android:textSize="11sp"
                         android:visibility="gone"
                         android:text="Food" />
@@ -88,7 +88,7 @@
                 android:id="@+id/iv_budget_chart"
                 android:layout_width="60dp"
                 android:layout_height="60dp"
-                android:src="@drawable/ic_chart"
+                android:src="@drawable/icons_limit"
                 android:contentDescription="Budget chart" />
 
         </LinearLayout>

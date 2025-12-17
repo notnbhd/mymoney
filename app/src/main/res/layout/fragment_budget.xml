@@ -4,24 +4,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Refresh Button (Top Right) -->
-    <ImageButton
-        android:id="@+id/btn_refresh"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_alignParentEnd="true"
-        android:layout_margin="16dp"
-        android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:src="@android:drawable/ic_popup_sync"
-        android:tint="@color/primary_pink"
-        android:contentDescription="Refresh" />
-
     <!-- RecyclerView for Budget List -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_budgets"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/btn_refresh"
         android:layout_above="@id/btn_add_budget"
         android:clipToPadding="false"
         android:paddingBottom="16dp" />

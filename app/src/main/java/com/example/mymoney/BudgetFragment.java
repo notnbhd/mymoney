@@ -61,7 +61,6 @@ public class BudgetFragment extends Fragment {
         rvBudgets = view.findViewById(R.id.rv_budgets);
         layoutEmptyState = view.findViewById(R.id.layout_empty_state);
         btnAddBudget = view.findViewById(R.id.btn_add_budget);
-        btnRefresh = view.findViewById(R.id.btn_refresh);
 
         // Initialize database
         budgetDao = AppDatabase.getInstance(requireContext()).budgetDao();
@@ -78,8 +77,6 @@ public class BudgetFragment extends Fragment {
 
         // Button listeners
         btnAddBudget.setOnClickListener(v -> showCreateBudgetDialog());
-        btnRefresh.setOnClickListener(v -> loadBudgets());
-
         return view;
     }
 
