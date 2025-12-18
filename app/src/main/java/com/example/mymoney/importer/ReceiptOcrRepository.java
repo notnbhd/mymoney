@@ -25,7 +25,7 @@ public class ReceiptOcrRepository {
     private static final String TAG = "ReceiptOcrRepository";
     // Use 10.0.2.2 for Android emulator to reach host machine's localhost
     // For physical device, use your computer's actual IP address
-    private static final String DEFAULT_BASE_URL = "http://192.168.1.9:5000";
+    private static final String DEFAULT_BASE_URL = "http://172.20.10.2:5000/";
 
     private final ReceiptOcrApiService apiService;
 
