@@ -40,6 +40,7 @@ public class ChatbotService {
     private BudgetContextProvider budgetContextProvider;
     private BudgetNotificationService notificationService;
     private SpendingPatternAnalyzer patternAnalyzer;
+    private QueryParser queryParser;
 
     public ChatbotService(Context context) {
         this.context = context;
@@ -47,6 +48,7 @@ public class ChatbotService {
         this.budgetContextProvider = new BudgetContextProvider(context);
         this.notificationService = new BudgetNotificationService(context);
         this.patternAnalyzer = new SpendingPatternAnalyzer(context);
+        this.queryParser = new QueryParser(context);
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(OPENROUTER_BASE_URL)
@@ -59,10 +61,21 @@ public class ChatbotService {
     public void generateFinancialAdvice(int userId, int walletId, String userMessage, ChatbotCallback callback) {
         Log.d(TAG, "Starting financial advice generation for user: " + userId + ", wallet: " + walletId);
 
-        // Analyze user's financial data in background
+        // Parse query intent and analyze data in background
         new Thread(() -> {
             try {
-                String financialAnalysis = analyzeUserFinancialData(userId, walletId);
+                // Step 1: Parse query to understand what user is asking
+                QueryIntent intent = queryParser.parseQuerySync(userMessage);
+                Log.d(TAG, "Parsed intent: " + intent);
+
+                // Check if we need clarification from user
+                if (intent.needsClarification() && intent.getClarificationMessage() != null) {
+                    callback.onSuccess("💬 " + intent.getClarificationMessage());
+                    return;
+                }
+
+                // Step 2: Fetch targeted financial data based on parsed intent
+                String financialAnalysis = analyzeUserFinancialData(userId, walletId, intent);
 
                 // Get budget analysis from rule-based engine
                 BudgetRuleEngine.BudgetAnalysisResult budgetAnalysis =
@@ -91,7 +104,7 @@ public class ChatbotService {
 
                 Log.d(TAG, "Financial analysis: " + financialAnalysis);
 
-                // Create OpenRouter request with chat format
+                // Step 3: Generate response using LLM
                 OpenRouterRequest request = new OpenRouterRequest(MODEL);
                 request.setTemperature(0.7);
                 request.setMax_tokens(500);
@@ -99,7 +112,8 @@ public class ChatbotService {
                 // System message with budget and pattern context if applicable
                 String systemPrompt = "Bạn là trợ lý tài chính cá nhân chuyên nghiệp. " +
                         "Hãy đưa ra lời khuyên ngắn gọn, thực tế và hữu ích bằng tiếng Việt. " +
-                        "Trả lời trong 3-4 câu, tập trung vào hành động cụ thể.";
+                        "Trả lời trong 3-4 câu, tập trung vào hành động cụ thể. " +
+                        "Nếu người dùng hỏi về số tiền cụ thể, hãy trả lời con số chính xác từ dữ liệu.";
 
                 if (!budgetContext.isEmpty()) {
                     systemPrompt += budgetContext;
@@ -117,8 +131,8 @@ public class ChatbotService {
 
                 Call<OpenRouterResponse> call = apiService.generateResponse(
                         "Bearer " + API_TOKEN,
-                        "https://github.com/notnbhd/mymoney", // Your app URL
-                        "MyMoney App", // Your app name
+                        "https://github.com/notnbhd/mymoney",
+                        "MyMoney App",
                         request
                 );
 
@@ -138,7 +152,6 @@ public class ChatbotService {
                             }
                         } else {
                             Log.e(TAG, "API Error: " + response.code() + " - " + response.message());
-                            // Try to read error body
                             try {
                                 String errorBody = response.errorBody() != null ? response.errorBody().string() : "Unknown error";
                                 Log.e(TAG, "Error body: " + errorBody);
@@ -163,28 +176,61 @@ public class ChatbotService {
         }).start();
     }
 
-    private String analyzeUserFinancialData(int userId, int walletId) {
+    /**
+     * Analyze financial data based on parsed query intent.
+     * Fetches data for the specific time range and category requested.
+     */
+    private String analyzeUserFinancialData(int userId, int walletId, QueryIntent intent) {
         StringBuilder analysis = new StringBuilder();
 
-        // Get current month date range
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.DAY_OF_MONTH, 1);
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        long monthStartTimestamp = calendar.getTimeInMillis();
-        long currentTimestamp = System.currentTimeMillis();
+        long startTimestamp = intent.getTimeRangeStart();
+        long endTimestamp = intent.getTimeRangeEnd();
 
-        // Get transactions for current month (wallet-specific)
-        List<Transaction> monthlyTransactions = database.transactionDao()
-                .getTransactionsByWalletAndDateRange(walletId, monthStartTimestamp, currentTimestamp);
+        // Debug: Log timestamps in human-readable format
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        Log.d(TAG, "Query time range: " + sdf.format(new Date(startTimestamp)) + " to " + sdf.format(new Date(endTimestamp)));
+        Log.d(TAG, "Query timestamps: start=" + startTimestamp + ", end=" + endTimestamp);
+
+        // Build time period description
+        String periodDescription = buildPeriodDescription(intent);
+
+        // Get transactions for the specified time range
+        List<Transaction> transactions = database.transactionDao()
+                .getTransactionsByWalletAndDateRange(walletId, startTimestamp, endTimestamp);
+        
+        Log.d(TAG, "Found " + transactions.size() + " transactions in date range for wallet " + walletId);
+        
+        // Debug: Show all unique category IDs in the found transactions
+        StringBuilder categoryDebug = new StringBuilder("Categories in transactions: ");
+        java.util.Set<Integer> uniqueCatIds = new java.util.HashSet<>();
+        for (Transaction t : transactions) {
+            uniqueCatIds.add(t.getCategoryId());
+        }
+        for (Integer catId : uniqueCatIds) {
+            Category cat = database.categoryDao().getCategoryById(catId);
+            categoryDebug.append(catId).append("=").append(cat != null ? cat.getName() : "null").append(", ");
+        }
+        Log.d(TAG, categoryDebug.toString());
+
+        // Filter by category if specified - ALWAYS use category name to avoid ID mismatch issues
+        if (intent.getCategoryName() != null && !intent.getCategoryName().isEmpty()) {
+            String categoryName = intent.getCategoryName();
+            int beforeCount = transactions.size();
+            Log.d(TAG, "Filtering by categoryName: " + categoryName);
+            transactions.removeIf(t -> {
+                Category cat = database.categoryDao().getCategoryById(t.getCategoryId());
+                return cat == null || !cat.getName().equalsIgnoreCase(categoryName);
+            });
+            Log.d(TAG, "After category filter: " + transactions.size() + " transactions (was " + beforeCount + ")");
+        }
 
         // Calculate totals
         double totalExpenses = 0;
         double totalIncome = 0;
         Map<Integer, Double> categoryExpenses = new HashMap<>();
+        Map<Integer, Double> categoryIncomes = new HashMap<>();
 
-        for (Transaction transaction : monthlyTransactions) {
+        for (Transaction transaction : transactions) {
             if ("expense".equals(transaction.getType())) {
                 totalExpenses += transaction.getAmount();
                 categoryExpenses.put(
@@ -193,31 +239,87 @@ public class ChatbotService {
                 );
             } else if ("income".equals(transaction.getType())) {
                 totalIncome += transaction.getAmount();
+                categoryIncomes.put(
+                        transaction.getCategoryId(),
+                        categoryIncomes.getOrDefault(transaction.getCategoryId(), 0.0) + transaction.getAmount()
+                );
             }
         }
 
-        // Build analysis
-        analysis.append("📊 Tháng này (Ví hiện tại):\n");
-        analysis.append(String.format("Thu nhập: %.0f VNĐ\n", totalIncome));
-        analysis.append(String.format("Chi tiêu: %.0f VNĐ\n", totalExpenses));
-        analysis.append(String.format("Tiết kiệm: %.0f VNĐ\n", totalIncome - totalExpenses));
+        // Build analysis based on query type
+        analysis.append("📊 ").append(periodDescription).append(" (Ví hiện tại):\n");
 
-        // Top spending categories
-        if (!categoryExpenses.isEmpty()) {
-            analysis.append("\n💰 Chi tiêu theo danh mục:\n");
-            categoryExpenses.entrySet().stream()
-                    .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
-                    .limit(3)
-                    .forEach(entry -> {
-                        Category category = database.categoryDao().getCategoryById(entry.getKey());
-                        if (category != null) {
-                            analysis.append(String.format("- %s: %.0f VNĐ\n",
-                                    category.getName(), entry.getValue()));
-                        }
-                    });
+        if (intent.getCategoryName() != null) {
+            // Category-specific query
+            analysis.append(String.format("Chi tiêu cho %s: %.0f VNĐ\n", intent.getCategoryName(), totalExpenses));
+            analysis.append(String.format("Số giao dịch: %d\n", transactions.size()));
+        } else {
+            // General query
+            analysis.append(String.format("Thu nhập: %.0f VNĐ\n", totalIncome));
+            analysis.append(String.format("Chi tiêu: %.0f VNĐ\n", totalExpenses));
+            analysis.append(String.format("Tiết kiệm: %.0f VNĐ\n", totalIncome - totalExpenses));
+
+            // Top spending categories
+            if (!categoryExpenses.isEmpty()) {
+                analysis.append("\n💰 Chi tiêu theo danh mục:\n");
+                categoryExpenses.entrySet().stream()
+                        .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
+                        .limit(5)
+                        .forEach(entry -> {
+                            Category category = database.categoryDao().getCategoryById(entry.getKey());
+                            if (category != null) {
+                                analysis.append(String.format("- %s: %.0f VNĐ\n",
+                                        category.getName(), entry.getValue()));
+                            }
+                        });
+            }
         }
 
         return analysis.toString();
+    }
+
+    /**
+     * Build human-readable description of the time period.
+     */
+    private String buildPeriodDescription(QueryIntent intent) {
+        SimpleDateFormat monthYearFormat = new SimpleDateFormat("MMMM yyyy", new Locale("vi", "VN"));
+        SimpleDateFormat yearFormat = new SimpleDateFormat("yyyy", Locale.getDefault());
+        Calendar calendar = Calendar.getInstance();
+
+        switch (intent.getTimeRangeType()) {
+            case CURRENT_MONTH:
+                return "Tháng này";
+            case SPECIFIC_MONTH:
+                calendar.set(Calendar.YEAR, intent.getYear());
+                calendar.set(Calendar.MONTH, intent.getMonth() - 1);
+                return "Tháng " + intent.getMonth() + "/" + intent.getYear();
+            case YEAR:
+                return "Năm " + intent.getYear();
+            case LAST_N_DAYS:
+                return intent.getDays() + " ngày qua";
+            case ALL_TIME:
+                return "Toàn bộ thời gian";
+            default:
+                return "Tháng này";
+        }
+    }
+
+    /**
+     * Legacy method for backward compatibility - uses current month.
+     */
+    private String analyzeUserFinancialData(int userId, int walletId) {
+        QueryIntent defaultIntent = new QueryIntent();
+        defaultIntent.setTimeRangeType(QueryIntent.TimeRangeType.CURRENT_MONTH);
+        
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        defaultIntent.setTimeRangeStart(calendar.getTimeInMillis());
+        defaultIntent.setTimeRangeEnd(System.currentTimeMillis());
+        
+        return analyzeUserFinancialData(userId, walletId, defaultIntent);
     }
 
     private String cleanGeneratedText(String generatedText) {
