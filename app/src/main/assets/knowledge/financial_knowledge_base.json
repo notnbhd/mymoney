@@ -1,0 +1,1675 @@
+{
+    "version": "1.0.0",
+    "lastUpdated": "2026-01-07",
+    "description": "Comprehensive financial knowledge base for MyMoney RAG chatbot",
+    "budgeting": [
+        {
+            "id": "budget_001",
+            "topic": "50/30/20 Rule",
+            "keywords": [
+                "budget",
+                "rule",
+                "50/30/20",
+                "allocate",
+                "income",
+                "phân bổ",
+                "ngân sách",
+                "quy tắc"
+            ],
+            "content_en": "The 50/30/20 rule divides your after-tax income: 50% for needs (housing, food, utilities), 30% for wants (entertainment, dining out), and 20% for savings and debt repayment. This simple framework helps maintain financial balance.",
+            "content_vi": "Quy tắc 50/30/20 chia thu nhập sau thuế: 50% cho nhu cầu thiết yếu (nhà ở, thực phẩm, tiện ích), 30% cho mong muốn (giải trí, ăn ngoài), và 20% cho tiết kiệm và trả nợ. Khung đơn giản này giúp duy trì cân bằng tài chính."
+        },
+        {
+            "id": "budget_002",
+            "topic": "Zero-Based Budgeting",
+            "keywords": [
+                "zero-based",
+                "budget",
+                "every dollar",
+                "assign",
+                "ngân sách từ số 0",
+                "mỗi đồng"
+            ],
+            "content_en": "Zero-based budgeting assigns every dollar a job. Your income minus expenses should equal zero. This method forces you to track every expense and eliminates wasteful spending by making you justify each purchase.",
+            "content_vi": "Ngân sách từ số 0 gán mỗi đồng một công việc. Thu nhập trừ chi tiêu phải bằng 0. Phương pháp này buộc bạn theo dõi mọi chi tiêu và loại bỏ lãng phí bằng cách yêu cầu giải thích mỗi khoản mua."
+        },
+        {
+            "id": "budget_003",
+            "topic": "Envelope Budgeting System",
+            "keywords": [
+                "envelope",
+                "cash",
+                "category",
+                "spending",
+                "phong bì",
+                "tiền mặt",
+                "danh mục"
+            ],
+            "content_en": "The envelope system uses physical or virtual envelopes for each spending category. When an envelope is empty, you stop spending in that category. This visual method prevents overspending and builds discipline.",
+            "content_vi": "Hệ thống phong bì sử dụng phong bì thực hoặc ảo cho mỗi danh mục chi tiêu. Khi phong bì hết, bạn ngừng chi tiêu trong danh mục đó. Phương pháp trực quan này ngăn chi tiêu quá mức và xây dựng kỷ luật."
+        },
+        {
+            "id": "budget_004",
+            "topic": "Pay Yourself First",
+            "keywords": [
+                "pay yourself",
+                "savings",
+                "automatic",
+                "priority",
+                "trả cho bản thân",
+                "tiết kiệm",
+                "tự động",
+                "ưu tiên"
+            ],
+            "content_en": "Pay yourself first means saving before spending. Automatically transfer a fixed percentage (at least 10-20%) of your income to savings as soon as you receive it. This ensures savings are never skipped.",
+            "content_vi": "Trả cho bản thân trước nghĩa là tiết kiệm trước khi chi tiêu. Tự động chuyển tỷ lệ cố định (ít nhất 10-20%) thu nhập vào tiết kiệm ngay khi nhận được. Điều này đảm bảo tiết kiệm không bao giờ bị bỏ qua."
+        },
+        {
+            "id": "budget_005",
+            "topic": "Track Every Expense",
+            "keywords": [
+                "track",
+                "expense",
+                "record",
+                "spending",
+                "theo dõi",
+                "chi tiêu",
+                "ghi chép"
+            ],
+            "content_en": "Recording every expense, no matter how small, reveals spending patterns and leaks. Use apps like MyMoney to automatically categorize and track expenses. Review weekly to stay aware of your habits.",
+            "content_vi": "Ghi chép mọi chi tiêu, dù nhỏ đến đâu, cho thấy mô hình chi tiêu và rò rỉ tiền. Sử dụng ứng dụng như MyMoney để tự động phân loại và theo dõi chi tiêu. Xem xét hàng tuần để nhận thức thói quen."
+        },
+        {
+            "id": "budget_006",
+            "topic": "Budget Review Frequency",
+            "keywords": [
+                "review",
+                "budget",
+                "monthly",
+                "adjust",
+                "xem xét",
+                "ngân sách",
+                "hàng tháng",
+                "điều chỉnh"
+            ],
+            "content_en": "Review your budget at least monthly. Compare actual spending to planned amounts, identify areas of overspending, and adjust for the next month. Life changes, so your budget should too.",
+            "content_vi": "Xem xét ngân sách ít nhất hàng tháng. So sánh chi tiêu thực tế với số tiền đã lên kế hoạch, xác định các lĩnh vực chi tiêu quá mức, và điều chỉnh cho tháng tiếp theo. Cuộc sống thay đổi, ngân sách cũng vậy."
+        },
+        {
+            "id": "budget_007",
+            "topic": "Needs vs Wants",
+            "keywords": [
+                "needs",
+                "wants",
+                "essential",
+                "discretionary",
+                "nhu cầu",
+                "mong muốn",
+                "thiết yếu",
+                "tùy ý"
+            ],
+            "content_en": "Distinguish between needs (housing, food, healthcare, transportation) and wants (entertainment, luxury items, dining out). Before any purchase, ask: 'Do I need this or just want it?' This pause prevents impulse buying.",
+            "content_vi": "Phân biệt giữa nhu cầu (nhà ở, thực phẩm, y tế, đi lại) và mong muốn (giải trí, đồ xa xỉ, ăn ngoài). Trước mỗi giao dịch, hỏi: 'Mình cần hay chỉ muốn?' Sự dừng lại này ngăn mua sắm bốc đồng."
+        },
+        {
+            "id": "budget_008",
+            "topic": "Budget for Irregular Expenses",
+            "keywords": [
+                "irregular",
+                "annual",
+                "quarterly",
+                "sinking fund",
+                "không đều",
+                "hàng năm",
+                "quỹ dự phòng"
+            ],
+            "content_en": "Plan for irregular expenses like insurance premiums, car maintenance, or holiday gifts. Divide annual costs by 12 and save that amount monthly. This prevents budget shocks when these expenses arise.",
+            "content_vi": "Lên kế hoạch cho chi phí không đều như phí bảo hiểm, bảo dưỡng xe, hoặc quà tặng. Chia chi phí hàng năm cho 12 và tiết kiệm số tiền đó hàng tháng. Điều này ngăn cú sốc ngân sách khi các chi phí này phát sinh."
+        },
+        {
+            "id": "budget_009",
+            "topic": "Lifestyle Inflation Prevention",
+            "keywords": [
+                "lifestyle inflation",
+                "salary increase",
+                "spending creep",
+                "lạm phát lối sống",
+                "tăng lương",
+                "chi tiêu leo thang"
+            ],
+            "content_en": "When your income increases, avoid immediately increasing your spending (lifestyle inflation). Instead, save at least 50% of any raise. This accelerates wealth building while still enjoying some improvement in lifestyle.",
+            "content_vi": "Khi thu nhập tăng, tránh tăng chi tiêu ngay lập tức (lạm phát lối sống). Thay vào đó, tiết kiệm ít nhất 50% bất kỳ khoản tăng lương nào. Điều này tăng tốc xây dựng tài sản trong khi vẫn tận hưởng một số cải thiện lối sống."
+        },
+        {
+            "id": "budget_010",
+            "topic": "Budget Categories Setup",
+            "keywords": [
+                "categories",
+                "organize",
+                "spending types",
+                "danh mục",
+                "tổ chức",
+                "loại chi tiêu"
+            ],
+            "content_en": "Organize your budget into clear categories: Housing (25-35%), Transportation (10-15%), Food (10-15%), Utilities (5-10%), Healthcare (5-10%), Savings (10-20%), Entertainment (5-10%), and Miscellaneous (5-10%).",
+            "content_vi": "Tổ chức ngân sách thành các danh mục rõ ràng: Nhà ở (25-35%), Đi lại (10-15%), Thực phẩm (10-15%), Tiện ích (5-10%), Y tế (5-10%), Tiết kiệm (10-20%), Giải trí (5-10%), và Khác (5-10%)."
+        }
+    ],
+    "saving": [
+        {
+            "id": "save_001",
+            "topic": "Emergency Fund Basics",
+            "keywords": [
+                "emergency fund",
+                "rainy day",
+                "3-6 months",
+                "quỹ khẩn cấp",
+                "dự phòng",
+                "3-6 tháng"
+            ],
+            "content_en": "Build an emergency fund covering 3-6 months of essential expenses. Start with a goal of 1 month, then grow it. Keep this fund in a separate, easily accessible savings account. Never invest emergency funds in stocks.",
+            "content_vi": "Xây dựng quỹ khẩn cấp đủ 3-6 tháng chi phí thiết yếu. Bắt đầu với mục tiêu 1 tháng, sau đó tăng dần. Giữ quỹ này trong tài khoản tiết kiệm riêng, dễ tiếp cận. Không bao giờ đầu tư quỹ khẩn cấp vào cổ phiếu."
+        },
+        {
+            "id": "save_002",
+            "topic": "Automatic Savings",
+            "keywords": [
+                "automatic",
+                "savings",
+                "transfer",
+                "schedule",
+                "tự động",
+                "tiết kiệm",
+                "chuyển khoản",
+                "lịch trình"
+            ],
+            "content_en": "Set up automatic transfers to your savings account on payday. Treat savings like a bill that must be paid. By automating, you remove the temptation to spend first and save what's left (usually nothing).",
+            "content_vi": "Thiết lập chuyển khoản tự động vào tài khoản tiết kiệm vào ngày lương. Coi tiết kiệm như một hóa đơn phải trả. Bằng cách tự động hóa, bạn loại bỏ cám dỗ chi tiêu trước và tiết kiệm phần còn lại (thường là không có gì)."
+        },
+        {
+            "id": "save_003",
+            "topic": "High-Yield Savings Accounts",
+            "keywords": [
+                "high-yield",
+                "interest",
+                "savings account",
+                "APY",
+                "lãi suất cao",
+                "tài khoản tiết kiệm"
+            ],
+            "content_en": "Keep savings in high-yield savings accounts that offer 4-5% APY instead of traditional accounts with 0.01%. The difference compounds significantly over time. Shop around for the best rates from online banks.",
+            "content_vi": "Giữ tiền tiết kiệm trong tài khoản lãi suất cao (4-5%/năm) thay vì tài khoản truyền thống (0.01%). Sự khác biệt tích lũy đáng kể theo thời gian. Tìm kiếm lãi suất tốt nhất từ các ngân hàng trực tuyến."
+        },
+        {
+            "id": "save_004",
+            "topic": "Savings Goals",
+            "keywords": [
+                "goals",
+                "specific",
+                "target",
+                "deadline",
+                "mục tiêu",
+                "cụ thể",
+                "hạn chót"
+            ],
+            "content_en": "Set specific, measurable savings goals with deadlines. Instead of 'save more money,' set 'save 50 million VND for vacation by December.' Break large goals into monthly targets. Track progress regularly.",
+            "content_vi": "Đặt mục tiêu tiết kiệm cụ thể, đo lường được với hạn chót. Thay vì 'tiết kiệm nhiều tiền hơn,' đặt 'tiết kiệm 50 triệu VND cho kỳ nghỉ vào tháng 12.' Chia mục tiêu lớn thành mục tiêu hàng tháng. Theo dõi tiến độ thường xuyên."
+        },
+        {
+            "id": "save_005",
+            "topic": "Sinking Funds",
+            "keywords": [
+                "sinking fund",
+                "planned expenses",
+                "save ahead",
+                "quỹ dự phòng",
+                "chi phí có kế hoạch",
+                "tiết kiệm trước"
+            ],
+            "content_en": "Create sinking funds for predictable large expenses: car replacement, home repairs, vacations, holiday gifts. Save monthly toward these goals so you never need to use credit cards or loans for planned purchases.",
+            "content_vi": "Tạo quỹ dự phòng cho các chi phí lớn có thể dự đoán: thay xe, sửa nhà, kỳ nghỉ, quà tặng. Tiết kiệm hàng tháng cho các mục tiêu này để không bao giờ cần dùng thẻ tín dụng hoặc vay cho các giao dịch có kế hoạch."
+        },
+        {
+            "id": "save_006",
+            "topic": "Savings Percentage by Age",
+            "keywords": [
+                "age",
+                "savings rate",
+                "percentage",
+                "tuổi",
+                "tỷ lệ tiết kiệm",
+                "phần trăm"
+            ],
+            "content_en": "Recommended savings rates by age: 20s save 10-15%, 30s save 15-20%, 40s save 20-25%, 50s save 25-30% of income. If you started late, you may need to save more aggressively to catch up.",
+            "content_vi": "Tỷ lệ tiết kiệm khuyến nghị theo tuổi: 20 tuổi tiết kiệm 10-15%, 30 tuổi 15-20%, 40 tuổi 20-25%, 50 tuổi 25-30% thu nhập. Nếu bắt đầu muộn, bạn có thể cần tiết kiệm tích cực hơn để bắt kịp."
+        },
+        {
+            "id": "save_007",
+            "topic": "Save Windfalls",
+            "keywords": [
+                "windfall",
+                "bonus",
+                "unexpected money",
+                "gift",
+                "tiền bất ngờ",
+                "thưởng",
+                "quà tặng"
+            ],
+            "content_en": "When you receive unexpected money (bonuses, tax refunds, gifts, inheritance), save at least 50% immediately. It's easier to save money you didn't expect than money you planned to spend.",
+            "content_vi": "Khi nhận được tiền bất ngờ (thưởng, hoàn thuế, quà tặng, thừa kế), tiết kiệm ít nhất 50% ngay lập tức. Dễ tiết kiệm tiền bạn không mong đợi hơn tiền bạn đã lên kế hoạch chi tiêu."
+        },
+        {
+            "id": "save_008",
+            "topic": "Saving Challenges",
+            "keywords": [
+                "challenge",
+                "52-week",
+                "no-spend",
+                "game",
+                "thử thách",
+                "52 tuần",
+                "không chi tiêu",
+                "trò chơi"
+            ],
+            "content_en": "Make saving fun with challenges: 52-week challenge (save $1 week 1, $2 week 2...), no-spend weekends, or the round-up method (round purchases to nearest $5 and save the difference). Gamification increases success.",
+            "content_vi": "Làm tiết kiệm vui với thử thách: thử thách 52 tuần (tiết kiệm 10k tuần 1, 20k tuần 2...), cuối tuần không chi tiêu, hoặc phương pháp làm tròn (làm tròn giao dịch lên 5k và tiết kiệm phần chênh lệch)."
+        },
+        {
+            "id": "save_009",
+            "topic": "Visualize Your Savings Goal",
+            "keywords": [
+                "visualize",
+                "motivation",
+                "chart",
+                "progress",
+                "hình dung",
+                "động lực",
+                "biểu đồ",
+                "tiến độ"
+            ],
+            "content_en": "Create visual representations of your savings progress: charts, thermometers, or photo of your goal. Place it somewhere visible. Visualization strengthens commitment and provides motivation during difficult times.",
+            "content_vi": "Tạo đại diện trực quan cho tiến độ tiết kiệm: biểu đồ, nhiệt kế, hoặc ảnh mục tiêu. Đặt ở nơi dễ thấy. Hình dung củng cố cam kết và cung cấp động lực trong thời điểm khó khăn."
+        },
+        {
+            "id": "save_010",
+            "topic": "Savings Account Separation",
+            "keywords": [
+                "separate accounts",
+                "multiple",
+                "purpose",
+                "tách tài khoản",
+                "nhiều",
+                "mục đích"
+            ],
+            "content_en": "Use multiple savings accounts for different goals: emergency fund, vacation, car fund, house down payment. This prevents accidentally spending money meant for one goal on another. Many banks allow free multiple accounts.",
+            "content_vi": "Sử dụng nhiều tài khoản tiết kiệm cho các mục tiêu khác nhau: quỹ khẩn cấp, kỳ nghỉ, quỹ xe, tiền đặt cọc nhà. Điều này ngăn chi tiêu nhầm tiền dành cho một mục tiêu vào mục tiêu khác."
+        }
+    ],
+    "debt_management": [
+        {
+            "id": "debt_001",
+            "topic": "Debt Avalanche Method",
+            "keywords": [
+                "avalanche",
+                "debt",
+                "highest interest",
+                "pay off",
+                "tuyết lở",
+                "nợ",
+                "lãi suất cao nhất",
+                "trả hết"
+            ],
+            "content_en": "The debt avalanche method pays off debts from highest to lowest interest rate. Make minimum payments on all debts, then put extra money toward the highest-interest debt. This saves the most money over time.",
+            "content_vi": "Phương pháp tuyết lở trả nợ từ lãi suất cao nhất đến thấp nhất. Trả tối thiểu cho tất cả các khoản nợ, sau đó đưa tiền dư vào nợ lãi suất cao nhất. Điều này tiết kiệm nhiều tiền nhất theo thời gian."
+        },
+        {
+            "id": "debt_002",
+            "topic": "Debt Snowball Method",
+            "keywords": [
+                "snowball",
+                "debt",
+                "smallest balance",
+                "motivation",
+                "quả cầu tuyết",
+                "nợ",
+                "số dư nhỏ nhất",
+                "động lực"
+            ],
+            "content_en": "The debt snowball method pays off debts from smallest to largest balance, regardless of interest rate. The quick wins provide psychological momentum. Choose this if you need motivation more than mathematical optimization.",
+            "content_vi": "Phương pháp quả cầu tuyết trả nợ từ số dư nhỏ nhất đến lớn nhất, bất kể lãi suất. Những chiến thắng nhanh cung cấp động lực tâm lý. Chọn phương pháp này nếu bạn cần động lực hơn tối ưu hóa toán học."
+        },
+        {
+            "id": "debt_003",
+            "topic": "Good Debt vs Bad Debt",
+            "keywords": [
+                "good debt",
+                "bad debt",
+                "investment",
+                "consumption",
+                "nợ tốt",
+                "nợ xấu",
+                "đầu tư",
+                "tiêu dùng"
+            ],
+            "content_en": "Good debt finances assets that appreciate or generate income: education, business, mortgage. Bad debt finances depreciating assets or consumption: credit cards, car loans, vacations. Minimize bad debt, be strategic about good debt.",
+            "content_vi": "Nợ tốt tài trợ tài sản tăng giá hoặc tạo thu nhập: giáo dục, kinh doanh, vay mua nhà. Nợ xấu tài trợ tài sản giảm giá hoặc tiêu dùng: thẻ tín dụng, vay mua xe, kỳ nghỉ. Giảm thiểu nợ xấu, chiến lược với nợ tốt."
+        },
+        {
+            "id": "debt_004",
+            "topic": "Credit Card Debt Danger",
+            "keywords": [
+                "credit card",
+                "high interest",
+                "minimum payment",
+                "trap",
+                "thẻ tín dụng",
+                "lãi suất cao",
+                "thanh toán tối thiểu",
+                "bẫy"
+            ],
+            "content_en": "Credit card interest rates of 18-25% can double your debt in 3-4 years if only paying minimums. Pay the full balance monthly, or at minimum, pay more than the minimum. Prioritize paying off credit cards before other debts.",
+            "content_vi": "Lãi suất thẻ tín dụng 18-25% có thể gấp đôi nợ trong 3-4 năm nếu chỉ trả tối thiểu. Trả toàn bộ số dư hàng tháng, hoặc ít nhất, trả nhiều hơn mức tối thiểu. Ưu tiên trả hết thẻ tín dụng trước các khoản nợ khác."
+        },
+        {
+            "id": "debt_005",
+            "topic": "Debt Consolidation",
+            "keywords": [
+                "consolidation",
+                "combine debts",
+                "lower interest",
+                "single payment",
+                "hợp nhất",
+                "kết hợp nợ",
+                "lãi suất thấp hơn",
+                "một khoản thanh toán"
+            ],
+            "content_en": "Debt consolidation combines multiple debts into one loan with a lower interest rate. This simplifies payments and can reduce total interest. But only do this if you won't accumulate new debt on the cleared accounts.",
+            "content_vi": "Hợp nhất nợ kết hợp nhiều khoản nợ thành một khoản vay với lãi suất thấp hơn. Điều này đơn giản hóa thanh toán và có thể giảm tổng lãi. Nhưng chỉ làm điều này nếu bạn không tích lũy nợ mới trên các tài khoản đã xóa."
+        },
+        {
+            "id": "debt_006",
+            "topic": "Avoid Payday Loans",
+            "keywords": [
+                "payday loan",
+                "predatory",
+                "high fees",
+                "avoid",
+                "vay nhanh",
+                "săn mồi",
+                "phí cao",
+                "tránh"
+            ],
+            "content_en": "Payday loans charge 300-500% APR and trap borrowers in debt cycles. Never use them. If desperate, consider selling items, borrowing from family, or credit union loans instead. Build emergency fund to avoid this trap.",
+            "content_vi": "Vay nhanh tính lãi 300-500%/năm và bẫy người vay trong vòng xoáy nợ. Không bao giờ sử dụng. Nếu cần cấp, cân nhắc bán đồ, vay người thân, hoặc vay tín dụng liên hiệp thay thế. Xây dựng quỹ khẩn cấp để tránh bẫy này."
+        },
+        {
+            "id": "debt_007",
+            "topic": "Negotiating with Creditors",
+            "keywords": [
+                "negotiate",
+                "creditor",
+                "lower rate",
+                "payment plan",
+                "đàm phán",
+                "chủ nợ",
+                "lãi suất thấp hơn",
+                "kế hoạch thanh toán"
+            ],
+            "content_en": "Don't be afraid to negotiate with creditors. Request lower interest rates, waived fees, or extended payment plans. Creditors prefer some payment over none. Be polite, persistent, and document all agreements in writing.",
+            "content_vi": "Đừng ngại đàm phán với chủ nợ. Yêu cầu lãi suất thấp hơn, miễn phí, hoặc gia hạn kế hoạch thanh toán. Chủ nợ thích một số thanh toán hơn không có gì. Lịch sự, kiên trì, và ghi lại tất cả thỏa thuận bằng văn bản."
+        },
+        {
+            "id": "debt_008",
+            "topic": "Debt-to-Income Ratio",
+            "keywords": [
+                "debt-to-income",
+                "DTI",
+                "ratio",
+                "healthy",
+                "tỷ lệ nợ trên thu nhập",
+                "lành mạnh"
+            ],
+            "content_en": "Your debt-to-income (DTI) ratio should be below 36%, with no more than 28% going to housing. Calculate: (Total monthly debt payments / Gross monthly income) × 100. High DTI limits borrowing ability and indicates financial stress.",
+            "content_vi": "Tỷ lệ nợ trên thu nhập (DTI) nên dưới 36%, không quá 28% cho nhà ở. Tính: (Tổng thanh toán nợ hàng tháng / Thu nhập gộp hàng tháng) × 100. DTI cao hạn chế khả năng vay và cho thấy căng thẳng tài chính."
+        },
+        {
+            "id": "debt_009",
+            "topic": "Debt Emergency Steps",
+            "keywords": [
+                "overwhelmed",
+                "debt crisis",
+                "steps",
+                "help",
+                "quá tải",
+                "khủng hoảng nợ",
+                "các bước",
+                "giúp đỡ"
+            ],
+            "content_en": "If overwhelmed by debt: 1) Stop using credit, 2) List all debts with amounts and rates, 3) Create a bare-bones budget, 4) Contact creditors for hardship programs, 5) Consider nonprofit credit counseling. Don't ignore the problem.",
+            "content_vi": "Nếu bị nợ đè bẹp: 1) Ngừng sử dụng tín dụng, 2) Liệt kê tất cả nợ với số tiền và lãi suất, 3) Tạo ngân sách tối thiểu, 4) Liên hệ chủ nợ về chương trình khó khăn, 5) Cân nhắc tư vấn tín dụng phi lợi nhuận. Đừng bỏ qua vấn đề."
+        },
+        {
+            "id": "debt_010",
+            "topic": "Mortgage Guidelines",
+            "keywords": [
+                "mortgage",
+                "house",
+                "afford",
+                "down payment",
+                "vay mua nhà",
+                "đủ khả năng",
+                "tiền đặt cọc"
+            ],
+            "content_en": "For mortgages, aim for: house price ≤ 3x annual income, down payment ≥ 20% (to avoid PMI), monthly payment ≤ 28% of gross income. Consider total cost including taxes, insurance, and maintenance, not just the loan payment.",
+            "content_vi": "Với vay mua nhà, hướng tới: giá nhà ≤ 3 lần thu nhập năm, tiền đặt cọc ≥ 20% (để tránh PMI), thanh toán hàng tháng ≤ 28% thu nhập gộp. Xem xét tổng chi phí bao gồm thuế, bảo hiểm, và bảo trì, không chỉ khoản vay."
+        }
+    ],
+    "investing_basics": [
+        {
+            "id": "invest_001",
+            "topic": "Compound Interest Power",
+            "keywords": [
+                "compound interest",
+                "time",
+                "growth",
+                "early",
+                "lãi kép",
+                "thời gian",
+                "tăng trưởng",
+                "sớm"
+            ],
+            "content_en": "Compound interest makes money grow exponentially. $10,000 at 7% annual return becomes $76,000 in 30 years. Starting 10 years earlier would yield $150,000. Time is your greatest investment advantage—start now, even with small amounts.",
+            "content_vi": "Lãi kép làm tiền tăng theo cấp số nhân. 10 triệu với lợi nhuận 7%/năm thành 76 triệu trong 30 năm. Bắt đầu sớm 10 năm sẽ đạt 150 triệu. Thời gian là lợi thế đầu tư lớn nhất—bắt đầu ngay, dù với số tiền nhỏ."
+        },
+        {
+            "id": "invest_002",
+            "topic": "Diversification",
+            "keywords": [
+                "diversification",
+                "spread risk",
+                "portfolio",
+                "eggs basket",
+                "đa dạng hóa",
+                "phân tán rủi ro",
+                "danh mục",
+                "trứng giỏ"
+            ],
+            "content_en": "Diversification spreads investments across different asset types (stocks, bonds, real estate), sectors, and geographies. Don't put all eggs in one basket. Diversification reduces risk without necessarily reducing returns.",
+            "content_vi": "Đa dạng hóa phân tán đầu tư qua các loại tài sản khác nhau (cổ phiếu, trái phiếu, bất động sản), ngành, và vùng địa lý. Đừng bỏ tất cả trứng vào một giỏ. Đa dạng hóa giảm rủi ro mà không nhất thiết giảm lợi nhuận."
+        },
+        {
+            "id": "invest_003",
+            "topic": "Index Funds",
+            "keywords": [
+                "index fund",
+                "passive",
+                "low cost",
+                "S&P 500",
+                "quỹ chỉ số",
+                "thụ động",
+                "chi phí thấp"
+            ],
+            "content_en": "Index funds track market indices like the S&P 500 with low fees (0.03-0.2% annually). They outperform most active funds over time. For beginners, a simple portfolio of total stock market and bond index funds works well.",
+            "content_vi": "Quỹ chỉ số theo dõi các chỉ số thị trường như S&P 500 với phí thấp (0.03-0.2%/năm). Chúng vượt trội hầu hết quỹ chủ động theo thời gian. Cho người mới, danh mục đơn giản gồm quỹ chỉ số cổ phiếu tổng thể và trái phiếu hoạt động tốt."
+        },
+        {
+            "id": "invest_004",
+            "topic": "Risk Tolerance",
+            "keywords": [
+                "risk tolerance",
+                "age",
+                "aggressive",
+                "conservative",
+                "khả năng chịu rủi ro",
+                "tuổi",
+                "tích cực",
+                "bảo thủ"
+            ],
+            "content_en": "Your risk tolerance depends on age, goals, and temperament. Young investors can afford more stock exposure (higher risk, higher return). A common rule: stock percentage = 110 minus your age. Adjust based on your comfort level.",
+            "content_vi": "Khả năng chịu rủi ro phụ thuộc vào tuổi, mục tiêu, và tính cách. Nhà đầu tư trẻ có thể chịu nhiều cổ phiếu hơn (rủi ro cao, lợi nhuận cao). Quy tắc phổ biến: phần trăm cổ phiếu = 110 trừ tuổi. Điều chỉnh theo mức thoải mái của bạn."
+        },
+        {
+            "id": "invest_005",
+            "topic": "Dollar-Cost Averaging",
+            "keywords": [
+                "dollar-cost averaging",
+                "regular investing",
+                "market timing",
+                "trung bình giá",
+                "đầu tư đều đặn",
+                "định thời thị trường"
+            ],
+            "content_en": "Dollar-cost averaging invests fixed amounts regularly regardless of market conditions. This removes emotion from investing, buys more shares when prices are low, and avoids the impossible task of timing the market.",
+            "content_vi": "Trung bình giá đầu tư số tiền cố định đều đặn bất kể điều kiện thị trường. Điều này loại bỏ cảm xúc khỏi đầu tư, mua nhiều cổ phiếu hơn khi giá thấp, và tránh nhiệm vụ bất khả thi là định thời thị trường."
+        },
+        {
+            "id": "invest_006",
+            "topic": "Start Investing Early",
+            "keywords": [
+                "start early",
+                "young",
+                "time advantage",
+                "bắt đầu sớm",
+                "trẻ",
+                "lợi thế thời gian"
+            ],
+            "content_en": "Starting to invest at 25 vs 35 can mean double the retirement savings, assuming the same contributions. Every year you delay costs significantly due to lost compound growth. Start with whatever you can, even small amounts.",
+            "content_vi": "Bắt đầu đầu tư ở tuổi 25 so với 35 có thể có nghĩa là gấp đôi tiền tiết kiệm hưu trí, giả sử cùng số tiền đóng góp. Mỗi năm bạn trì hoãn tốn kém đáng kể do mất tăng trưởng lãi kép. Bắt đầu với bất cứ gì bạn có thể, dù số tiền nhỏ."
+        },
+        {
+            "id": "invest_007",
+            "topic": "Investment vs Speculation",
+            "keywords": [
+                "investment",
+                "speculation",
+                "gambling",
+                "long-term",
+                "đầu tư",
+                "đầu cơ",
+                "cờ bạc",
+                "dài hạn"
+            ],
+            "content_en": "Investing is long-term wealth building based on fundamentals. Speculation is short-term betting on price movements. Day trading, meme stocks, and crypto speculation are gambling, not investing. Know the difference.",
+            "content_vi": "Đầu tư là xây dựng tài sản dài hạn dựa trên nền tảng. Đầu cơ là cá cược ngắn hạn vào biến động giá. Giao dịch trong ngày, cổ phiếu meme, và đầu cơ crypto là cờ bạc, không phải đầu tư. Biết sự khác biệt."
+        },
+        {
+            "id": "invest_008",
+            "topic": "Investment Fees Matter",
+            "keywords": [
+                "fees",
+                "expense ratio",
+                "cost",
+                "returns",
+                "phí",
+                "tỷ lệ chi phí",
+                "chi phí",
+                "lợi nhuận"
+            ],
+            "content_en": "A 2% annual fee vs 0.1% fee can cost you hundreds of thousands over your lifetime. Always check expense ratios before investing. Low-cost index funds typically have fees under 0.2%. High fees rarely mean better performance.",
+            "content_vi": "Phí 2%/năm so với 0.1% có thể tốn bạn hàng trăm triệu trong suốt cuộc đời. Luôn kiểm tra tỷ lệ chi phí trước khi đầu tư. Quỹ chỉ số chi phí thấp thường có phí dưới 0.2%. Phí cao hiếm khi có nghĩa là hiệu suất tốt hơn."
+        },
+        {
+            "id": "invest_009",
+            "topic": "Stay the Course",
+            "keywords": [
+                "stay course",
+                "market crash",
+                "panic",
+                "long-term",
+                "giữ vững",
+                "sụp đổ thị trường",
+                "hoảng loạn",
+                "dài hạn"
+            ],
+            "content_en": "During market downturns, don't panic sell. Historically, markets recover and reach new highs. Selling during crashes locks in losses. Stay invested, continue regular contributions, and view crashes as buying opportunities.",
+            "content_vi": "Trong thời kỳ thị trường suy thoái, đừng bán hoảng loạn. Lịch sử cho thấy thị trường phục hồi và đạt đỉnh mới. Bán trong sụp đổ khóa chặt thua lỗ. Tiếp tục đầu tư, đóng góp đều đặn, và xem sụp đổ như cơ hội mua."
+        },
+        {
+            "id": "invest_010",
+            "topic": "Retirement Accounts Priority",
+            "keywords": [
+                "retirement",
+                "401k",
+                "IRA",
+                "tax advantage",
+                "hưu trí",
+                "lợi thế thuế"
+            ],
+            "content_en": "Prioritize tax-advantaged retirement accounts: 401(k) up to employer match first (free money!), then max IRA, then remaining 401(k) space. These accounts save significant taxes and grow faster than taxable accounts.",
+            "content_vi": "Ưu tiên tài khoản hưu trí có lợi thuế: 401(k) đến mức nhà tuyển dụng khớp trước (tiền miễn phí!), sau đó tối đa IRA, rồi còn lại 401(k). Các tài khoản này tiết kiệm thuế đáng kể và tăng trưởng nhanh hơn tài khoản chịu thuế."
+        }
+    ],
+    "income_optimization": [
+        {
+            "id": "income_001",
+            "topic": "Salary Negotiation",
+            "keywords": [
+                "salary",
+                "negotiation",
+                "raise",
+                "pay",
+                "lương",
+                "đàm phán",
+                "tăng lương",
+                "trả"
+            ],
+            "content_en": "Always negotiate salary offers—most employers expect it. Research market rates, quantify your value with achievements, and practice your pitch. A single successful negotiation can be worth hundreds of thousands over your career.",
+            "content_vi": "Luôn đàm phán đề nghị lương—hầu hết nhà tuyển dụng mong đợi điều đó. Nghiên cứu mức lương thị trường, đánh giá giá trị của bạn với thành tích, và luyện tập bài nói. Một cuộc đàm phán thành công có thể đáng giá hàng trăm triệu trong sự nghiệp."
+        },
+        {
+            "id": "income_002",
+            "topic": "Multiple Income Streams",
+            "keywords": [
+                "multiple income",
+                "side hustle",
+                "diversify",
+                "passive",
+                "nhiều nguồn thu",
+                "nghề phụ",
+                "đa dạng hóa",
+                "thụ động"
+            ],
+            "content_en": "Don't rely on one income source. Build multiple streams: side business, freelancing, investments, rental income. Even 10-20% additional income provides security and accelerates financial goals.",
+            "content_vi": "Đừng chỉ dựa vào một nguồn thu nhập. Xây dựng nhiều luồng: kinh doanh phụ, làm tự do, đầu tư, thu nhập cho thuê. Ngay cả 10-20% thu nhập bổ sung cung cấp an toàn và tăng tốc mục tiêu tài chính."
+        },
+        {
+            "id": "income_003",
+            "topic": "Skill Investment",
+            "keywords": [
+                "skills",
+                "education",
+                "career",
+                "invest yourself",
+                "kỹ năng",
+                "giáo dục",
+                "sự nghiệp",
+                "đầu tư bản thân"
+            ],
+            "content_en": "Your earning ability is your greatest asset. Invest in skills that increase your market value: certifications, languages, technical skills. A 10% salary increase from new skills beats most investment returns.",
+            "content_vi": "Khả năng kiếm tiền là tài sản lớn nhất. Đầu tư vào kỹ năng tăng giá trị thị trường: chứng chỉ, ngôn ngữ, kỹ năng kỹ thuật. Tăng lương 10% từ kỹ năng mới đánh bại hầu hết lợi nhuận đầu tư."
+        },
+        {
+            "id": "income_004",
+            "topic": "Passive Income Building",
+            "keywords": [
+                "passive income",
+                "money work",
+                "automated",
+                "thu nhập thụ động",
+                "tiền làm việc",
+                "tự động"
+            ],
+            "content_en": "Build passive income that earns while you sleep: dividend stocks, rental properties, digital products, royalties. It takes time and initial effort, but eventually, money works for you instead of you working for money.",
+            "content_vi": "Xây dựng thu nhập thụ động kiếm tiền khi bạn ngủ: cổ phiếu cổ tức, bất động sản cho thuê, sản phẩm số, tiền bản quyền. Mất thời gian và nỗ lực ban đầu, nhưng cuối cùng, tiền làm việc cho bạn thay vì bạn làm việc vì tiền."
+        },
+        {
+            "id": "income_005",
+            "topic": "Time Value Assessment",
+            "keywords": [
+                "time value",
+                "hourly rate",
+                "outsource",
+                "giá trị thời gian",
+                "mức giờ",
+                "thuê ngoài"
+            ],
+            "content_en": "Calculate your hourly rate and use it to make decisions. If your time is worth 200k VND/hour, paying someone 100k VND to do a task frees you to earn more or enjoy life. Outsource low-value tasks.",
+            "content_vi": "Tính mức giờ của bạn và sử dụng để ra quyết định. Nếu thời gian bạn đáng 200k VND/giờ, trả ai đó 100k VND làm công việc giải phóng bạn để kiếm thêm hoặc tận hưởng cuộc sống. Thuê ngoài công việc giá trị thấp."
+        }
+    ],
+    "tax_efficiency": [
+        {
+            "id": "tax_001",
+            "topic": "Tax Deductions Awareness",
+            "keywords": [
+                "tax deductions",
+                "reduce taxes",
+                "legal",
+                "giảm trừ thuế",
+                "giảm thuế",
+                "hợp pháp"
+            ],
+            "content_en": "Know available tax deductions: education expenses, charitable donations, medical costs, home office (if eligible), retirement contributions. Keep receipts and records. Legal tax reduction is smart financial planning.",
+            "content_vi": "Biết các khoản giảm trừ thuế có sẵn: chi phí giáo dục, quyên góp từ thiện, chi phí y tế, văn phòng tại nhà (nếu đủ điều kiện), đóng góp hưu trí. Giữ biên lai và hồ sơ. Giảm thuế hợp pháp là lập kế hoạch tài chính thông minh."
+        },
+        {
+            "id": "tax_002",
+            "topic": "Tax-Advantaged Accounts",
+            "keywords": [
+                "tax-advantaged",
+                "IRA",
+                "401k",
+                "HSA",
+                "tài khoản lợi thuế"
+            ],
+            "content_en": "Maximize tax-advantaged accounts: Traditional IRA/401k reduces current taxes, Roth grows tax-free, HSA offers triple tax benefit. These accounts can save thousands in taxes annually and grow faster than taxable investments.",
+            "content_vi": "Tối đa hóa tài khoản lợi thuế: IRA/401k truyền thống giảm thuế hiện tại, Roth tăng trưởng miễn thuế, HSA cung cấp lợi thuế ba lần. Các tài khoản này có thể tiết kiệm hàng nghìn thuế hàng năm và tăng trưởng nhanh hơn đầu tư chịu thuế."
+        },
+        {
+            "id": "tax_003",
+            "topic": "Track Tax-Deductible Expenses",
+            "keywords": [
+                "track expenses",
+                "tax records",
+                "documentation",
+                "theo dõi chi phí",
+                "hồ sơ thuế",
+                "tài liệu"
+            ],
+            "content_en": "Track all potentially tax-deductible expenses throughout the year: work supplies, professional development, medical expenses, donations. Use apps or spreadsheets. Good records maximize deductions and protect in audits.",
+            "content_vi": "Theo dõi tất cả chi phí có thể giảm trừ thuế trong suốt năm: vật tư làm việc, phát triển chuyên môn, chi phí y tế, quyên góp. Sử dụng ứng dụng hoặc bảng tính. Hồ sơ tốt tối đa hóa giảm trừ và bảo vệ khi kiểm toán."
+        }
+    ],
+    "general_tips": [
+        {
+            "id": "general_001",
+            "topic": "Financial Goals Setting",
+            "keywords": [
+                "financial goals",
+                "SMART",
+                "planning",
+                "mục tiêu tài chính",
+                "lập kế hoạch"
+            ],
+            "content_en": "Set SMART financial goals: Specific (save 100 million VND), Measurable (track progress monthly), Achievable (realistic for your income), Relevant (aligned with your values), Time-bound (by December 2027). Write them down.",
+            "content_vi": "Đặt mục tiêu tài chính SMART: Cụ thể (tiết kiệm 100 triệu VND), Đo lường được (theo dõi tiến độ hàng tháng), Có thể đạt được (thực tế với thu nhập), Liên quan (phù hợp với giá trị), Có thời hạn (vào tháng 12/2027). Viết ra."
+        },
+        {
+            "id": "general_002",
+            "topic": "Net Worth Tracking",
+            "keywords": [
+                "net worth",
+                "assets",
+                "liabilities",
+                "giá trị ròng",
+                "tài sản",
+                "nợ phải trả"
+            ],
+            "content_en": "Calculate net worth monthly: Total Assets (cash, investments, property) minus Total Liabilities (debts). This single number shows true financial health. Growing net worth, even slowly, means you're building wealth.",
+            "content_vi": "Tính giá trị ròng hàng tháng: Tổng Tài sản (tiền mặt, đầu tư, bất động sản) trừ Tổng Nợ phải trả. Con số đơn lẻ này cho thấy sức khỏe tài chính thực sự. Giá trị ròng tăng, dù chậm, có nghĩa là bạn đang xây dựng tài sản."
+        },
+        {
+            "id": "general_003",
+            "topic": "Financial Education",
+            "keywords": [
+                "financial education",
+                "learn",
+                "books",
+                "giáo dục tài chính",
+                "học",
+                "sách"
+            ],
+            "content_en": "Invest time in financial education. Read books like 'Rich Dad Poor Dad', 'The Millionaire Next Door', 'I Will Teach You To Be Rich'. Financial literacy is a skill that pays dividends throughout life.",
+            "content_vi": "Đầu tư thời gian vào giáo dục tài chính. Đọc sách như 'Cha giàu cha nghèo', 'Triệu phú nhà bên', 'Tôi sẽ dạy bạn giàu có'. Hiểu biết tài chính là kỹ năng trả cổ tức suốt đời."
+        },
+        {
+            "id": "general_004",
+            "topic": "Avoid Lifestyle Comparison",
+            "keywords": [
+                "comparison",
+                "social media",
+                "lifestyle",
+                "so sánh",
+                "mạng xã hội",
+                "lối sống"
+            ],
+            "content_en": "Don't compare your finances to others, especially on social media. You see their spending but not their debt. Focus on your own progress. The goal is financial freedom, not appearing wealthy.",
+            "content_vi": "Đừng so sánh tài chính với người khác, đặc biệt trên mạng xã hội. Bạn thấy chi tiêu của họ nhưng không thấy nợ. Tập trung vào tiến bộ của bạn. Mục tiêu là tự do tài chính, không phải xuất hiện giàu có."
+        },
+        {
+            "id": "general_005",
+            "topic": "24-Hour Rule for Purchases",
+            "keywords": [
+                "impulse",
+                "wait",
+                "24 hours",
+                "purchase",
+                "bốc đồng",
+                "chờ",
+                "24 giờ",
+                "mua"
+            ],
+            "content_en": "Apply the 24-hour rule for non-essential purchases over a certain amount (e.g., 500k VND). Wait 24 hours before buying. Most impulse desires fade, saving you money and preventing buyer's remorse.",
+            "content_vi": "Áp dụng quy tắc 24 giờ cho các giao dịch không thiết yếu trên một số tiền nhất định (ví dụ: 500k VND). Chờ 24 giờ trước khi mua. Hầu hết ham muốn bốc đồng sẽ biến mất, tiết kiệm tiền và ngăn hối hận sau khi mua."
+        },
+        {
+            "id": "general_006",
+            "topic": "Money Date Weekly",
+            "keywords": [
+                "money date",
+                "weekly review",
+                "partner",
+                "cuộc hẹn tiền",
+                "xem xét hàng tuần",
+                "đối tác"
+            ],
+            "content_en": "Schedule a weekly 'money date'—15-30 minutes to review spending, check progress on goals, and plan for upcoming expenses. If you have a partner, do this together. Regular attention prevents financial surprises.",
+            "content_vi": "Lên lịch 'cuộc hẹn tiền' hàng tuần—15-30 phút để xem xét chi tiêu, kiểm tra tiến độ mục tiêu, và lên kế hoạch cho chi phí sắp tới. Nếu có đối tác, làm cùng nhau. Chú ý đều đặn ngăn bất ngờ tài chính."
+        },
+        {
+            "id": "general_007",
+            "topic": "Insurance Protection",
+            "keywords": [
+                "insurance",
+                "protection",
+                "health",
+                "life",
+                "bảo hiểm",
+                "bảo vệ",
+                "sức khỏe",
+                "cuộc sống"
+            ],
+            "content_en": "Adequate insurance protects wealth: health insurance prevents medical bankruptcy, life insurance protects dependents, auto/home insurance covers major losses. Insurance is not optional—it's foundational to financial security.",
+            "content_vi": "Bảo hiểm đầy đủ bảo vệ tài sản: bảo hiểm y tế ngăn phá sản y tế, bảo hiểm nhân thọ bảo vệ người phụ thuộc, bảo hiểm xe/nhà bao phủ thua lỗ lớn. Bảo hiểm không phải tùy chọn—là nền tảng an ninh tài chính."
+        },
+        {
+            "id": "general_008",
+            "topic": "Avoid Get-Rich-Quick Schemes",
+            "keywords": [
+                "scam",
+                "get rich quick",
+                "too good",
+                "lừa đảo",
+                "làm giàu nhanh",
+                "quá tốt"
+            ],
+            "content_en": "If it sounds too good to be true, it is. Avoid MLMs, crypto schemes promising guaranteed returns, 'secret' investment strategies. Building wealth takes time and consistent effort. There are no shortcuts.",
+            "content_vi": "Nếu nghe quá tốt để là thật, thì đúng là không thật. Tránh MLM, kế hoạch crypto hứa hẹn lợi nhuận đảm bảo, chiến lược đầu tư 'bí mật'. Xây dựng tài sản mất thời gian và nỗ lực nhất quán. Không có đường tắt."
+        }
+    ],
+    "category_food": [
+        {
+            "id": "food_001",
+            "topic": "Meal Planning Saves Money",
+            "keywords": [
+                "meal planning",
+                "food",
+                "save",
+                "groceries",
+                "lên kế hoạch bữa ăn",
+                "thực phẩm",
+                "tiết kiệm",
+                "đi chợ"
+            ],
+            "content_en": "Plan meals weekly before grocery shopping. This reduces impulse purchases, minimizes food waste, and can cut food costs by 20-30%. Use what you have first, then shop for what's missing.",
+            "content_vi": "Lên kế hoạch bữa ăn hàng tuần trước khi đi chợ. Điều này giảm mua sắm bốc đồng, giảm thiểu lãng phí thực phẩm, và có thể cắt giảm chi phí thực phẩm 20-30%. Sử dụng những gì bạn có trước, sau đó mua những gì còn thiếu."
+        },
+        {
+            "id": "food_002",
+            "topic": "Cook at Home More",
+            "keywords": [
+                "cook",
+                "home",
+                "restaurant",
+                "eating out",
+                "nấu ăn",
+                "nhà",
+                "nhà hàng",
+                "ăn ngoài"
+            ],
+            "content_en": "Cooking at home costs 3-5 times less than eating out. A 200k VND restaurant meal can be made for 40-60k at home. Start with 2-3 home-cooked meals per week and gradually increase.",
+            "content_vi": "Nấu ăn tại nhà tốn ít hơn 3-5 lần so với ăn ngoài. Bữa ăn nhà hàng 200k VND có thể được làm với 40-60k ở nhà. Bắt đầu với 2-3 bữa nấu tại nhà mỗi tuần và tăng dần."
+        },
+        {
+            "id": "food_003",
+            "topic": "Batch Cooking",
+            "keywords": [
+                "batch cooking",
+                "meal prep",
+                "time saving",
+                "nấu ăn hàng loạt",
+                "chuẩn bị bữa ăn",
+                "tiết kiệm thời gian"
+            ],
+            "content_en": "Batch cook on weekends: make large portions of rice, proteins, and vegetables. Store in portions for the week. This saves time on busy weekdays and prevents expensive takeout purchases.",
+            "content_vi": "Nấu ăn hàng loạt vào cuối tuần: làm khẩu phần lớn cơm, protein, và rau. Lưu trữ theo phần cho cả tuần. Điều này tiết kiệm thời gian vào ngày bận và ngăn mua đồ ăn mang đi đắt tiền."
+        },
+        {
+            "id": "food_004",
+            "topic": "Smart Grocery Shopping",
+            "keywords": [
+                "grocery",
+                "shopping",
+                "list",
+                "sales",
+                "đi chợ",
+                "mua sắm",
+                "danh sách",
+                "khuyến mãi"
+            ],
+            "content_en": "Always shop with a list and stick to it. Never shop hungry. Buy seasonal produce. Check unit prices, not just total prices. Store brands are often 20-40% cheaper than name brands with same quality.",
+            "content_vi": "Luôn mua sắm với danh sách và tuân thủ nó. Không bao giờ đi chợ khi đói. Mua rau củ theo mùa. Kiểm tra giá đơn vị, không chỉ tổng giá. Nhãn hiệu cửa hàng thường rẻ hơn 20-40% so với nhãn hiệu nổi tiếng với chất lượng tương đương."
+        },
+        {
+            "id": "food_005",
+            "topic": "Reduce Food Waste",
+            "keywords": [
+                "food waste",
+                "leftovers",
+                "storage",
+                "lãng phí thực phẩm",
+                "đồ ăn thừa",
+                "lưu trữ"
+            ],
+            "content_en": "The average household wastes 25-30% of food purchased. Use leftovers creatively, freeze before expiration, and store food properly. Check the fridge before shopping to avoid duplicate purchases.",
+            "content_vi": "Hộ gia đình trung bình lãng phí 25-30% thực phẩm mua. Sử dụng đồ ăn thừa sáng tạo, đông lạnh trước khi hết hạn, và lưu trữ thực phẩm đúng cách. Kiểm tra tủ lạnh trước khi đi chợ để tránh mua trùng lặp."
+        }
+    ],
+    "category_transport": [
+        {
+            "id": "transport_001",
+            "topic": "Public Transportation Savings",
+            "keywords": [
+                "public transport",
+                "bus",
+                "metro",
+                "commute",
+                "giao thông công cộng",
+                "xe buýt",
+                "tàu điện",
+                "đi làm"
+            ],
+            "content_en": "Public transportation can save 80% compared to owning a car when factoring in gas, insurance, maintenance, and parking. Monthly passes offer additional savings over single tickets.",
+            "content_vi": "Giao thông công cộng có thể tiết kiệm 80% so với sở hữu ô tô khi tính cả xăng, bảo hiểm, bảo trì, và đỗ xe. Vé tháng cung cấp tiết kiệm thêm so với vé lẻ."
+        },
+        {
+            "id": "transport_002",
+            "topic": "Fuel Efficiency Tips",
+            "keywords": [
+                "fuel",
+                "gas",
+                "efficiency",
+                "driving",
+                "nhiên liệu",
+                "xăng",
+                "hiệu quả",
+                "lái xe"
+            ],
+            "content_en": "Improve fuel efficiency: maintain proper tire pressure, remove excess weight, avoid aggressive acceleration, combine errands into one trip. These habits can reduce fuel costs by 15-25%.",
+            "content_vi": "Cải thiện hiệu quả nhiên liệu: duy trì áp suất lốp đúng, loại bỏ trọng lượng dư thừa, tránh tăng tốc đột ngột, kết hợp các việc vặt thành một chuyến. Những thói quen này có thể giảm chi phí nhiên liệu 15-25%."
+        },
+        {
+            "id": "transport_003",
+            "topic": "Vehicle Maintenance Saves Money",
+            "keywords": [
+                "maintenance",
+                "car",
+                "repair",
+                "oil change",
+                "bảo trì",
+                "xe",
+                "sửa chữa",
+                "thay dầu"
+            ],
+            "content_en": "Regular maintenance prevents expensive repairs. Change oil on schedule, check tire pressure monthly, replace air filters. A 500k VND maintenance can prevent a 5 million VND repair.",
+            "content_vi": "Bảo trì thường xuyên ngăn sửa chữa đắt tiền. Thay dầu đúng lịch, kiểm tra áp suất lốp hàng tháng, thay bộ lọc không khí. Bảo trì 500k VND có thể ngăn sửa chữa 5 triệu VND."
+        },
+        {
+            "id": "transport_004",
+            "topic": "Carpooling Benefits",
+            "keywords": [
+                "carpool",
+                "ride share",
+                "commute",
+                "colleagues",
+                "đi chung xe",
+                "chia sẻ chuyến đi",
+                "đi làm",
+                "đồng nghiệp"
+            ],
+            "content_en": "Carpooling with colleagues or neighbors cuts commute costs by 50-75%. It also reduces wear on your vehicle. Apps and workplace boards can help find carpool partners.",
+            "content_vi": "Đi chung xe với đồng nghiệp hoặc hàng xóm cắt giảm chi phí đi làm 50-75%. Nó cũng giảm hao mòn xe của bạn. Ứng dụng và bảng tin nơi làm việc có thể giúp tìm đối tác đi chung."
+        },
+        {
+            "id": "transport_005",
+            "topic": "Consider True Cost of Car Ownership",
+            "keywords": [
+                "car cost",
+                "ownership",
+                "depreciation",
+                "chi phí xe",
+                "sở hữu",
+                "khấu hao"
+            ],
+            "content_en": "True car costs include: depreciation, insurance, fuel, maintenance, parking, and registration. A car costing 500 million VND typically costs 100-150 million VND per year to own. Consider if alternatives work for you.",
+            "content_vi": "Chi phí xe thực sự bao gồm: khấu hao, bảo hiểm, nhiên liệu, bảo trì, đỗ xe, và đăng ký. Xe giá 500 triệu VND thường tốn 100-150 triệu VND mỗi năm để sở hữu. Cân nhắc nếu các phương án thay thế phù hợp với bạn."
+        }
+    ],
+    "category_entertainment": [
+        {
+            "id": "entertainment_001",
+            "topic": "Free Entertainment Options",
+            "keywords": [
+                "free",
+                "entertainment",
+                "activities",
+                "hobbies",
+                "miễn phí",
+                "giải trí",
+                "hoạt động",
+                "sở thích"
+            ],
+            "content_en": "Many great entertainment options are free: parks, hiking, library books, free museum days, community events. Prioritize experiences over things. Quality time doesn't require expensive outings.",
+            "content_vi": "Nhiều lựa chọn giải trí tuyệt vời miễn phí: công viên, đi bộ đường dài, sách thư viện, ngày bảo tàng miễn phí, sự kiện cộng đồng. Ưu tiên trải nghiệm hơn đồ vật. Thời gian chất lượng không cần những chuyến đi đắt tiền."
+        },
+        {
+            "id": "entertainment_002",
+            "topic": "Subscription Audit",
+            "keywords": [
+                "subscription",
+                "streaming",
+                "cancel",
+                "audit",
+                "đăng ký",
+                "streaming",
+                "hủy",
+                "kiểm toán"
+            ],
+            "content_en": "Review all subscriptions monthly: streaming services, gym memberships, apps, magazines. Cancel unused ones. Multiple streaming services can cost 500k+ VND monthly. Rotate instead of stacking.",
+            "content_vi": "Xem xét tất cả đăng ký hàng tháng: dịch vụ streaming, thẻ gym, ứng dụng, tạp chí. Hủy những cái không dùng. Nhiều dịch vụ streaming có thể tốn 500k+ VND hàng tháng. Xoay vòng thay vì chồng chất."
+        },
+        {
+            "id": "entertainment_003",
+            "topic": "Entertainment Budget",
+            "keywords": [
+                "budget",
+                "fun money",
+                "entertainment limit",
+                "ngân sách",
+                "tiền vui chơi",
+                "giới hạn giải trí"
+            ],
+            "content_en": "Set a specific entertainment budget (5-10% of income) and stick to it. This allows guilt-free fun while preventing overspending. Use cash envelope for entertainment to make spending tangible.",
+            "content_vi": "Đặt ngân sách giải trí cụ thể (5-10% thu nhập) và tuân thủ. Điều này cho phép vui chơi không cảm giác tội lỗi trong khi ngăn chi tiêu quá mức. Sử dụng phong bì tiền mặt cho giải trí để làm chi tiêu hữu hình."
+        },
+        {
+            "id": "entertainment_004",
+            "topic": "Happy Hour and Off-Peak Discounts",
+            "keywords": [
+                "happy hour",
+                "discount",
+                "off-peak",
+                "deals",
+                "giờ vàng",
+                "giảm giá",
+                "ngoài giờ cao điểm",
+                "ưu đãi"
+            ],
+            "content_en": "Take advantage of happy hours, matinee movie prices, and off-peak rates. The same experience costs 30-50% less at different times. Plan entertainment during discount periods.",
+            "content_vi": "Tận dụng giờ vàng, giá vé phim buổi sáng, và giá ngoài giờ cao điểm. Cùng trải nghiệm tốn ít hơn 30-50% vào thời điểm khác. Lên kế hoạch giải trí trong thời gian giảm giá."
+        },
+        {
+            "id": "entertainment_005",
+            "topic": "DIY Entertainment",
+            "keywords": [
+                "DIY",
+                "home entertainment",
+                "game night",
+                "tự làm",
+                "giải trí tại nhà",
+                "đêm chơi game"
+            ],
+            "content_en": "Host potluck dinners instead of expensive restaurants. Game nights, movie marathons at home, and cooking together are often more memorable than costly outings and build stronger relationships.",
+            "content_vi": "Tổ chức bữa tối góp món thay vì nhà hàng đắt tiền. Đêm chơi game, marathon phim tại nhà, và nấu ăn cùng nhau thường đáng nhớ hơn các chuyến đi tốn kém và xây dựng mối quan hệ bền chặt hơn."
+        }
+    ],
+    "category_medical": [
+        {
+            "id": "medical_001",
+            "topic": "Preventive Care Saves Money",
+            "keywords": [
+                "preventive",
+                "checkup",
+                "health",
+                "prevention",
+                "phòng ngừa",
+                "khám sức khỏe",
+                "sức khỏe",
+                "ngăn ngừa"
+            ],
+            "content_en": "Annual checkups and preventive care catch problems early when they're cheaper to treat. A 500k VND checkup can prevent a 50 million VND hospital stay. Don't skip routine screenings.",
+            "content_vi": "Khám sức khỏe hàng năm và chăm sóc phòng ngừa phát hiện vấn đề sớm khi điều trị rẻ hơn. Khám 500k VND có thể ngăn nằm viện 50 triệu VND. Đừng bỏ qua các xét nghiệm định kỳ."
+        },
+        {
+            "id": "medical_002",
+            "topic": "Generic Medications",
+            "keywords": [
+                "generic",
+                "medication",
+                "prescription",
+                "pharmacy",
+                "thuốc generic",
+                "thuốc",
+                "đơn thuốc",
+                "nhà thuốc"
+            ],
+            "content_en": "Generic medications contain the same active ingredients as brand names at 50-80% lower cost. Always ask your doctor or pharmacist if a generic alternative exists for your prescriptions.",
+            "content_vi": "Thuốc generic chứa cùng hoạt chất như thuốc thương hiệu với giá thấp hơn 50-80%. Luôn hỏi bác sĩ hoặc dược sĩ nếu có thuốc generic thay thế cho đơn thuốc của bạn."
+        },
+        {
+            "id": "medical_003",
+            "topic": "Health Insurance Importance",
+            "keywords": [
+                "health insurance",
+                "coverage",
+                "medical bills",
+                "bảo hiểm y tế",
+                "bảo hiểm",
+                "hóa đơn y tế"
+            ],
+            "content_en": "Health insurance protects against medical bankruptcy. One emergency surgery can cost tens of millions VND. Even basic coverage is better than none. Compare plans annually during enrollment.",
+            "content_vi": "Bảo hiểm y tế bảo vệ khỏi phá sản y tế. Một ca phẫu thuật cấp cứu có thể tốn hàng chục triệu VND. Ngay cả bảo hiểm cơ bản cũng tốt hơn không có. So sánh các gói hàng năm trong kỳ đăng ký."
+        },
+        {
+            "id": "medical_004",
+            "topic": "Healthy Lifestyle Reduces Costs",
+            "keywords": [
+                "healthy",
+                "exercise",
+                "diet",
+                "prevention",
+                "khỏe mạnh",
+                "tập thể dục",
+                "chế độ ăn",
+                "phòng ngừa"
+            ],
+            "content_en": "Regular exercise and healthy eating prevent many expensive chronic conditions. The cost of gym and healthy food is far less than treating diabetes, heart disease, or obesity-related conditions.",
+            "content_vi": "Tập thể dục đều đặn và ăn uống lành mạnh ngăn nhiều bệnh mãn tính đắt tiền. Chi phí gym và thực phẩm lành mạnh thấp hơn nhiều so với điều trị tiểu đường, bệnh tim, hoặc các tình trạng liên quan đến béo phì."
+        },
+        {
+            "id": "medical_005",
+            "topic": "Medical Emergency Fund",
+            "keywords": [
+                "emergency",
+                "medical fund",
+                "unexpected",
+                "quỹ khẩn cấp",
+                "quỹ y tế",
+                "bất ngờ"
+            ],
+            "content_en": "Keep a separate medical emergency fund beyond your regular emergency fund. Medical emergencies are the leading cause of bankruptcy. Aim for at least 20-30 million VND dedicated to health emergencies.",
+            "content_vi": "Giữ quỹ khẩn cấp y tế riêng ngoài quỹ khẩn cấp thông thường. Cấp cứu y tế là nguyên nhân hàng đầu gây phá sản. Nhắm mục tiêu ít nhất 20-30 triệu VND dành riêng cho khẩn cấp sức khỏe."
+        }
+    ],
+    "category_education": [
+        {
+            "id": "education_001",
+            "topic": "Free Learning Resources",
+            "keywords": [
+                "free",
+                "learning",
+                "online courses",
+                "education",
+                "miễn phí",
+                "học tập",
+                "khóa học trực tuyến",
+                "giáo dục"
+            ],
+            "content_en": "Many high-quality learning resources are free: YouTube tutorials, Khan Academy, Coursera audits, library books, podcasts. You can learn almost any skill without paying for expensive courses.",
+            "content_vi": "Nhiều tài nguyên học tập chất lượng cao miễn phí: hướng dẫn YouTube, Khan Academy, kiểm toán Coursera, sách thư viện, podcast. Bạn có thể học gần như bất kỳ kỹ năng nào mà không cần trả cho các khóa học đắt tiền."
+        },
+        {
+            "id": "education_002",
+            "topic": "Education ROI",
+            "keywords": [
+                "ROI",
+                "education investment",
+                "career",
+                "skills",
+                "lợi tức đầu tư",
+                "đầu tư giáo dục",
+                "sự nghiệp",
+                "kỹ năng"
+            ],
+            "content_en": "Before paying for education, calculate the ROI. Will this certification/degree increase your income enough to justify the cost? Some credentials pay back quickly, others never do. Research career salary data first.",
+            "content_vi": "Trước khi trả tiền cho giáo dục, tính ROI. Chứng chỉ/bằng cấp này có tăng thu nhập đủ để biện minh chi phí không? Một số bằng cấp hoàn vốn nhanh, số khác không bao giờ. Nghiên cứu dữ liệu lương nghề nghiệp trước."
+        },
+        {
+            "id": "education_003",
+            "topic": "Scholarships and Grants",
+            "keywords": [
+                "scholarship",
+                "grant",
+                "financial aid",
+                "học bổng",
+                "trợ cấp",
+                "hỗ trợ tài chính"
+            ],
+            "content_en": "Always apply for scholarships and grants before taking loans. Many scholarships go unclaimed each year. Research options at schools, employers, community organizations, and government programs.",
+            "content_vi": "Luôn nộp đơn xin học bổng và trợ cấp trước khi vay. Nhiều học bổng không được nhận mỗi năm. Nghiên cứu các lựa chọn tại trường, nhà tuyển dụng, tổ chức cộng đồng, và chương trình chính phủ."
+        },
+        {
+            "id": "education_004",
+            "topic": "Used Textbooks and Materials",
+            "keywords": [
+                "used textbooks",
+                "secondhand",
+                "books",
+                "materials",
+                "sách cũ",
+                "đã qua sử dụng",
+                "sách",
+                "tài liệu"
+            ],
+            "content_en": "Buy used textbooks or rent instead of new. Check library reserves, older editions (often identical content), and digital versions. Textbook costs can be reduced by 50-80% with smart shopping.",
+            "content_vi": "Mua sách giáo khoa cũ hoặc thuê thay vì mới. Kiểm tra kho thư viện, phiên bản cũ hơn (thường nội dung giống hệt), và phiên bản điện tử. Chi phí sách có thể giảm 50-80% với mua sắm thông minh."
+        },
+        {
+            "id": "education_005",
+            "topic": "Employer Education Benefits",
+            "keywords": [
+                "employer",
+                "tuition",
+                "reimbursement",
+                "benefits",
+                "nhà tuyển dụng",
+                "học phí",
+                "hoàn trả",
+                "quyền lợi"
+            ],
+            "content_en": "Many employers offer tuition reimbursement or professional development funds. Check your benefits package—this is essentially free money for education that many employees don't utilize.",
+            "content_vi": "Nhiều nhà tuyển dụng cung cấp hoàn trả học phí hoặc quỹ phát triển chuyên môn. Kiểm tra gói quyền lợi của bạn—đây thực chất là tiền miễn phí cho giáo dục mà nhiều nhân viên không tận dụng."
+        }
+    ],
+    "category_clothing": [
+        {
+            "id": "clothing_001",
+            "topic": "Quality Over Quantity",
+            "keywords": [
+                "quality",
+                "clothing",
+                "investment pieces",
+                "chất lượng",
+                "quần áo",
+                "đồ đầu tư"
+            ],
+            "content_en": "Buy fewer, higher-quality clothes that last longer. A 1 million VND shirt worn 100 times costs 10k per wear, while a 200k shirt worn 10 times costs 20k per wear. Invest in timeless basics.",
+            "content_vi": "Mua ít hơn, quần áo chất lượng cao hơn bền hơn. Áo 1 triệu VND mặc 100 lần tốn 10k mỗi lần mặc, trong khi áo 200k mặc 10 lần tốn 20k mỗi lần mặc. Đầu tư vào đồ cơ bản vượt thời gian."
+        },
+        {
+            "id": "clothing_002",
+            "topic": "Capsule Wardrobe",
+            "keywords": [
+                "capsule wardrobe",
+                "minimalist",
+                "mix match",
+                "tủ đồ capsule",
+                "tối giản",
+                "phối đồ"
+            ],
+            "content_en": "Build a capsule wardrobe: 30-40 versatile pieces that mix and match. This reduces decision fatigue, saves money, and ensures you actually wear everything you own. Focus on neutral colors and classic styles.",
+            "content_vi": "Xây dựng tủ đồ capsule: 30-40 món đa năng có thể phối với nhau. Điều này giảm mệt mỏi quyết định, tiết kiệm tiền, và đảm bảo bạn thực sự mặc mọi thứ bạn sở hữu. Tập trung vào màu trung tính và phong cách cổ điển."
+        },
+        {
+            "id": "clothing_003",
+            "topic": "End-of-Season Sales",
+            "keywords": [
+                "sale",
+                "discount",
+                "off-season",
+                "timing",
+                "giảm giá",
+                "khuyến mãi",
+                "trái mùa",
+                "thời điểm"
+            ],
+            "content_en": "Buy off-season for 50-70% savings. Purchase winter coats in spring and summer clothes in fall. Plan ahead for predictable needs. Avoid paying full price by timing purchases strategically.",
+            "content_vi": "Mua trái mùa để tiết kiệm 50-70%. Mua áo khoác mùa đông vào mùa xuân và quần áo mùa hè vào mùa thu. Lên kế hoạch trước cho nhu cầu có thể dự đoán. Tránh trả giá đầy đủ bằng cách mua sắm chiến lược."
+        },
+        {
+            "id": "clothing_004",
+            "topic": "Clothing Care Extends Life",
+            "keywords": [
+                "care",
+                "laundry",
+                "maintenance",
+                "extend life",
+                "chăm sóc",
+                "giặt giũ",
+                "bảo trì",
+                "kéo dài tuổi thọ"
+            ],
+            "content_en": "Proper care doubles clothing lifespan: wash in cold water, air dry when possible, follow care labels, and repair minor damage promptly. This saves money and reduces shopping frequency.",
+            "content_vi": "Chăm sóc đúng cách gấp đôi tuổi thọ quần áo: giặt nước lạnh, phơi khô khi có thể, tuân theo nhãn hướng dẫn, và sửa chữa hư hỏng nhỏ kịp thời. Điều này tiết kiệm tiền và giảm tần suất mua sắm."
+        },
+        {
+            "id": "clothing_005",
+            "topic": "Secondhand Shopping",
+            "keywords": [
+                "secondhand",
+                "thrift",
+                "used clothing",
+                "consignment",
+                "đồ cũ",
+                "thrift",
+                "quần áo đã qua sử dụng",
+                "ký gửi"
+            ],
+            "content_en": "Thrift stores and consignment shops offer quality clothing at 70-90% discounts. Many items still have tags or are barely worn. This is also more environmentally sustainable than fast fashion.",
+            "content_vi": "Cửa hàng đồ cũ và ký gửi cung cấp quần áo chất lượng với giảm giá 70-90%. Nhiều món còn nguyên nhãn hoặc gần như chưa mặc. Điều này cũng bền vững hơn về môi trường so với thời trang nhanh."
+        }
+    ],
+    "category_home": [
+        {
+            "id": "home_001",
+            "topic": "Reduce Utility Bills",
+            "keywords": [
+                "utility",
+                "electricity",
+                "water",
+                "bills",
+                "tiện ích",
+                "điện",
+                "nước",
+                "hóa đơn"
+            ],
+            "content_en": "Small changes reduce utility bills: LED bulbs use 75% less electricity, fixing leaky faucets saves water, unplugging devices when not in use prevents phantom drain. These savings add up monthly.",
+            "content_vi": "Thay đổi nhỏ giảm hóa đơn tiện ích: bóng đèn LED dùng ít hơn 75% điện, sửa vòi nước rỉ tiết kiệm nước, rút phích cắm thiết bị khi không dùng ngăn tiêu thụ ảo. Những khoản tiết kiệm này cộng dồn hàng tháng."
+        },
+        {
+            "id": "home_002",
+            "topic": "DIY Home Repairs",
+            "keywords": [
+                "DIY",
+                "repair",
+                "home maintenance",
+                "fix",
+                "tự làm",
+                "sửa chữa",
+                "bảo trì nhà",
+                "sửa"
+            ],
+            "content_en": "Learn basic home repairs: unclogging drains, patching walls, fixing leaky faucets. YouTube tutorials teach most skills. A 50k VND part and 30 minutes can save a 500k VND service call.",
+            "content_vi": "Học sửa chữa nhà cơ bản: thông cống, vá tường, sửa vòi nước rỉ. Hướng dẫn YouTube dạy hầu hết kỹ năng. Một phụ tùng 50k VND và 30 phút có thể tiết kiệm cuộc gọi dịch vụ 500k VND."
+        },
+        {
+            "id": "home_003",
+            "topic": "Rent vs Buy Decision",
+            "keywords": [
+                "rent",
+                "buy",
+                "house",
+                "mortgage",
+                "thuê",
+                "mua",
+                "nhà",
+                "vay mua nhà"
+            ],
+            "content_en": "Renting isn't always throwing money away. Compare total costs: mortgage interest, property taxes, maintenance, insurance vs rent. The right choice depends on how long you'll stay and local market conditions.",
+            "content_vi": "Thuê không phải lúc nào cũng lãng phí tiền. So sánh tổng chi phí: lãi vay, thuế tài sản, bảo trì, bảo hiểm so với tiền thuê. Lựa chọn đúng phụ thuộc vào bạn ở bao lâu và điều kiện thị trường địa phương."
+        },
+        {
+            "id": "home_004",
+            "topic": "Energy Efficiency Upgrades",
+            "keywords": [
+                "energy",
+                "efficiency",
+                "insulation",
+                "savings",
+                "năng lượng",
+                "hiệu quả",
+                "cách nhiệt",
+                "tiết kiệm"
+            ],
+            "content_en": "Energy-efficient upgrades pay for themselves: LED lights, smart thermostats, weatherstripping, efficient appliances. Calculate payback period before purchasing. Many upgrades pay back within 1-3 years.",
+            "content_vi": "Nâng cấp tiết kiệm năng lượng tự hoàn vốn: đèn LED, bộ điều nhiệt thông minh, gioăng cửa, thiết bị hiệu quả. Tính thời gian hoàn vốn trước khi mua. Nhiều nâng cấp hoàn vốn trong 1-3 năm."
+        },
+        {
+            "id": "home_005",
+            "topic": "Declutter and Sell",
+            "keywords": [
+                "declutter",
+                "sell",
+                "minimalism",
+                "unused items",
+                "dọn dẹp",
+                "bán",
+                "tối giản",
+                "đồ không dùng"
+            ],
+            "content_en": "Regularly declutter and sell unused items. This generates cash, saves storage space, and reduces cleaning time. What you don't sell can be donated for tax deductions or given away.",
+            "content_vi": "Thường xuyên dọn dẹp và bán đồ không dùng. Điều này tạo tiền mặt, tiết kiệm không gian lưu trữ, và giảm thời gian dọn dẹp. Những gì bạn không bán có thể được quyên góp để giảm thuế hoặc cho đi."
+        }
+    ],
+    "category_gym_fitness": [
+        {
+            "id": "gym_001",
+            "topic": "Free Workout Options",
+            "keywords": [
+                "free",
+                "workout",
+                "exercise",
+                "no gym",
+                "miễn phí",
+                "tập luyện",
+                "tập thể dục",
+                "không gym"
+            ],
+            "content_en": "Effective workouts don't require gym memberships: bodyweight exercises, YouTube workout videos, running, cycling, hiking are free. Parks often have outdoor fitness equipment. Start free before paying.",
+            "content_vi": "Tập luyện hiệu quả không cần thẻ gym: bài tập với trọng lượng cơ thể, video tập luyện YouTube, chạy bộ, đạp xe, đi bộ đường dài miễn phí. Công viên thường có thiết bị thể dục ngoài trời. Bắt đầu miễn phí trước khi trả tiền."
+        },
+        {
+            "id": "gym_002",
+            "topic": "Home Gym Basics",
+            "keywords": [
+                "home gym",
+                "equipment",
+                "investment",
+                "phòng gym tại nhà",
+                "thiết bị",
+                "đầu tư"
+            ],
+            "content_en": "A basic home gym costs less than one year of gym membership: resistance bands (200k), dumbbells (1-2 million), yoga mat (200k). No commute time, no waiting for equipment, available 24/7.",
+            "content_vi": "Phòng gym cơ bản tại nhà tốn ít hơn một năm thẻ gym: dây kháng lực (200k), tạ tay (1-2 triệu), thảm yoga (200k). Không mất thời gian di chuyển, không chờ thiết bị, có sẵn 24/7."
+        },
+        {
+            "id": "gym_003",
+            "topic": "Gym Membership Tips",
+            "keywords": [
+                "gym membership",
+                "negotiate",
+                "contract",
+                "thẻ gym",
+                "đàm phán",
+                "hợp đồng"
+            ],
+            "content_en": "If joining a gym: negotiate the price (especially in January), avoid long contracts, check for corporate discounts, consider off-peak memberships. Actually using the membership is the real test.",
+            "content_vi": "Nếu đăng ký gym: đàm phán giá (đặc biệt vào tháng 1), tránh hợp đồng dài, kiểm tra giảm giá doanh nghiệp, cân nhắc thẻ ngoài giờ cao điểm. Thực sự sử dụng thẻ mới là bài kiểm tra thực sự."
+        },
+        {
+            "id": "gym_004",
+            "topic": "Exercise for Mental Health",
+            "keywords": [
+                "mental health",
+                "stress",
+                "exercise benefits",
+                "sức khỏe tinh thần",
+                "căng thẳng",
+                "lợi ích tập thể dục"
+            ],
+            "content_en": "Regular exercise reduces stress, improves sleep, and boosts productivity—benefits that indirectly save money by reducing healthcare costs and improving work performance. View exercise as a financial investment.",
+            "content_vi": "Tập thể dục đều đặn giảm căng thẳng, cải thiện giấc ngủ, và tăng năng suất—lợi ích gián tiếp tiết kiệm tiền bằng cách giảm chi phí y tế và cải thiện hiệu suất công việc. Xem tập thể dục như đầu tư tài chính."
+        }
+    ],
+    "category_beauty": [
+        {
+            "id": "beauty_001",
+            "topic": "DIY Beauty Treatments",
+            "keywords": [
+                "DIY",
+                "beauty",
+                "homemade",
+                "skincare",
+                "tự làm",
+                "làm đẹp",
+                "tự chế",
+                "chăm sóc da"
+            ],
+            "content_en": "Many effective beauty treatments can be made at home: face masks from honey and oatmeal, hair treatments from coconut oil, exfoliating scrubs from sugar and olive oil. Research recipes that use kitchen ingredients.",
+            "content_vi": "Nhiều liệu pháp làm đẹp hiệu quả có thể làm tại nhà: mặt nạ từ mật ong và yến mạch, dưỡng tóc từ dầu dừa, tẩy da chết từ đường và dầu ô liu. Nghiên cứu công thức sử dụng nguyên liệu nhà bếp."
+        },
+        {
+            "id": "beauty_002",
+            "topic": "Fewer Products, Better Results",
+            "keywords": [
+                "minimal",
+                "skincare",
+                "products",
+                "routine",
+                "tối giản",
+                "chăm sóc da",
+                "sản phẩm",
+                "quy trình"
+            ],
+            "content_en": "A simple skincare routine often works better than 10+ products: cleanser, moisturizer, sunscreen. Dermatologists recommend simplicity. More products don't mean better skin, but do mean more expense.",
+            "content_vi": "Quy trình chăm sóc da đơn giản thường hoạt động tốt hơn 10+ sản phẩm: sữa rửa mặt, kem dưỡng ẩm, kem chống nắng. Bác sĩ da liễu khuyên sự đơn giản. Nhiều sản phẩm không có nghĩa là da tốt hơn, nhưng có nghĩa là chi phí nhiều hơn."
+        },
+        {
+            "id": "beauty_003",
+            "topic": "Salon Alternatives",
+            "keywords": [
+                "salon",
+                "haircut",
+                "nails",
+                "home",
+                "tiệm",
+                "cắt tóc",
+                "móng",
+                "nhà"
+            ],
+            "content_en": "Learn basic beauty skills: simple haircuts for family, at-home manicures, hair coloring. Beauty school students often offer discounted services. Reserve salon visits for special occasions only.",
+            "content_vi": "Học kỹ năng làm đẹp cơ bản: cắt tóc đơn giản cho gia đình, làm móng tại nhà, nhuộm tóc. Sinh viên trường làm đẹp thường cung cấp dịch vụ giảm giá. Chỉ đến tiệm cho dịp đặc biệt."
+        },
+        {
+            "id": "beauty_004",
+            "topic": "Drugstore vs High-End Products",
+            "keywords": [
+                "drugstore",
+                "affordable",
+                "expensive",
+                "comparison",
+                "giá rẻ",
+                "phải chăng",
+                "đắt tiền",
+                "so sánh"
+            ],
+            "content_en": "Many drugstore beauty products perform identically to expensive brands. Check ingredient lists—they're often nearly identical. Read reviews and compare before paying premium prices for fancy packaging.",
+            "content_vi": "Nhiều sản phẩm làm đẹp giá rẻ hoạt động giống hệt các thương hiệu đắt tiền. Kiểm tra danh sách thành phần—thường gần như giống hệt nhau. Đọc đánh giá và so sánh trước khi trả giá cao cho bao bì sang trọng."
+        }
+    ],
+    "category_childcare": [
+        {
+            "id": "childcare_001",
+            "topic": "Childcare Cost Planning",
+            "keywords": [
+                "childcare",
+                "daycare",
+                "costs",
+                "budget",
+                "chăm sóc trẻ",
+                "nhà trẻ",
+                "chi phí",
+                "ngân sách"
+            ],
+            "content_en": "Childcare is often the largest expense for young families. Research all options: daycare centers, home daycares, nannies, family help, cooperative arrangements with other parents. Start planning before baby arrives.",
+            "content_vi": "Chăm sóc trẻ thường là chi phí lớn nhất cho gia đình trẻ. Nghiên cứu tất cả lựa chọn: trung tâm nhà trẻ, nhà trẻ tại gia, người giữ trẻ, sự giúp đỡ của gia đình, thỏa thuận hợp tác với phụ huynh khác. Bắt đầu lên kế hoạch trước khi em bé ra đời."
+        },
+        {
+            "id": "childcare_002",
+            "topic": "Buy Used Baby Items",
+            "keywords": [
+                "used",
+                "baby",
+                "secondhand",
+                "savings",
+                "đã qua sử dụng",
+                "em bé",
+                "đồ cũ",
+                "tiết kiệm"
+            ],
+            "content_en": "Babies outgrow things quickly—buy used when possible. Clothes, toys, strollers, and furniture can be found at 70-90% discount secondhand. Safety items (car seats, cribs) should be bought new or verified for recalls.",
+            "content_vi": "Em bé lớn nhanh khỏi đồ—mua đồ cũ khi có thể. Quần áo, đồ chơi, xe đẩy, và nội thất có thể tìm thấy với giảm giá 70-90% khi mua đồ cũ. Đồ an toàn (ghế xe, cũi) nên mua mới hoặc xác minh không bị thu hồi."
+        },
+        {
+            "id": "childcare_003",
+            "topic": "Start Education Savings Early",
+            "keywords": [
+                "education savings",
+                "529",
+                "college fund",
+                "tiết kiệm giáo dục",
+                "quỹ đại học"
+            ],
+            "content_en": "Start saving for education immediately after birth. Even small monthly amounts grow significantly over 18 years through compound interest. 500k VND monthly at 7% return becomes over 200 million VND by college age.",
+            "content_vi": "Bắt đầu tiết kiệm cho giáo dục ngay sau khi sinh. Ngay cả số tiền nhỏ hàng tháng cũng tăng đáng kể trong 18 năm qua lãi kép. 500k VND hàng tháng với lợi nhuận 7% trở thành hơn 200 triệu VND khi đến tuổi đại học."
+        },
+        {
+            "id": "childcare_004",
+            "topic": "Free Activities for Kids",
+            "keywords": [
+                "free",
+                "kids activities",
+                "entertainment",
+                "miễn phí",
+                "hoạt động trẻ em",
+                "giải trí"
+            ],
+            "content_en": "Children don't need expensive entertainment: library story times, park playdates, nature walks, craft projects from recyclables, cooking together. The best memories often come from free activities, not expensive ones.",
+            "content_vi": "Trẻ em không cần giải trí đắt tiền: giờ kể chuyện thư viện, chơi ở công viên, đi bộ thiên nhiên, dự án thủ công từ đồ tái chế, nấu ăn cùng nhau. Những kỷ niệm đẹp nhất thường đến từ hoạt động miễn phí, không phải đắt tiền."
+        }
+    ],
+    "category_groceries": [
+        {
+            "id": "groceries_001",
+            "topic": "Shop with a List",
+            "keywords": [
+                "shopping list",
+                "groceries",
+                "planning",
+                "danh sách mua sắm",
+                "đi chợ",
+                "lên kế hoạch"
+            ],
+            "content_en": "Never shop without a list. Impulse purchases account for 30-50% of grocery spending. Check what you have, plan meals, make a list, and stick to it. Shopping focused saves time and money.",
+            "content_vi": "Không bao giờ đi chợ mà không có danh sách. Mua sắm bốc đồng chiếm 30-50% chi tiêu tạp hóa. Kiểm tra những gì bạn có, lên kế hoạch bữa ăn, lập danh sách, và tuân thủ nó. Mua sắm tập trung tiết kiệm thời gian và tiền."
+        },
+        {
+            "id": "groceries_002",
+            "topic": "Buy in Bulk Wisely",
+            "keywords": [
+                "bulk",
+                "wholesale",
+                "savings",
+                "mua số lượng lớn",
+                "bán sỉ",
+                "tiết kiệm"
+            ],
+            "content_en": "Bulk buying saves money only if: you'll use it before expiration, you have storage space, and the per-unit cost is actually lower. Calculate unit prices carefully. Buying bulk items you waste costs more.",
+            "content_vi": "Mua số lượng lớn chỉ tiết kiệm tiền nếu: bạn sẽ dùng hết trước khi hết hạn, bạn có không gian lưu trữ, và giá đơn vị thực sự thấp hơn. Tính giá đơn vị cẩn thận. Mua đồ số lượng lớn mà bạn lãng phí tốn nhiều hơn."
+        },
+        {
+            "id": "groceries_003",
+            "topic": "Store Brand Products",
+            "keywords": [
+                "store brand",
+                "generic",
+                "private label",
+                "nhãn hiệu cửa hàng",
+                "generic",
+                "nhãn riêng"
+            ],
+            "content_en": "Store brands are typically 20-40% cheaper than national brands with comparable quality. Many are made by the same manufacturers. Try store brands for staples—you likely won't taste the difference.",
+            "content_vi": "Nhãn hiệu cửa hàng thường rẻ hơn 20-40% so với nhãn hiệu quốc gia với chất lượng tương đương. Nhiều sản phẩm được làm bởi cùng nhà sản xuất. Thử nhãn hiệu cửa hàng cho đồ thiết yếu—bạn có thể không nhận ra sự khác biệt."
+        },
+        {
+            "id": "groceries_004",
+            "topic": "Shop Seasonal Produce",
+            "keywords": [
+                "seasonal",
+                "produce",
+                "fruits",
+                "vegetables",
+                "theo mùa",
+                "nông sản",
+                "trái cây",
+                "rau củ"
+            ],
+            "content_en": "Seasonal produce costs 30-50% less than out-of-season imports and tastes better. Learn what's in season locally. Freeze seasonal fruits and vegetables to enjoy year-round at in-season prices.",
+            "content_vi": "Nông sản theo mùa tốn ít hơn 30-50% so với hàng nhập khẩu trái mùa và ngon hơn. Tìm hiểu những gì đang vào mùa tại địa phương. Đông lạnh trái cây và rau theo mùa để thưởng thức quanh năm với giá trong mùa."
+        },
+        {
+            "id": "groceries_005",
+            "topic": "Avoid Shopping When Hungry",
+            "keywords": [
+                "hungry",
+                "shopping",
+                "impulse",
+                "đói",
+                "mua sắm",
+                "bốc đồng"
+            ],
+            "content_en": "Never grocery shop when hungry—hunger increases impulse purchases by up to 60%. Eat a snack before shopping. Also avoid shopping when tired, stressed, or in a hurry—these states lead to poor decisions.",
+            "content_vi": "Không bao giờ đi chợ khi đói—đói tăng mua sắm bốc đồng lên đến 60%. Ăn một bữa nhẹ trước khi mua sắm. Cũng tránh mua sắm khi mệt, căng thẳng, hoặc vội vàng—những trạng thái này dẫn đến quyết định kém."
+        }
+    ]
+}

@@ -12,6 +12,8 @@ import com.example.mymoney.database.AppDatabase;
 import com.example.mymoney.database.entity.Category;
 import com.example.mymoney.database.entity.SavingGoal;
 import com.example.mymoney.database.entity.Transaction;
+import com.example.mymoney.rag.RAGContext;
+import com.example.mymoney.rag.RAGService;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -41,6 +43,7 @@ public class ChatbotService {
     private BudgetNotificationService notificationService;
     private SpendingPatternAnalyzer patternAnalyzer;
     private QueryParser queryParser;
+    private RAGService ragService;
 
     public ChatbotService(Context context) {
         this.context = context;
@@ -49,6 +52,10 @@ public class ChatbotService {
         this.notificationService = new BudgetNotificationService(context);
         this.patternAnalyzer = new SpendingPatternAnalyzer(context);
         this.queryParser = new QueryParser(context);
+        
+        // Initialize RAG service for enhanced responses
+        this.ragService = new RAGService(context, database);
+        initializeRAGAsync();
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(OPENROUTER_BASE_URL)
@@ -56,6 +63,20 @@ public class ChatbotService {
                 .build();
 
         this.apiService = retrofit.create(OpenRouterApiService.class);
+    }
+    
+    /**
+     * Initialize RAG service asynchronously to avoid blocking startup.
+     */
+    private void initializeRAGAsync() {
+        new Thread(() -> {
+            try {
+                ragService.initialize();
+                Log.d(TAG, "RAG service initialized: " + ragService.getStats());
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to initialize RAG service", e);
+            }
+        }).start();
     }
 
     public void generateFinancialAdvice(int userId, int walletId, String userMessage, ChatbotCallback callback) {
@@ -68,11 +89,8 @@ public class ChatbotService {
                 QueryIntent intent = queryParser.parseQuerySync(userMessage);
                 Log.d(TAG, "Parsed intent: " + intent);
 
-                // Check if we need clarification from user
-                if (intent.needsClarification() && intent.getClarificationMessage() != null) {
-                    callback.onSuccess("💬 " + intent.getClarificationMessage());
-                    return;
-                }
+                // Clarification is disabled - always provide an answer
+                // Default: current month + all categories if not specified
 
                 // Step 2: Fetch targeted financial data based on parsed intent
                 String financialAnalysis = analyzeUserFinancialData(userId, walletId, intent);
@@ -104,29 +122,35 @@ public class ChatbotService {
 
                 Log.d(TAG, "Financial analysis: " + financialAnalysis);
 
-                // Step 3: Generate response using LLM
+                // Step 3: Build RAG-enhanced prompts
+                RAGContext ragContext = ragService.retrieveContext(userId, walletId, userMessage, intent);
+                
+                // Merge existing budget/pattern context with RAG context
+                if (budgetAnalysis != null && isBudgetRelatedQuery(userMessage)) {
+                    ragContext.setBudgetContext(
+                        ragContext.getBudgetContext() + "\n" + 
+                        BudgetContextProvider.buildPromptEnhancement(budgetAnalysis)
+                    );
+                }
+                if (patternResult != null && isPatternRelatedQuery(userMessage)) {
+                    ragContext.setSpendingPatternContext(buildPatternPromptEnhancement(patternResult));
+                }
+
+                Log.d(TAG, "RAG context: " + ragContext.getSummary());
+
+                // Step 4: Generate response using LLM with RAG-enhanced prompts
                 OpenRouterRequest request = new OpenRouterRequest(MODEL);
                 request.setTemperature(0.7);
                 request.setMax_tokens(500);
 
-                // System message with budget and pattern context if applicable
-                String systemPrompt = "Bạn là trợ lý tài chính cá nhân chuyên nghiệp. " +
-                        "Hãy đưa ra lời khuyên ngắn gọn, thực tế và hữu ích bằng tiếng Việt. " +
-                        "Trả lời trong 3-4 câu, tập trung vào hành động cụ thể. " +
-                        "Nếu người dùng hỏi về số tiền cụ thể, hãy trả lời con số chính xác từ dữ liệu.";
-
-                if (!budgetContext.isEmpty()) {
-                    systemPrompt += budgetContext;
-                }
-
-                if (!patternContext.isEmpty()) {
-                    systemPrompt += patternContext;
-                }
-
+                // Use RAG-enhanced system prompt with knowledge
+                String systemPrompt = ragService.buildSystemPrompt(ragContext);
                 request.addMessage("system", systemPrompt);
 
-                // User message with financial data
-                String userPrompt = "Dữ liệu tài chính:\n" + financialAnalysis + "\n\nCâu hỏi: " + userMessage;
+                // Use RAG-enhanced user prompt with financial data and analysis
+                String userPrompt = ragService.buildUserPrompt(ragContext, userMessage);
+                // Also include the intent-based financial analysis for specificity
+                userPrompt = financialAnalysis + "\n\n" + userPrompt;
                 request.addMessage("user", userPrompt);
 
                 Call<OpenRouterResponse> call = apiService.generateResponse(

@@ -156,10 +156,12 @@ public class QueryParser {
                "{\n" +
                "  \"timeRange\": {\"type\": \"current_month|specific_month|year|last_n_days|all_time\", \"month\": 1-12, \"year\": 2020-2030, \"days\": number},\n" +
                "  \"category\": \"category_name or null\",\n" +
-               "  \"queryType\": \"spending|income|comparison|trend|category_list|general\",\n" +
-               "  \"needsClarification\": true/false,\n" +
-               "  \"clarificationMessage\": \"message to ask user if clarification needed\"\n" +
+               "  \"queryType\": \"spending|income|comparison|trend|category_list|general\"\n" +
                "}\n\n" +
+               "IMPORTANT RULES:\n" +
+               "- NEVER ask for clarification. Always provide a complete response.\n" +
+               "- If no time period specified, DEFAULT to current_month.\n" +
+               "- If no category specified, set category to null (will show all categories).\n\n" +
                "Valid categories: " + CATEGORY_LIST + "\n\n" +
                "Time parsing rules:\n" +
                "- 'tháng 12' or 'December' = specific_month with month=12\n" +
@@ -167,16 +169,18 @@ public class QueryParser {
                "- 'năm nay' or 'this year' = year with year=" + currentYear + "\n" +
                "- 'năm ngoái' or 'last year' = year with year=" + (currentYear - 1) + "\n" +
                "- 'tuần qua' or 'last week' = last_n_days with days=7\n" +
-               "- If no time specified = current_month\n\n" +
+               "- If no time specified = current_month (DO NOT ask for clarification)\n\n" +
                "Category matching:\n" +
                "- 'clothes/quần áo' = Clothing\n" +
                "- 'food/ăn uống/đồ ăn' = Food\n" +
                "- 'transport/đi lại/xe' = Transport\n" +
-               "- 'gym/tập thể dục' = Gym & Fitness\n\n" +
+               "- 'gym/tập thể dục' = Gym & Fitness\n" +
+               "- If no category mentioned = null (show all categories, DO NOT ask for clarification)\n\n" +
                "Examples:\n" +
-               "- 'How much did I spend on clothes in December?' → {\"timeRange\":{\"type\":\"specific_month\",\"month\":12,\"year\":" + currentYear + "},\"category\":\"Clothing\",\"queryType\":\"spending\",\"needsClarification\":false}\n" +
-               "- 'Tháng trước tôi chi bao nhiêu tiền ăn?' → {\"timeRange\":{\"type\":\"specific_month\",\"month\":" + (currentMonth == 1 ? 12 : currentMonth - 1) + ",\"year\":" + (currentMonth == 1 ? currentYear - 1 : currentYear) + "},\"category\":\"Food\",\"queryType\":\"spending\",\"needsClarification\":false}\n" +
-               "- 'Show my spending' → {\"timeRange\":{\"type\":\"current_month\"},\"category\":null,\"queryType\":\"spending\",\"needsClarification\":true,\"clarificationMessage\":\"Bạn muốn xem chi tiêu trong khoảng thời gian nào? (tháng này, tháng trước, năm nay...)\"}";
+               "- 'How much did I spend on clothes in December?' → {\"timeRange\":{\"type\":\"specific_month\",\"month\":12,\"year\":" + currentYear + "},\"category\":\"Clothing\",\"queryType\":\"spending\"}\n" +
+               "- 'Tháng trước tôi chi bao nhiêu tiền ăn?' → {\"timeRange\":{\"type\":\"specific_month\",\"month\":" + (currentMonth == 1 ? 12 : currentMonth - 1) + ",\"year\":" + (currentMonth == 1 ? currentYear - 1 : currentYear) + "},\"category\":\"Food\",\"queryType\":\"spending\"}\n" +
+               "- 'Show my spending' → {\"timeRange\":{\"type\":\"current_month\"},\"category\":null,\"queryType\":\"spending\"}\n" +
+               "- 'Tôi chi tiêu bao nhiêu?' → {\"timeRange\":{\"type\":\"current_month\"},\"category\":null,\"queryType\":\"spending\"}";
     }
 
     private QueryIntent parseJsonResponse(String jsonResponse, String originalQuery, int currentMonth, int currentYear) {
@@ -237,13 +241,9 @@ public class QueryParser {
                 }
             }
 
-            // Parse clarification
-            if (json.has("needsClarification") && json.get("needsClarification").getAsBoolean()) {
-                intent.setNeedsClarification(true);
-                if (json.has("clarificationMessage") && !json.get("clarificationMessage").isJsonNull()) {
-                    intent.setClarificationMessage(json.get("clarificationMessage").getAsString());
-                }
-            }
+            // Never set needsClarification - always provide answer
+            // Ignore clarification fields from LLM response
+            intent.setNeedsClarification(false);
 
         } catch (Exception e) {
             Log.e(TAG, "Error parsing JSON response: " + jsonResponse, e);

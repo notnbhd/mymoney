@@ -78,4 +78,7 @@ dependencies {
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
     implementation("io.github.cdimascio:dotenv-java:3.0.0")
     implementation("com.airbnb.android:lottie:6.3.0")
+
+    // ONNX Runtime for on-device embeddings (RAG system)
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.16.3")
 }
