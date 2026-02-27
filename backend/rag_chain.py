@@ -1,5 +1,6 @@
 """
 LangChain RAG pipeline for MyMoney financial chatbot.
+Supports both Azure Cosmos DB vector search and local FAISS as vector stores.
 Handles knowledge base loading, vector store creation, and LLM orchestration.
 """
 
@@ -11,7 +12,6 @@ from typing import List, Optional
 from langchain.schema import Document, HumanMessage, SystemMessage, AIMessage
 from langchain_openai import ChatOpenAI
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.vectorstores import FAISS
 
 from config import settings
 from models import FinancialContext, SourceDocument
@@ -23,18 +23,19 @@ logger = logging.getLogger(__name__)
 class RAGChain:
     """
     LangChain-based RAG pipeline that:
-    1. Loads the bilingual financial knowledge base into a FAISS vector store
+    1. Connects to Azure Cosmos DB (or local FAISS) for vector search
     2. Retrieves relevant documents for user queries
     3. Builds prompts with financial context from the Android app
     4. Calls the LLM via OpenRouter with conversation memory
     """
 
     def __init__(self):
-        self.vector_store: Optional[FAISS] = None
+        self.vector_store = None
         self.embeddings: Optional[HuggingFaceEmbeddings] = None
         self.llm: Optional[ChatOpenAI] = None
         self.documents: List[Document] = []
         self._initialized = False
+        self._store_type = settings.VECTOR_STORE_TYPE  # "cosmos" or "faiss"
 
     def initialize(self):
         """Initialize the RAG pipeline: embeddings, vector store, and LLM."""
@@ -42,6 +43,7 @@ class RAGChain:
             return
 
         logger.info("Initializing RAG chain...")
+        logger.info(f"Vector store type: {self._store_type}")
 
         # 1. Initialize embeddings model
         logger.info(f"Loading embedding model: {settings.EMBEDDING_MODEL}")
@@ -51,8 +53,11 @@ class RAGChain:
             encode_kwargs={"normalize_embeddings": True}
         )
 
-        # 2. Load knowledge base and create/load vector store
-        self._load_or_create_vector_store()
+        # 2. Initialize vector store
+        if self._store_type == "cosmos":
+            self._init_cosmos_vector_store()
+        else:
+            self._init_faiss_vector_store()
 
         # 3. Initialize LLM via OpenRouter
         self.llm = ChatOpenAI(
@@ -69,52 +74,99 @@ class RAGChain:
 
         self._initialized = True
         logger.info(
-            f"RAG chain initialized: {len(self.documents)} documents, "
-            f"vector store ready"
+            f"RAG chain initialized: {self.document_count} documents, "
+            f"vector store ({self._store_type}) ready"
         )
 
-    def _load_or_create_vector_store(self):
-        """Load existing vector store from disk or create a new one."""
+    # ─── Vector Store Initialization ───────────────────────────────
+
+    def _init_cosmos_vector_store(self):
+        """Connect to Azure Cosmos DB and set up vector search."""
+        from azure.cosmos import CosmosClient
+
+        if not settings.COSMOS_DB_KEY:
+            logger.error(
+                "COSMOS_DB_KEY not set! Add it to your .env file. "
+                "Falling back to FAISS."
+            )
+            self._store_type = "faiss"
+            self._init_faiss_vector_store()
+            return
+
+        try:
+            logger.info(f"Connecting to Cosmos DB: {settings.COSMOS_DB_ENDPOINT}")
+            client = CosmosClient(
+                settings.COSMOS_DB_ENDPOINT,
+                credential=settings.COSMOS_DB_KEY
+            )
+            database = client.get_database_client(settings.COSMOS_DB_DATABASE)
+            self._cosmos_container = database.get_container_client(
+                settings.COSMOS_DB_CONTAINER
+            )
+
+            # Count documents to verify connection
+            count_query = "SELECT VALUE COUNT(1) FROM c"
+            results = list(self._cosmos_container.query_items(
+                query=count_query,
+                enable_cross_partition_query=True
+            ))
+            doc_count = results[0] if results else 0
+
+            logger.info(f"Connected to Cosmos DB: {doc_count} documents in container")
+            self.documents = [None] * doc_count  # Track count for health check
+
+            if doc_count == 0:
+                logger.warning(
+                    "Cosmos DB container is empty! "
+                    "Run 'python setup_cosmos.py' to upload the knowledge base."
+                )
+
+        except Exception as e:
+            logger.error(
+                f"Failed to connect to Cosmos DB: {e}. "
+                f"Falling back to FAISS."
+            )
+            self._store_type = "faiss"
+            self._init_faiss_vector_store()
+
+    def _init_faiss_vector_store(self):
+        """Load or create a local FAISS vector store (fallback)."""
+        from langchain_community.vectorstores import FAISS
+
         store_path = settings.VECTOR_STORE_PATH
 
-        # Check if we can load from disk
+        # Try loading from disk
         if os.path.exists(store_path) and os.path.exists(
             os.path.join(store_path, "index.faiss")
         ):
             try:
-                logger.info(f"Loading vector store from {store_path}")
+                logger.info(f"Loading FAISS vector store from {store_path}")
                 self.vector_store = FAISS.load_local(
                     store_path,
                     self.embeddings,
                     allow_dangerous_deserialization=True
                 )
-                # Also load documents for reference
                 self.documents = self._load_knowledge_base()
-                logger.info("Vector store loaded from disk")
+                logger.info("FAISS vector store loaded from disk")
                 return
             except Exception as e:
-                logger.warning(f"Failed to load vector store: {e}, recreating...")
+                logger.warning(f"Failed to load FAISS: {e}, recreating...")
 
-        # Create new vector store
+        # Create new FAISS vector store from knowledge base JSON
         self.documents = self._load_knowledge_base()
         if not self.documents:
             logger.error("No documents loaded from knowledge base!")
             return
 
-        logger.info(f"Creating vector store from {len(self.documents)} documents...")
-        langchain_docs = [
-            Document(
-                page_content=doc.page_content,
-                metadata=doc.metadata
-            )
-            for doc in self.documents
-        ]
-        self.vector_store = FAISS.from_documents(langchain_docs, self.embeddings)
+        logger.info(f"Creating FAISS store from {len(self.documents)} documents...")
+        self.vector_store = FAISS.from_documents(self.documents, self.embeddings)
 
         # Persist to disk
         os.makedirs(store_path, exist_ok=True)
         self.vector_store.save_local(store_path)
-        logger.info(f"Vector store saved to {store_path}")
+        logger.info(f"FAISS vector store saved to {store_path}")
+
+    # ─── Knowledge Base Loading (FAISS only) ───────────────────────
 
     def _load_knowledge_base(self) -> List[Document]:
         """Load the financial knowledge base JSON into LangChain Documents."""
@@ -128,9 +180,8 @@ class RAGChain:
             data = json.load(f)
 
         documents = []
-
-        # Iterate over all categories in the JSON
         skip_keys = {"version", "lastUpdated", "description"}
+
         for category, items in data.items():
             if category in skip_keys:
                 continue
@@ -144,7 +195,6 @@ class RAGChain:
                 content_vi = item.get("content_vi", "")
                 keywords = item.get("keywords", [])
 
-                # Combine content for rich embedding
                 page_content = (
                     f"Topic: {topic}\n"
                     f"Category: {category}\n"
@@ -169,6 +219,72 @@ class RAGChain:
         logger.info(f"Loaded {len(documents)} knowledge documents from {kb_path}")
         return documents
 
+    # ─── Retrieval (Cosmos DB or FAISS) ────────────────────────────
+
+    def _retrieve_from_cosmos(self, query: str, top_k: int) -> List[Document]:
+        """
+        Retrieve relevant documents from Azure Cosmos DB using vector search.
+        Computes the query embedding, then uses Cosmos DB's VectorDistance function.
+        """
+        # Compute query embedding
+        query_embedding = self.embeddings.embed_query(query)
+
+        # Cosmos DB vector search query using VectorDistance
+        vector_search_query = (
+            "SELECT TOP @top_k "
+            "c.id, c.topic, c.category, c.content_en, c.content_vi, "
+            "c.keywords, c.text_content, "
+            "VectorDistance(c.embedding, @embedding) AS similarity_score "
+            "FROM c "
+            "ORDER BY VectorDistance(c.embedding, @embedding)"
+        )
+
+        parameters = [
+            {"name": "@top_k", "value": top_k},
+            {"name": "@embedding", "value": query_embedding},
+        ]
+
+        try:
+            results = list(self._cosmos_container.query_items(
+                query=vector_search_query,
+                parameters=parameters,
+                enable_cross_partition_query=True,
+            ))
+
+            documents = []
+            for item in results:
+                doc = Document(
+                    page_content=item.get("text_content", ""),
+                    metadata={
+                        "id": item.get("id", ""),
+                        "topic": item.get("topic", ""),
+                        "category": item.get("category", ""),
+                        "content_en": item.get("content_en", ""),
+                        "content_vi": item.get("content_vi", ""),
+                        "keywords": item.get("keywords", []),
+                        "similarity_score": item.get("similarity_score", 0),
+                    }
+                )
+                documents.append(doc)
+
+            logger.info(
+                f"Cosmos DB returned {len(documents)} documents for query: "
+                f"'{query[:50]}...'"
+            )
+            return documents
+
+        except Exception as e:
+            logger.error(f"Cosmos DB vector search failed: {e}")
+            return []
+
+    def _retrieve_from_faiss(self, query: str, top_k: int) -> List[Document]:
+        """Retrieve relevant documents from local FAISS vector store."""
+        if not self.vector_store:
+            return []
+        return self.vector_store.similarity_search(query, k=top_k)
+
+    # ─── Main RAG Pipeline ─────────────────────────────────────────
+
     def retrieve_and_respond(
         self,
         query: str,
@@ -187,21 +303,20 @@ class RAGChain:
         if not self._initialized:
             self.initialize()
 
-        # 1. Retrieve relevant documents
-        retrieved_docs = []
-        sources = []
-        if self.vector_store:
-            retrieved_docs = self.vector_store.similarity_search(
-                query, k=settings.RAG_TOP_K
+        # 1. Retrieve relevant documents (Cosmos DB or FAISS)
+        if self._store_type == "cosmos":
+            retrieved_docs = self._retrieve_from_cosmos(query, settings.RAG_TOP_K)
+        else:
+            retrieved_docs = self._retrieve_from_faiss(query, settings.RAG_TOP_K)
+
+        sources = [
+            SourceDocument(
+                id=doc.metadata.get("id", ""),
+                topic=doc.metadata.get("topic", ""),
+                category=doc.metadata.get("category", "")
             )
-            sources = [
-                SourceDocument(
-                    id=doc.metadata.get("id", ""),
-                    topic=doc.metadata.get("topic", ""),
-                    category=doc.metadata.get("category", "")
-                )
-                for doc in retrieved_docs
-            ]
+            for doc in retrieved_docs
+        ]
 
         # 2. Get conversation history
         history = conversation_memory.get_history(conversation_id)
@@ -226,6 +341,8 @@ class RAGChain:
 
         return response_text, sources
 
+    # ─── Prompt Building ───────────────────────────────────────────
+
     def _build_messages(
         self,
         query: str,
@@ -236,7 +353,7 @@ class RAGChain:
         """Build the message list for the LLM call."""
         messages = []
 
-        # System prompt (matches RAGService.buildSystemPrompt style)
+        # System prompt (persona + retrieved knowledge)
         system_content = self._build_system_prompt(retrieved_docs)
         messages.append(SystemMessage(content=system_content))
 
@@ -297,23 +414,19 @@ class RAGChain:
         """
         parts = []
 
-        # Financial data
         if financial_context.summary:
             parts.append("[DỮ LIỆU TÀI CHÍNH]\n")
             parts.append(financial_context.summary)
             parts.append("\n")
 
-        # Budget context
         if financial_context.budget_context:
             parts.append(financial_context.budget_context)
             parts.append("\n")
 
-        # Spending patterns
         if financial_context.pattern_context:
             parts.append(financial_context.pattern_context)
             parts.append("\n")
 
-        # The actual question
         parts.append("[CÂU HỎI]\n")
         parts.append(query)
 
@@ -350,13 +463,21 @@ class RAGChain:
 
         return "".join(parts)
 
+    # ─── Properties ────────────────────────────────────────────────
+
     @property
     def is_ready(self) -> bool:
+        if self._store_type == "cosmos":
+            return self._initialized and hasattr(self, "_cosmos_container")
         return self._initialized and self.vector_store is not None
 
     @property
     def document_count(self) -> int:
         return len(self.documents)
+
+    @property
+    def store_type(self) -> str:
+        return self._store_type
 
 
 # Global singleton

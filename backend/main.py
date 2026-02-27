@@ -140,6 +140,7 @@ async def stats():
         "rag": {
             "initialized": rag_chain.is_ready,
             "document_count": rag_chain.document_count,
+            "vector_store_type": rag_chain.store_type,
         },
         "memory": memory_stats
     }
