@@ -1,11 +1,8 @@
 """
 LangChain RAG pipeline for MyMoney financial chatbot.
-Supports both Azure Cosmos DB vector search and local FAISS as vector stores.
-Handles knowledge base loading, vector store creation, and LLM orchestration.
+Uses Azure Cosmos DB vector search for retrieval and OpenRouter for response generation.
 """
 
-import json
-import os
 import logging
 from typing import List, Optional
 
@@ -23,19 +20,18 @@ logger = logging.getLogger(__name__)
 class RAGChain:
     """
     LangChain-based RAG pipeline that:
-    1. Connects to Azure Cosmos DB (or local FAISS) for vector search
+    1. Connects to Azure Cosmos DB for vector search
     2. Retrieves relevant documents for user queries
     3. Builds prompts with financial context from the Android app
     4. Calls the LLM via OpenRouter with conversation memory
     """
 
     def __init__(self):
-        self.vector_store = None
         self.embeddings: Optional[HuggingFaceEmbeddings] = None
         self.llm: Optional[ChatOpenAI] = None
         self.documents: List[Document] = []
         self._initialized = False
-        self._store_type = settings.VECTOR_STORE_TYPE  # "cosmos" or "faiss"
+        self._cosmos_container = None
 
     def initialize(self):
         """Initialize the RAG pipeline: embeddings, vector store, and LLM."""
@@ -43,7 +39,7 @@ class RAGChain:
             return
 
         logger.info("Initializing RAG chain...")
-        logger.info(f"Vector store type: {self._store_type}")
+        logger.info("Vector store type: cosmos")
 
         # 1. Initialize embeddings model
         logger.info(f"Loading embedding model: {settings.EMBEDDING_MODEL}")
@@ -53,11 +49,8 @@ class RAGChain:
             encode_kwargs={"normalize_embeddings": True}
         )
 
-        # 2. Initialize vector store
-        if self._store_type == "cosmos":
-            self._init_cosmos_vector_store()
-        else:
-            self._init_faiss_vector_store()
+        # 2. Initialize Cosmos DB vector store
+        self._init_cosmos_vector_store()
 
         # 3. Initialize LLM via OpenRouter
         self.llm = ChatOpenAI(
@@ -75,7 +68,7 @@ class RAGChain:
         self._initialized = True
         logger.info(
             f"RAG chain initialized: {self.document_count} documents, "
-            f"vector store ({self._store_type}) ready"
+            "vector store (cosmos) ready"
         )
 
     # ─── Vector Store Initialization ───────────────────────────────
@@ -85,13 +78,7 @@ class RAGChain:
         from azure.cosmos import CosmosClient
 
         if not settings.COSMOS_DB_KEY:
-            logger.error(
-                "COSMOS_DB_KEY not set! Add it to your .env file. "
-                "Falling back to FAISS."
-            )
-            self._store_type = "faiss"
-            self._init_faiss_vector_store()
-            return
+            raise RuntimeError("COSMOS_DB_KEY not set! Add it to your .env file.")
 
         try:
             logger.info(f"Connecting to Cosmos DB: {settings.COSMOS_DB_ENDPOINT}")
@@ -122,104 +109,9 @@ class RAGChain:
                 )
 
         except Exception as e:
-            logger.error(
-                f"Failed to connect to Cosmos DB: {e}. "
-                f"Falling back to FAISS."
-            )
-            self._store_type = "faiss"
-            self._init_faiss_vector_store()
+            raise RuntimeError(f"Failed to connect to Cosmos DB: {e}") from e
 
-    def _init_faiss_vector_store(self):
-        """Load or create a local FAISS vector store (fallback)."""
-        from langchain_community.vectorstores import FAISS
-
-        store_path = settings.VECTOR_STORE_PATH
-
-        # Try loading from disk
-        if os.path.exists(store_path) and os.path.exists(
-            os.path.join(store_path, "index.faiss")
-        ):
-            try:
-                logger.info(f"Loading FAISS vector store from {store_path}")
-                self.vector_store = FAISS.load_local(
-                    store_path,
-                    self.embeddings,
-                    allow_dangerous_deserialization=True
-                )
-                self.documents = self._load_knowledge_base()
-                logger.info("FAISS vector store loaded from disk")
-                return
-            except Exception as e:
-                logger.warning(f"Failed to load FAISS: {e}, recreating...")
-
-        # Create new FAISS vector store from knowledge base JSON
-        self.documents = self._load_knowledge_base()
-        if not self.documents:
-            logger.error("No documents loaded from knowledge base!")
-            return
-
-        logger.info(f"Creating FAISS store from {len(self.documents)} documents...")
-        self.vector_store = FAISS.from_documents(self.documents, self.embeddings)
-
-        # Persist to disk
-        os.makedirs(store_path, exist_ok=True)
-        self.vector_store.save_local(store_path)
-        logger.info(f"FAISS vector store saved to {store_path}")
-
-    # ─── Knowledge Base Loading (FAISS only) ───────────────────────
-
-    def _load_knowledge_base(self) -> List[Document]:
-        """Load the financial knowledge base JSON into LangChain Documents."""
-        kb_path = settings.KNOWLEDGE_BASE_PATH
-
-        if not os.path.exists(kb_path):
-            logger.error(f"Knowledge base not found: {kb_path}")
-            return []
-
-        with open(kb_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-
-        documents = []
-        skip_keys = {"version", "lastUpdated", "description"}
-
-        for category, items in data.items():
-            if category in skip_keys:
-                continue
-            if not isinstance(items, list):
-                continue
-
-            for item in items:
-                doc_id = item.get("id", "")
-                topic = item.get("topic", "")
-                content_en = item.get("content_en", "")
-                content_vi = item.get("content_vi", "")
-                keywords = item.get("keywords", [])
-
-                page_content = (
-                    f"Topic: {topic}\n"
-                    f"Category: {category}\n"
-                    f"English: {content_en}\n"
-                    f"Vietnamese: {content_vi}\n"
-                    f"Keywords: {', '.join(keywords)}"
-                )
-
-                doc = Document(
-                    page_content=page_content,
-                    metadata={
-                        "id": doc_id,
-                        "topic": topic,
-                        "category": category,
-                        "content_en": content_en,
-                        "content_vi": content_vi,
-                        "keywords": keywords
-                    }
-                )
-                documents.append(doc)
-
-        logger.info(f"Loaded {len(documents)} knowledge documents from {kb_path}")
-        return documents
-
-    # ─── Retrieval (Cosmos DB or FAISS) ────────────────────────────
+    # ─── Retrieval (Cosmos DB) ──────────────────────────────────────
 
     def _retrieve_from_cosmos(self, query: str, top_k: int) -> List[Document]:
         """
@@ -277,12 +169,6 @@ class RAGChain:
             logger.error(f"Cosmos DB vector search failed: {e}")
             return []
 
-    def _retrieve_from_faiss(self, query: str, top_k: int) -> List[Document]:
-        """Retrieve relevant documents from local FAISS vector store."""
-        if not self.vector_store:
-            return []
-        return self.vector_store.similarity_search(query, k=top_k)
-
     # ─── Main RAG Pipeline ─────────────────────────────────────────
 
     def retrieve_and_respond(
@@ -303,11 +189,8 @@ class RAGChain:
         if not self._initialized:
             self.initialize()
 
-        # 1. Retrieve relevant documents (Cosmos DB or FAISS)
-        if self._store_type == "cosmos":
-            retrieved_docs = self._retrieve_from_cosmos(query, settings.RAG_TOP_K)
-        else:
-            retrieved_docs = self._retrieve_from_faiss(query, settings.RAG_TOP_K)
+        # 1. Retrieve relevant documents from Cosmos DB
+        retrieved_docs = self._retrieve_from_cosmos(query, settings.RAG_TOP_K)
 
         sources = [
             SourceDocument(
@@ -467,9 +350,7 @@ class RAGChain:
 
     @property
     def is_ready(self) -> bool:
-        if self._store_type == "cosmos":
-            return self._initialized and hasattr(self, "_cosmos_container")
-        return self._initialized and self.vector_store is not None
+        return self._initialized and self._cosmos_container is not None
 
     @property
     def document_count(self) -> int:
@@ -477,7 +358,7 @@ class RAGChain:
 
     @property
     def store_type(self) -> str:
-        return self._store_type
+        return "cosmos"
 
 
 # Global singleton

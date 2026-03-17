@@ -21,7 +21,7 @@ elif os.path.exists(os.path.join(_project_root, ".env")):
 class Settings(BaseSettings):
     # OpenRouter / LLM
     OPENROUTER_API_TOKEN: str = ""
-    OPENROUTER_MODEL: str = "mistralai/devstral-2512:free"
+    OPENROUTER_MODEL: str = "openrouter/hunter-alpha"
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
 
     # Server
@@ -34,8 +34,6 @@ class Settings(BaseSettings):
         "app", "src", "main", "assets", "knowledge",
         "financial_knowledge_base.json"
     )
-    VECTOR_STORE_TYPE: str = "cosmos"  # "faiss" for local file, "cosmos" for Azure Cosmos DB
-    VECTOR_STORE_PATH: str = os.path.join(_backend_dir, "vector_store")  # FAISS only
     EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
     RAG_TOP_K: int = 3
 

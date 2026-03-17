@@ -156,8 +156,8 @@ async def clear_memory(conversation_id: str):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
-        "main:app",
+        app,
         host=settings.HOST,
         port=settings.PORT,
-        reload=True
+        reload=False
     )

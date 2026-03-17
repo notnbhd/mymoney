@@ -9,9 +9,8 @@
         <!-- For Physical Device - Your computer's local IP -->
         <domain includeSubdomains="true">192.168.1.9</domain>
         <domain includeSubdomains="true">192.168.1.12</domain>
+        <domain includeSubdomains="true">192.168.1.16</domain>
         <domain includeSubdomains="true">10.24.6.73</domain>
-        <!-- Allow entire local network range for convenience -->
-        <domain includeSubdomains="true">192.168.1.*</domain>
         <domain includeSubdomains="true">172.20.10.2</domain>
     </domain-config>
 

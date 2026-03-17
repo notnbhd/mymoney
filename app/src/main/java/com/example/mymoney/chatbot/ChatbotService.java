@@ -12,9 +12,8 @@ import com.example.mymoney.database.AppDatabase;
 import com.example.mymoney.database.entity.Category;
 import com.example.mymoney.database.entity.SavingGoal;
 import com.example.mymoney.database.entity.Transaction;
-import com.example.mymoney.rag.RAGContext;
-import com.example.mymoney.rag.RAGService;
 
+import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -22,6 +21,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.OkHttpClient;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -31,19 +33,19 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ChatbotService {
     private static final String TAG = "ChatbotService";
-    // OpenRouter configuration
-    private static final String OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1/";
-    private static final String API_TOKEN = BuildConfig.OPENROUTER_API_TOKEN;
-    private static final String MODEL = "mistralai/devstral-2512:free";
+    private static final String DEFAULT_BACKEND_BASE_URL = "http://192.168.1.16:8010/";
+    private static final int CONNECT_TIMEOUT_SECONDS = 15;
+    private static final int READ_TIMEOUT_SECONDS = 90;
+    private static final int WRITE_TIMEOUT_SECONDS = 60;
+    private static final int CALL_TIMEOUT_SECONDS = 120;
 
-    private OpenRouterApiService apiService;
+    private BackendApiService backendApiService;
     private AppDatabase database;
     private Context context;
     private BudgetContextProvider budgetContextProvider;
     private BudgetNotificationService notificationService;
     private SpendingPatternAnalyzer patternAnalyzer;
     private QueryParser queryParser;
-    private RAGService ragService;
 
     public ChatbotService(Context context) {
         this.context = context;
@@ -52,31 +54,85 @@ public class ChatbotService {
         this.notificationService = new BudgetNotificationService(context);
         this.patternAnalyzer = new SpendingPatternAnalyzer(context);
         this.queryParser = new QueryParser(context);
-        
-        // Initialize RAG service for enhanced responses
-        this.ragService = new RAGService(context, database);
-        initializeRAGAsync();
+
+        OkHttpClient httpClient = new OkHttpClient.Builder()
+            .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .writeTimeout(WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .callTimeout(CALL_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(true)
+            .build();
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(OPENROUTER_BASE_URL)
+                .baseUrl(resolveBackendBaseUrl())
+            .client(httpClient)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        this.apiService = retrofit.create(OpenRouterApiService.class);
+        this.backendApiService = retrofit.create(BackendApiService.class);
     }
-    
-    /**
-     * Initialize RAG service asynchronously to avoid blocking startup.
-     */
-    private void initializeRAGAsync() {
-        new Thread(() -> {
-            try {
-                ragService.initialize();
-                Log.d(TAG, "RAG service initialized: " + ragService.getStats());
-            } catch (Exception e) {
-                Log.e(TAG, "Failed to initialize RAG service", e);
+
+    private String resolveBackendBaseUrl() {
+        try {
+            Field baseUrlField = BuildConfig.class.getField("CHATBOT_BACKEND_BASE_URL");
+            Object value = baseUrlField.get(null);
+            if (value instanceof String) {
+                String result = ((String) value).trim();
+                if (!result.isEmpty()) {
+                    result = normalizeBackendUrl(result);
+                    if (!result.endsWith("/")) {
+                        result = result + "/";
+                    }
+                    Log.d(TAG, "Using chatbot backend base URL from BuildConfig: " + result);
+                    return result;
+                }
             }
-        }).start();
+        } catch (NoSuchFieldException | IllegalAccessException ignored) {
+            // Fallback below
+        }
+
+        String fallback = DEFAULT_BACKEND_BASE_URL;
+        try {
+            Field receiptBaseUrlField = BuildConfig.class.getField("RECEIPT_OCR_BASE_URL");
+            Object receiptValue = receiptBaseUrlField.get(null);
+            if (receiptValue instanceof String) {
+                String receiptBaseUrl = ((String) receiptValue).trim();
+                if (!receiptBaseUrl.isEmpty()) {
+                    String normalized = normalizeBackendUrl(receiptBaseUrl);
+                    int schemeIdx = normalized.indexOf("://");
+                    int hostStart = schemeIdx >= 0 ? schemeIdx + 3 : 0;
+                    int slashIdx = normalized.indexOf('/', hostStart);
+                    String hostPort = slashIdx >= 0
+                            ? normalized.substring(hostStart, slashIdx)
+                            : normalized.substring(hostStart);
+                    int colonIdx = hostPort.indexOf(':');
+                    String host = colonIdx >= 0 ? hostPort.substring(0, colonIdx) : hostPort;
+                    if (!host.isEmpty() && !"0.0.0.0".equals(host) && !"127.0.0.1".equals(host) && !"localhost".equalsIgnoreCase(host)) {
+                        fallback = "http://" + host + ":8010/";
+                    }
+                }
+            }
+        } catch (NoSuchFieldException | IllegalAccessException ignored) {
+            // Keep default fallback
+        }
+
+        Log.w(TAG, "Using default chatbot backend base URL: " + fallback);
+        return fallback;
+    }
+
+    private String normalizeBackendUrl(String rawUrl) {
+        String normalized = rawUrl;
+        if (!normalized.startsWith("http://") && !normalized.startsWith("https://")) {
+            normalized = "http://" + normalized;
+        }
+
+        String lower = normalized.toLowerCase(Locale.ROOT);
+        if (lower.contains("://0.0.0.0") || lower.contains("://127.0.0.1") || lower.contains("://localhost")) {
+            Log.w(TAG, "Invalid backend host for external device detected: " + rawUrl + ". Falling back to LAN host.");
+            return DEFAULT_BACKEND_BASE_URL;
+        }
+
+        return normalized;
     }
 
     public void generateFinancialAdvice(int userId, int walletId, String userMessage, ChatbotCallback callback) {
@@ -122,60 +178,32 @@ public class ChatbotService {
 
                 Log.d(TAG, "Financial analysis: " + financialAnalysis);
 
-                // Step 3: Build RAG-enhanced prompts
-                RAGContext ragContext = ragService.retrieveContext(userId, walletId, userMessage, intent);
-                
-                // Merge existing budget/pattern context with RAG context
-                if (budgetAnalysis != null && isBudgetRelatedQuery(userMessage)) {
-                    ragContext.setBudgetContext(
-                        ragContext.getBudgetContext() + "\n" + 
-                        BudgetContextProvider.buildPromptEnhancement(budgetAnalysis)
-                    );
-                }
-                if (patternResult != null && isPatternRelatedQuery(userMessage)) {
-                    ragContext.setSpendingPatternContext(buildPatternPromptEnhancement(patternResult));
-                }
+                // Step 3: Send query + financial context to backend /chat endpoint
+                BackendChatRequest request = new BackendChatRequest(userId, walletId, userMessage);
+                request.setConversationId("user_" + userId + "_wallet_" + walletId);
+                request.setFinancialContext(new BackendChatRequest.FinancialContext(
+                        financialAnalysis,
+                        budgetContext,
+                        patternContext
+                ));
 
-                Log.d(TAG, "RAG context: " + ragContext.getSummary());
-
-                // Step 4: Generate response using LLM with RAG-enhanced prompts
-                OpenRouterRequest request = new OpenRouterRequest(MODEL);
-                request.setTemperature(0.7);
-                request.setMax_tokens(500);
-
-                // Use RAG-enhanced system prompt with knowledge
-                String systemPrompt = ragService.buildSystemPrompt(ragContext);
-                request.addMessage("system", systemPrompt);
-
-                // Use RAG-enhanced user prompt with financial data and analysis
-                String userPrompt = ragService.buildUserPrompt(ragContext, userMessage);
-                // Also include the intent-based financial analysis for specificity
-                userPrompt = financialAnalysis + "\n\n" + userPrompt;
-                request.addMessage("user", userPrompt);
-
-                Call<OpenRouterResponse> call = apiService.generateResponse(
-                        "Bearer " + API_TOKEN,
-                        "https://github.com/notnbhd/mymoney",
-                        "MyMoney App",
-                        request
-                );
-
-                call.enqueue(new Callback<OpenRouterResponse>() {
+                Call<BackendChatResponse> call = backendApiService.chat(request);
+                call.enqueue(new Callback<BackendChatResponse>() {
                     @Override
-                    public void onResponse(Call<OpenRouterResponse> call, Response<OpenRouterResponse> response) {
+                    public void onResponse(Call<BackendChatResponse> call, Response<BackendChatResponse> response) {
                         if (response.isSuccessful() && response.body() != null) {
-                            Log.d(TAG, "API Response successful");
-                            String generatedText = response.body().getGeneratedText();
+                            Log.d(TAG, "Backend /chat response successful");
+                            String generatedText = response.body().getResponse();
 
                             if (generatedText != null && !generatedText.isEmpty()) {
                                 String cleanedResponse = cleanGeneratedText(generatedText);
                                 callback.onSuccess(cleanedResponse);
                             } else {
-                                Log.w(TAG, "Empty response from API, using local advice");
+                                Log.w(TAG, "Empty response from backend, using local advice");
                                 callback.onSuccess(generateLocalFinancialAdvice(userId, walletId, userMessage, financialAnalysis));
                             }
                         } else {
-                            Log.e(TAG, "API Error: " + response.code() + " - " + response.message());
+                            Log.e(TAG, "Backend /chat error: " + response.code() + " - " + response.message());
                             try {
                                 String errorBody = response.errorBody() != null ? response.errorBody().string() : "Unknown error";
                                 Log.e(TAG, "Error body: " + errorBody);
@@ -187,8 +215,8 @@ public class ChatbotService {
                     }
 
                     @Override
-                    public void onFailure(Call<OpenRouterResponse> call, Throwable t) {
-                        Log.e(TAG, "API Failure: " + t.getMessage(), t);
+                    public void onFailure(Call<BackendChatResponse> call, Throwable t) {
+                        Log.e(TAG, "Backend /chat failure: " + t.getMessage(), t);
                         callback.onSuccess(generateLocalFinancialAdvice(userId, walletId, userMessage, financialAnalysis));
                     }
                 });
@@ -349,7 +377,7 @@ public class ChatbotService {
     private String cleanGeneratedText(String generatedText) {
         if (generatedText == null) return "";
 
-        // OpenRouter/DeepSeek returns clean text, just trim
+        // Backend response is plain text; trim before displaying
         return generatedText.trim();
     }
 
