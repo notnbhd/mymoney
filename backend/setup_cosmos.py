@@ -39,7 +39,7 @@ VECTOR_EMBEDDING_POLICY = {
             "path": "/embedding",
             "dataType": "float32",
             "distanceFunction": "cosine",
-            "dimensions": 384,  # all-MiniLM-L6-v2 produces 384-dim vectors
+            "dimensions": 384,  # paraphrase-multilingual-MiniLM-L12-v2 produces 384-dim vectors
         }
     ]
 }
@@ -171,7 +171,7 @@ def setup_cosmos_db(entries: list[dict]):
     logger.info(f"✅ All {len(entries)} documents uploaded to Cosmos DB!")
     logger.info(f"   Database: {settings.COSMOS_DB_DATABASE}")
     logger.info(f"   Container: {container_name}")
-    logger.info(f"   Each document has a 384-dim embedding vector for semantic search")
+    logger.info(f"   Each document has a 384-dim multilingual embedding vector for semantic search")
 
 
 def main():

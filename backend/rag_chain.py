@@ -1,6 +1,7 @@
 """
 LangChain RAG pipeline for MyMoney financial chatbot.
-Uses Azure Cosmos DB vector search for retrieval and OpenRouter for response generation.
+Uses Azure Cosmos DB vector search for retrieval, cross-encoder re-ranking,
+and OpenRouter for response generation.
 """
 
 import logging
@@ -9,6 +10,7 @@ from typing import List, Optional
 from langchain.schema import Document, HumanMessage, SystemMessage, AIMessage
 from langchain_openai import ChatOpenAI
 from langchain_huggingface import HuggingFaceEmbeddings
+from sentence_transformers import CrossEncoder
 
 from config import settings
 from models import FinancialContext, SourceDocument
@@ -21,27 +23,29 @@ class RAGChain:
     """
     LangChain-based RAG pipeline that:
     1. Connects to Azure Cosmos DB for vector search
-    2. Retrieves relevant documents for user queries
-    3. Builds prompts with financial context from the Android app
-    4. Calls the LLM via OpenRouter with conversation memory
+    2. Retrieves relevant documents with similarity threshold filtering
+    3. Re-ranks results using a cross-encoder model
+    4. Builds prompts with financial context from the Android app
+    5. Calls the LLM via OpenRouter with conversation memory
     """
 
     def __init__(self):
         self.embeddings: Optional[HuggingFaceEmbeddings] = None
         self.llm: Optional[ChatOpenAI] = None
+        self.reranker: Optional[CrossEncoder] = None
         self.documents: List[Document] = []
         self._initialized = False
         self._cosmos_container = None
 
     def initialize(self):
-        """Initialize the RAG pipeline: embeddings, vector store, and LLM."""
+        """Initialize the RAG pipeline: embeddings, reranker, vector store, and LLM."""
         if self._initialized:
             return
 
         logger.info("Initializing RAG chain...")
         logger.info("Vector store type: cosmos")
 
-        # 1. Initialize embeddings model
+        # 1. Initialize multilingual embeddings model
         logger.info(f"Loading embedding model: {settings.EMBEDDING_MODEL}")
         self.embeddings = HuggingFaceEmbeddings(
             model_name=settings.EMBEDDING_MODEL,
@@ -49,10 +53,18 @@ class RAGChain:
             encode_kwargs={"normalize_embeddings": True}
         )
 
-        # 2. Initialize Cosmos DB vector store
+        # 2. Initialize cross-encoder re-ranker
+        logger.info(f"Loading re-ranker model: {settings.RAG_RERANKER_MODEL}")
+        self.reranker = CrossEncoder(
+            settings.RAG_RERANKER_MODEL,
+            max_length=512,
+        )
+        logger.info("Re-ranker model loaded.")
+
+        # 3. Initialize Cosmos DB vector store
         self._init_cosmos_vector_store()
 
-        # 3. Initialize LLM via OpenRouter
+        # 4. Initialize LLM via OpenRouter
         self.llm = ChatOpenAI(
             model=settings.OPENROUTER_MODEL,
             openai_api_key=settings.OPENROUTER_API_TOKEN,
@@ -68,7 +80,7 @@ class RAGChain:
         self._initialized = True
         logger.info(
             f"RAG chain initialized: {self.document_count} documents, "
-            "vector store (cosmos) ready"
+            "vector store (cosmos) ready, re-ranker ready"
         )
 
     # ─── Vector Store Initialization ───────────────────────────────
@@ -169,6 +181,85 @@ class RAGChain:
             logger.error(f"Cosmos DB vector search failed: {e}")
             return []
 
+    # ─── Similarity Threshold Filtering ─────────────────────────────
+
+    def _filter_by_similarity(
+        self, documents: List[Document], threshold: float
+    ) -> List[Document]:
+        """
+        Filter out documents whose similarity score is below the threshold.
+        Cosmos DB VectorDistance with cosine returns values in [0, 1] where
+        higher = more similar (when distanceFunction is cosine).
+        """
+        before_count = len(documents)
+        filtered = [
+            doc for doc in documents
+            if doc.metadata.get("similarity_score", 0) >= threshold
+        ]
+        logger.info(
+            f"Similarity threshold filter ({threshold}): "
+            f"{before_count} → {len(filtered)} documents"
+        )
+        return filtered
+
+    # ─── Cross-Encoder Re-ranking ───────────────────────────────────
+
+    def _rerank(
+        self, query: str, documents: List[Document], top_k: int
+    ) -> List[Document]:
+        """
+        Re-rank retrieved documents using a cross-encoder model.
+        The cross-encoder scores each (query, document) pair directly,
+        providing more accurate relevance judgments than bi-encoder similarity.
+        """
+        if not documents or self.reranker is None:
+            return documents[:top_k]
+
+        # Build (query, doc_text) pairs for the cross-encoder
+        pairs = []
+        for doc in documents:
+            # Use Vietnamese content if available, else English, else raw text
+            doc_text = (
+                doc.metadata.get("content_vi", "")
+                or doc.metadata.get("content_en", "")
+                or doc.page_content
+            )
+            # Prepend topic for better context
+            topic = doc.metadata.get("topic", "")
+            if topic:
+                doc_text = f"{topic}: {doc_text}"
+            pairs.append((query, doc_text))
+
+        # Score all pairs with the cross-encoder
+        try:
+            scores = self.reranker.predict(pairs)
+
+            # Attach rerank scores to documents
+            for doc, score in zip(documents, scores):
+                doc.metadata["rerank_score"] = float(score)
+
+            # Sort by rerank score (descending) and take top_k
+            reranked = sorted(
+                documents,
+                key=lambda d: d.metadata.get("rerank_score", 0),
+                reverse=True
+            )[:top_k]
+
+            logger.info(
+                f"Re-ranked {len(documents)} docs → top {len(reranked)}: "
+                + ", ".join(
+                    f"[{d.metadata.get('topic', '?')}: "
+                    f"sim={d.metadata.get('similarity_score', 0):.3f}, "
+                    f"rerank={d.metadata.get('rerank_score', 0):.3f}]"
+                    for d in reranked
+                )
+            )
+            return reranked
+
+        except Exception as e:
+            logger.error(f"Re-ranking failed, falling back to similarity order: {e}")
+            return documents[:top_k]
+
     # ─── Main RAG Pipeline ─────────────────────────────────────────
 
     def retrieve_and_respond(
@@ -179,18 +270,28 @@ class RAGChain:
     ) -> tuple[str, List[SourceDocument]]:
         """
         Main RAG pipeline:
-        1. Retrieve relevant knowledge from vector store
-        2. Get conversation history
-        3. Build system + user prompts
-        4. Call LLM
-        5. Store in conversation memory
-        6. Return response + sources
+        1. Retrieve a broad pool of documents from Cosmos DB vector search
+        2. Filter by similarity threshold
+        3. Re-rank with cross-encoder
+        4. Get conversation history
+        5. Build system + user prompts
+        6. Call LLM
+        7. Store in conversation memory
+        8. Return response + sources
         """
         if not self._initialized:
             self.initialize()
 
-        # 1. Retrieve relevant documents from Cosmos DB
+        # 1. Retrieve initial pool from Cosmos DB
         retrieved_docs = self._retrieve_from_cosmos(query, settings.RAG_TOP_K)
+
+        # 2. Filter by similarity threshold
+        filtered_docs = self._filter_by_similarity(
+            retrieved_docs, settings.RAG_SIMILARITY_THRESHOLD
+        )
+
+        # 3. Re-rank and select final top-K
+        final_docs = self._rerank(query, filtered_docs, settings.RAG_RERANK_TOP_K)
 
         sources = [
             SourceDocument(
@@ -198,28 +299,28 @@ class RAGChain:
                 topic=doc.metadata.get("topic", ""),
                 category=doc.metadata.get("category", "")
             )
-            for doc in retrieved_docs
+            for doc in final_docs
         ]
 
-        # 2. Get conversation history
+        # 4. Get conversation history
         history = conversation_memory.get_history(conversation_id)
 
-        # 3. Build messages
+        # 5. Build messages
         messages = self._build_messages(
-            query, financial_context, retrieved_docs, history
+            query, financial_context, final_docs, history
         )
 
-        # 4. Call LLM
+        # 6. Call LLM
         try:
             response = self.llm.invoke(messages)
             response_text = response.content.strip()
         except Exception as e:
             logger.error(f"LLM call failed: {e}")
             response_text = self._generate_fallback_response(
-                query, financial_context, retrieved_docs
+                query, financial_context, final_docs
             )
 
-        # 5. Store in conversation memory
+        # 7. Store in conversation memory
         conversation_memory.add_exchange(conversation_id, query, response_text)
 
         return response_text, sources
@@ -264,7 +365,7 @@ class RAGChain:
             "và kiến thức tài chính bên dưới.\n\n"
         ]
 
-        # Add retrieved knowledge
+        # Add retrieved knowledge (already filtered & re-ranked)
         if retrieved_docs:
             parts.append("[KIẾN THỨC TÀI CHÍNH]\n")
             for doc in retrieved_docs:
@@ -273,7 +374,11 @@ class RAGChain:
                 content = doc.metadata.get("content_vi", "")
                 if not content:
                     content = doc.metadata.get("content_en", "")
-                parts.append(f"• {topic}: {content}\n")
+                rerank_score = doc.metadata.get("rerank_score")
+                relevance_tag = ""
+                if rerank_score is not None:
+                    relevance_tag = f" (relevance: {rerank_score:.2f})"
+                parts.append(f"• {topic}: {content}{relevance_tag}\n")
             parts.append("\n")
 
         # Rules

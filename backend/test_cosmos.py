@@ -39,7 +39,7 @@ try:
             "path": "/embedding",
             "dataType": "float32",
             "distanceFunction": "cosine",
-            "dimensions": 384,
+            "dimensions": 384,  # paraphrase-multilingual-MiniLM-L12-v2
         }]
     }
     index_policy = {

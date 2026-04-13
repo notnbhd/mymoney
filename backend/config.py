@@ -34,8 +34,11 @@ class Settings(BaseSettings):
         "app", "src", "main", "assets", "knowledge",
         "financial_knowledge_base.json"
     )
-    EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
-    RAG_TOP_K: int = 3
+    EMBEDDING_MODEL: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    RAG_TOP_K: int = 10  # Initial retrieval pool (before re-ranking)
+    RAG_RERANK_TOP_K: int = 3  # Final top-K after re-ranking
+    RAG_SIMILARITY_THRESHOLD: float = 0.35  # Min cosine similarity to keep a doc
+    RAG_RERANKER_MODEL: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
     # Azure Cosmos DB
     COSMOS_DB_ENDPOINT: str = "https://mymoney.documents.azure.com:443/"
