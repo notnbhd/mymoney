@@ -40,6 +40,11 @@ class Settings(BaseSettings):
     RAG_SIMILARITY_THRESHOLD: float = 0.35  # Min cosine similarity to keep a doc
     RAG_RERANKER_MODEL: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
+    # PDF Ingestion
+    PDF_KNOWLEDGE_DIR: str = os.path.join(_backend_dir, "pdf_knowledge")
+    PDF_CHUNK_SIZE: int = 500
+    PDF_CHUNK_OVERLAP: int = 100
+
     # Azure Cosmos DB
     COSMOS_DB_ENDPOINT: str = "https://mymoney.documents.azure.com:443/"
     COSMOS_DB_KEY: str = ""

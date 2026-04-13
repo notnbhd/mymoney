@@ -7,3 +7,6 @@ sentence-transformers==3.0.0
 azure-cosmos==4.7.0
 pydantic-settings==2.5.0
 python-dotenv==1.0.0
+langchain-community==0.3.0
+langchain-text-splitters==0.3.0
+pypdf>=4.0.0

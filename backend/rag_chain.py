@@ -8,9 +8,10 @@ import logging
 from typing import List, Optional
 
 from langchain.schema import Document, HumanMessage, SystemMessage, AIMessage
+from langchain.retrievers.document_compressors import CrossEncoderReranker
+from langchain_community.cross_encoders import HuggingFaceCrossEncoder
 from langchain_openai import ChatOpenAI
 from langchain_huggingface import HuggingFaceEmbeddings
-from sentence_transformers import CrossEncoder
 
 from config import settings
 from models import FinancialContext, SourceDocument
@@ -32,7 +33,7 @@ class RAGChain:
     def __init__(self):
         self.embeddings: Optional[HuggingFaceEmbeddings] = None
         self.llm: Optional[ChatOpenAI] = None
-        self.reranker: Optional[CrossEncoder] = None
+        self.reranker: Optional[CrossEncoderReranker] = None
         self.documents: List[Document] = []
         self._initialized = False
         self._cosmos_container = None
@@ -53,11 +54,12 @@ class RAGChain:
             encode_kwargs={"normalize_embeddings": True}
         )
 
-        # 2. Initialize cross-encoder re-ranker
+        # 2. Initialize cross-encoder re-ranker (LangChain)
         logger.info(f"Loading re-ranker model: {settings.RAG_RERANKER_MODEL}")
-        self.reranker = CrossEncoder(
-            settings.RAG_RERANKER_MODEL,
-            max_length=512,
+        cross_encoder = HuggingFaceCrossEncoder(model_name=settings.RAG_RERANKER_MODEL)
+        self.reranker = CrossEncoderReranker(
+            model=cross_encoder,
+            top_n=settings.RAG_RERANK_TOP_K,
         )
         logger.info("Re-ranker model loaded.")
 
@@ -167,6 +169,8 @@ class RAGChain:
                         "content_vi": item.get("content_vi", ""),
                         "keywords": item.get("keywords", []),
                         "similarity_score": item.get("similarity_score", 0),
+                        "source_type": item.get("source_type", "json"),
+                        "page_number": item.get("page_number"),
                     }
                 )
                 documents.append(doc)
@@ -208,49 +212,23 @@ class RAGChain:
         self, query: str, documents: List[Document], top_k: int
     ) -> List[Document]:
         """
-        Re-rank retrieved documents using a cross-encoder model.
-        The cross-encoder scores each (query, document) pair directly,
-        providing more accurate relevance judgments than bi-encoder similarity.
+        Re-rank retrieved documents using LangChain's CrossEncoderReranker.
+        Uses compress_documents() which scores each (query, document) pair
+        and returns the top_n most relevant documents.
         """
         if not documents or self.reranker is None:
             return documents[:top_k]
 
-        # Build (query, doc_text) pairs for the cross-encoder
-        pairs = []
-        for doc in documents:
-            # Use Vietnamese content if available, else English, else raw text
-            doc_text = (
-                doc.metadata.get("content_vi", "")
-                or doc.metadata.get("content_en", "")
-                or doc.page_content
-            )
-            # Prepend topic for better context
-            topic = doc.metadata.get("topic", "")
-            if topic:
-                doc_text = f"{topic}: {doc_text}"
-            pairs.append((query, doc_text))
-
-        # Score all pairs with the cross-encoder
         try:
-            scores = self.reranker.predict(pairs)
-
-            # Attach rerank scores to documents
-            for doc, score in zip(documents, scores):
-                doc.metadata["rerank_score"] = float(score)
-
-            # Sort by rerank score (descending) and take top_k
-            reranked = sorted(
-                documents,
-                key=lambda d: d.metadata.get("rerank_score", 0),
-                reverse=True
-            )[:top_k]
+            reranked = self.reranker.compress_documents(documents, query)
+            reranked = list(reranked)[:top_k]
 
             logger.info(
                 f"Re-ranked {len(documents)} docs → top {len(reranked)}: "
                 + ", ".join(
                     f"[{d.metadata.get('topic', '?')}: "
                     f"sim={d.metadata.get('similarity_score', 0):.3f}, "
-                    f"rerank={d.metadata.get('rerank_score', 0):.3f}]"
+                    f"rerank={d.metadata.get('relevance_score', 0):.3f}]"
                     for d in reranked
                 )
             )
@@ -374,7 +352,7 @@ class RAGChain:
                 content = doc.metadata.get("content_vi", "")
                 if not content:
                     content = doc.metadata.get("content_en", "")
-                rerank_score = doc.metadata.get("rerank_score")
+                rerank_score = doc.metadata.get("relevance_score")
                 relevance_tag = ""
                 if rerank_score is not None:
                     relevance_tag = f" (relevance: {rerank_score:.2f})"
