@@ -42,7 +42,7 @@ class Settings(BaseSettings):
 
     # PDF Ingestion
     PDF_KNOWLEDGE_DIR: str = os.path.join(_backend_dir, "pdf_knowledge")
-    PDF_CHUNK_SIZE: int = 500
+    PDF_CHUNK_SIZE: int = 1024
     PDF_CHUNK_OVERLAP: int = 100
 
     # Azure Cosmos DB
@@ -52,6 +52,7 @@ class Settings(BaseSettings):
     COSMOS_DB_CONTAINER: str = "knowledge_vectors"
 
     # Memory
+    REDIS_URL: str = "redis://localhost:6379/0"
     MEMORY_WINDOW_SIZE: int = 10  # Keep last N messages per conversation
     MEMORY_TTL_SECONDS: int = 3600  # Auto-cleanup after 1 hour of inactivity
 

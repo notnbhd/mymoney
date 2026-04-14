@@ -1,60 +1,65 @@
 """
-Conversation memory manager.
-Provides per-conversation message history with automatic cleanup.
+Conversation memory manager backed by Redis.
+Provides per-conversation message history with automatic TTL-based expiry.
 """
 
-import time
-import threading
-from typing import Dict, List, Tuple
+import json
+import logging
+from typing import List, Tuple
+
+import redis
+
 from config import settings
+
+logger = logging.getLogger(__name__)
 
 
 class ConversationMemory:
     """
-    Manages conversation history per conversation_id.
-    Uses a simple in-memory store with TTL-based cleanup.
+    Manages conversation history per conversation_id using Redis.
+    Each conversation is stored as a Redis list with automatic TTL expiry.
     """
 
     def __init__(self, window_size: int = None, ttl_seconds: int = None):
         self.window_size = window_size or settings.MEMORY_WINDOW_SIZE
         self.ttl_seconds = ttl_seconds or settings.MEMORY_TTL_SECONDS
 
-        # {conversation_id: {"messages": [...], "last_access": timestamp}}
-        self._store: Dict[str, dict] = {}
-        self._lock = threading.Lock()
+        self._redis = redis.from_url(
+            settings.REDIS_URL,
+            decode_responses=True,
+        )
+        logger.info(f"Connected to Redis: {settings.REDIS_URL}")
 
-        # Start cleanup thread
-        self._cleanup_thread = threading.Thread(target=self._cleanup_loop, daemon=True)
-        self._cleanup_thread.start()
+    def _key(self, conversation_id: str) -> str:
+        """Build the Redis key for a conversation."""
+        return f"mymoney:chat:{conversation_id}"
 
     def get_history(self, conversation_id: str) -> List[Tuple[str, str]]:
         """
         Get conversation history as list of (role, content) tuples.
         Returns the last `window_size` messages.
         """
-        with self._lock:
-            if conversation_id not in self._store:
-                return []
-            entry = self._store[conversation_id]
-            entry["last_access"] = time.time()
-            return list(entry["messages"][-self.window_size:])
+        key = self._key(conversation_id)
+        # Get the last window_size items from the list
+        raw = self._redis.lrange(key, -self.window_size, -1)
+
+        # Refresh TTL on access
+        if raw:
+            self._redis.expire(key, self.ttl_seconds)
+
+        return [tuple(json.loads(item)) for item in raw]
 
     def add_message(self, conversation_id: str, role: str, content: str):
         """Add a message to conversation history."""
-        with self._lock:
-            if conversation_id not in self._store:
-                self._store[conversation_id] = {
-                    "messages": [],
-                    "last_access": time.time()
-                }
-            entry = self._store[conversation_id]
-            entry["messages"].append((role, content))
-            entry["last_access"] = time.time()
+        key = self._key(conversation_id)
+        self._redis.rpush(key, json.dumps([role, content]))
 
-            # Trim to window size (keep extra buffer for context)
-            max_stored = self.window_size * 2
-            if len(entry["messages"]) > max_stored:
-                entry["messages"] = entry["messages"][-self.window_size:]
+        # Trim to keep at most window_size * 2 messages
+        max_stored = self.window_size * 2
+        self._redis.ltrim(key, -max_stored, -1)
+
+        # Set/refresh TTL
+        self._redis.expire(key, self.ttl_seconds)
 
     def add_exchange(self, conversation_id: str, user_message: str, ai_response: str):
         """Add a user-AI exchange to conversation history."""
@@ -63,40 +68,22 @@ class ConversationMemory:
 
     def clear(self, conversation_id: str):
         """Clear history for a specific conversation."""
-        with self._lock:
-            self._store.pop(conversation_id, None)
+        self._redis.delete(self._key(conversation_id))
 
     def clear_all(self):
         """Clear all conversation histories."""
-        with self._lock:
-            self._store.clear()
+        keys = self._redis.keys("mymoney:chat:*")
+        if keys:
+            self._redis.delete(*keys)
 
     def get_stats(self) -> dict:
         """Get memory statistics."""
-        with self._lock:
-            return {
-                "active_conversations": len(self._store),
-                "total_messages": sum(
-                    len(e["messages"]) for e in self._store.values()
-                )
-            }
-
-    def _cleanup_loop(self):
-        """Periodically clean up stale conversations."""
-        while True:
-            time.sleep(60)  # Check every minute
-            self._cleanup_stale()
-
-    def _cleanup_stale(self):
-        """Remove conversations that haven't been accessed recently."""
-        now = time.time()
-        with self._lock:
-            stale_ids = [
-                cid for cid, entry in self._store.items()
-                if now - entry["last_access"] > self.ttl_seconds
-            ]
-            for cid in stale_ids:
-                del self._store[cid]
+        keys = self._redis.keys("mymoney:chat:*")
+        total_messages = sum(self._redis.llen(k) for k in keys)
+        return {
+            "active_conversations": len(keys),
+            "total_messages": total_messages,
+        }
 
 
 # Global singleton

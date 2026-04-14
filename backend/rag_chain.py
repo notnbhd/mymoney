@@ -71,7 +71,7 @@ class RAGChain:
             model=settings.OPENROUTER_MODEL,
             openai_api_key=settings.OPENROUTER_API_TOKEN,
             openai_api_base=settings.OPENROUTER_BASE_URL,
-            temperature=0.7,
+            temperature=0.1,
             max_tokens=500,
             default_headers={
                 "HTTP-Referer": "https://github.com/notnbhd/mymoney",
