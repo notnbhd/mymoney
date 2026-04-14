@@ -6,15 +6,16 @@ import android.util.Log;
 import com.example.mymoney.BuildConfig;
 import com.example.mymoney.database.AppDatabase;
 import com.example.mymoney.database.entity.Category;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
+import java.lang.reflect.Field;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+
+import okhttp3.OkHttpClient;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -23,37 +24,61 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
- * LLM-powered query parser that extracts structured intent from natural language questions.
- * Supports both Vietnamese and English queries.
+ * Query parser that calls the backend /parse endpoint to extract structured intent
+ * from natural language questions. Supports both Vietnamese and English queries.
+ *
+ * All LLM calls are now server-side — the Android app never needs the OpenRouter API token.
  */
 public class QueryParser {
     private static final String TAG = "QueryParser";
-    private static final String OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1/";
-    private static final String API_TOKEN = BuildConfig.OPENROUTER_API_TOKEN;
-    private static final String MODEL = "mistralai/devstral-2512:free";
+    private static final String DEFAULT_BACKEND_BASE_URL = "http://192.168.1.16:8010/";
+    private static final int CONNECT_TIMEOUT_SECONDS = 10;
+    private static final int READ_TIMEOUT_SECONDS = 30;
 
-    private OpenRouterApiService apiService;
+    private BackendApiService apiService;
     private AppDatabase database;
     private Context context;
-    private Gson gson;
-
-    // Category names for the prompt
-    private static final String CATEGORY_LIST = 
-        "Food, Home, Transport, Relationship, Entertainment, Medical, Tax, " +
-        "Gym & Fitness, Beauty, Clothing, Education, Childcare, Groceries, Others, " +
-        "Salary, Bonus, Investment, Gift, Freelance, Refund, Rental, Interest";
 
     public QueryParser(Context context) {
         this.context = context;
         this.database = AppDatabase.getInstance(context);
-        this.gson = new Gson();
+
+        OkHttpClient httpClient = new OkHttpClient.Builder()
+                .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .readTimeout(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .retryOnConnectionFailure(true)
+                .build();
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(OPENROUTER_BASE_URL)
+                .baseUrl(resolveBackendBaseUrl())
+                .client(httpClient)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        this.apiService = retrofit.create(OpenRouterApiService.class);
+        this.apiService = retrofit.create(BackendApiService.class);
+    }
+
+    private String resolveBackendBaseUrl() {
+        try {
+            Field baseUrlField = BuildConfig.class.getField("CHATBOT_BACKEND_BASE_URL");
+            Object value = baseUrlField.get(null);
+            if (value instanceof String) {
+                String result = ((String) value).trim();
+                if (!result.isEmpty()) {
+                    if (!result.startsWith("http://") && !result.startsWith("https://")) {
+                        result = "http://" + result;
+                    }
+                    if (!result.endsWith("/")) {
+                        result = result + "/";
+                    }
+                    Log.d(TAG, "Using backend URL from BuildConfig: " + result);
+                    return result;
+                }
+            }
+        } catch (NoSuchFieldException | IllegalAccessException ignored) {}
+
+        Log.w(TAG, "Using default backend URL: " + DEFAULT_BACKEND_BASE_URL);
+        return DEFAULT_BACKEND_BASE_URL;
     }
 
     /**
@@ -66,7 +91,6 @@ public class QueryParser {
                 callback.onSuccess(intent);
             } catch (Exception e) {
                 Log.e(TAG, "Error parsing query", e);
-                // Return default intent on error
                 QueryIntent defaultIntent = createDefaultIntent(userMessage);
                 callback.onSuccess(defaultIntent);
             }
@@ -74,63 +98,52 @@ public class QueryParser {
     }
 
     /**
-     * Parse query synchronously (for use in background threads)
+     * Parse query synchronously by calling the backend /parse endpoint.
      */
     public QueryIntent parseQuerySync(String userMessage) {
-        Log.d(TAG, "Parsing query: " + userMessage);
+        Log.d(TAG, "Parsing query via backend: " + userMessage);
 
-        // Get current date info for context
         Calendar now = Calendar.getInstance();
         int currentMonth = now.get(Calendar.MONTH) + 1;
         int currentYear = now.get(Calendar.YEAR);
 
-        // Build the parsing prompt
-        String systemPrompt = buildParsingPrompt(currentMonth, currentYear);
-        
-        OpenRouterRequest request = new OpenRouterRequest(MODEL);
-        request.setTemperature(0.1); // Low temperature for consistent parsing
-        request.setMax_tokens(200);
-        request.addMessage("system", systemPrompt);
-        request.addMessage("user", userMessage);
+        // Build request for backend /parse endpoint
+        BackendApiService.BackendParseRequest request =
+                new BackendApiService.BackendParseRequest(userMessage, currentMonth, currentYear);
 
-        // Use synchronous call with timeout
         AtomicReference<QueryIntent> resultRef = new AtomicReference<>();
         CountDownLatch latch = new CountDownLatch(1);
 
-        Call<OpenRouterResponse> call = apiService.generateResponse(
-            "Bearer " + API_TOKEN,
-            "https://github.com/notnbhd/mymoney",
-            "MyMoney App",
-            request
-        );
-
-        call.enqueue(new Callback<OpenRouterResponse>() {
+        Call<BackendApiService.BackendParseResponse> call = apiService.parse(request);
+        call.enqueue(new Callback<BackendApiService.BackendParseResponse>() {
             @Override
-            public void onResponse(Call<OpenRouterResponse> call, Response<OpenRouterResponse> response) {
+            public void onResponse(Call<BackendApiService.BackendParseResponse> call,
+                                   Response<BackendApiService.BackendParseResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    String jsonResponse = response.body().getGeneratedText();
-                    Log.d(TAG, "Parser response: " + jsonResponse);
-                    QueryIntent intent = parseJsonResponse(jsonResponse, userMessage, currentMonth, currentYear);
+                    BackendApiService.BackendParseResponse parseResponse = response.body();
+                    Log.d(TAG, "Backend parse response: queryType=" + parseResponse.getQueryType()
+                            + ", category=" + parseResponse.getCategory());
+                    QueryIntent intent = convertToQueryIntent(parseResponse, userMessage, currentMonth, currentYear);
                     resultRef.set(intent);
                 } else {
-                    Log.e(TAG, "Parser API error: " + response.code());
+                    Log.e(TAG, "Backend /parse error: " + response.code());
                     resultRef.set(createDefaultIntent(userMessage));
                 }
                 latch.countDown();
             }
 
             @Override
-            public void onFailure(Call<OpenRouterResponse> call, Throwable t) {
-                Log.e(TAG, "Parser API failure", t);
+            public void onFailure(Call<BackendApiService.BackendParseResponse> call, Throwable t) {
+                Log.e(TAG, "Backend /parse failure", t);
                 resultRef.set(createDefaultIntent(userMessage));
                 latch.countDown();
             }
         });
 
         try {
-            latch.await(10, TimeUnit.SECONDS);
+            latch.await(15, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            Log.e(TAG, "Parser timeout");
+            Log.e(TAG, "Parse timeout");
             return createDefaultIntent(userMessage);
         }
 
@@ -141,7 +154,7 @@ public class QueryParser {
 
         // Calculate actual timestamps from parsed data
         calculateTimestamps(result);
-        
+
         // Resolve category name to ID if specified
         resolveCategoryId(result);
 
@@ -149,113 +162,64 @@ public class QueryParser {
         return result;
     }
 
-    private String buildParsingPrompt(int currentMonth, int currentYear) {
-        return "You are a financial query parser. Parse the user's question and extract structured information.\n" +
-               "Current date context: Month " + currentMonth + ", Year " + currentYear + "\n\n" +
-               "Output ONLY valid JSON (no markdown, no explanation) in this exact format:\n" +
-               "{\n" +
-               "  \"timeRange\": {\"type\": \"current_month|specific_month|year|last_n_days|all_time\", \"month\": 1-12, \"year\": 2020-2030, \"days\": number},\n" +
-               "  \"category\": \"category_name or null\",\n" +
-               "  \"queryType\": \"spending|income|comparison|trend|category_list|general\"\n" +
-               "}\n\n" +
-               "IMPORTANT RULES:\n" +
-               "- NEVER ask for clarification. Always provide a complete response.\n" +
-               "- If no time period specified, DEFAULT to current_month.\n" +
-               "- If no category specified, set category to null (will show all categories).\n\n" +
-               "Valid categories: " + CATEGORY_LIST + "\n\n" +
-               "Time parsing rules:\n" +
-               "- 'tháng 12' or 'December' = specific_month with month=12\n" +
-               "- 'tháng trước' or 'last month' = specific_month with month=" + (currentMonth == 1 ? 12 : currentMonth - 1) + "\n" +
-               "- 'năm nay' or 'this year' = year with year=" + currentYear + "\n" +
-               "- 'năm ngoái' or 'last year' = year with year=" + (currentYear - 1) + "\n" +
-               "- 'tuần qua' or 'last week' = last_n_days with days=7\n" +
-               "- If no time specified = current_month (DO NOT ask for clarification)\n\n" +
-               "Category matching:\n" +
-               "- 'clothes/quần áo' = Clothing\n" +
-               "- 'food/ăn uống/đồ ăn' = Food\n" +
-               "- 'transport/đi lại/xe' = Transport\n" +
-               "- 'gym/tập thể dục' = Gym & Fitness\n" +
-               "- If no category mentioned = null (show all categories, DO NOT ask for clarification)\n\n" +
-               "Examples:\n" +
-               "- 'How much did I spend on clothes in December?' → {\"timeRange\":{\"type\":\"specific_month\",\"month\":12,\"year\":" + currentYear + "},\"category\":\"Clothing\",\"queryType\":\"spending\"}\n" +
-               "- 'Tháng trước tôi chi bao nhiêu tiền ăn?' → {\"timeRange\":{\"type\":\"specific_month\",\"month\":" + (currentMonth == 1 ? 12 : currentMonth - 1) + ",\"year\":" + (currentMonth == 1 ? currentYear - 1 : currentYear) + "},\"category\":\"Food\",\"queryType\":\"spending\"}\n" +
-               "- 'Show my spending' → {\"timeRange\":{\"type\":\"current_month\"},\"category\":null,\"queryType\":\"spending\"}\n" +
-               "- 'Tôi chi tiêu bao nhiêu?' → {\"timeRange\":{\"type\":\"current_month\"},\"category\":null,\"queryType\":\"spending\"}";
-    }
-
-    private QueryIntent parseJsonResponse(String jsonResponse, String originalQuery, int currentMonth, int currentYear) {
+    /**
+     * Convert backend parse response to QueryIntent.
+     */
+    private QueryIntent convertToQueryIntent(BackendApiService.BackendParseResponse response,
+                                              String originalQuery, int currentMonth, int currentYear) {
         QueryIntent intent = new QueryIntent();
         intent.setOriginalQuery(originalQuery);
 
-        try {
-            // Clean up the response - remove markdown code blocks if present
-            String cleanJson = jsonResponse.trim();
-            if (cleanJson.startsWith("```")) {
-                cleanJson = cleanJson.replaceAll("```json\\s*", "").replaceAll("```\\s*", "");
+        // Parse time range
+        BackendApiService.ParsedTimeRange timeRange = response.getTimeRange();
+        if (timeRange != null) {
+            switch (timeRange.getType()) {
+                case "specific_month":
+                    intent.setTimeRangeType(QueryIntent.TimeRangeType.SPECIFIC_MONTH);
+                    intent.setMonth(timeRange.getMonth() != null ? timeRange.getMonth() : currentMonth);
+                    intent.setYear(timeRange.getYear() != null ? timeRange.getYear() : currentYear);
+                    break;
+                case "year":
+                    intent.setTimeRangeType(QueryIntent.TimeRangeType.YEAR);
+                    intent.setYear(timeRange.getYear() != null ? timeRange.getYear() : currentYear);
+                    break;
+                case "last_n_days":
+                    intent.setTimeRangeType(QueryIntent.TimeRangeType.LAST_N_DAYS);
+                    intent.setDays(timeRange.getDays() != null ? timeRange.getDays() : 7);
+                    break;
+                case "all_time":
+                    intent.setTimeRangeType(QueryIntent.TimeRangeType.ALL_TIME);
+                    break;
+                default:
+                    intent.setTimeRangeType(QueryIntent.TimeRangeType.CURRENT_MONTH);
             }
-
-            JsonObject json = JsonParser.parseString(cleanJson).getAsJsonObject();
-
-            // Parse time range
-            if (json.has("timeRange") && !json.get("timeRange").isJsonNull()) {
-                JsonObject timeRange = json.getAsJsonObject("timeRange");
-                String type = timeRange.has("type") ? timeRange.get("type").getAsString() : "current_month";
-                
-                switch (type) {
-                    case "specific_month":
-                        intent.setTimeRangeType(QueryIntent.TimeRangeType.SPECIFIC_MONTH);
-                        intent.setMonth(timeRange.has("month") ? timeRange.get("month").getAsInt() : currentMonth);
-                        intent.setYear(timeRange.has("year") ? timeRange.get("year").getAsInt() : currentYear);
-                        break;
-                    case "year":
-                        intent.setTimeRangeType(QueryIntent.TimeRangeType.YEAR);
-                        intent.setYear(timeRange.has("year") ? timeRange.get("year").getAsInt() : currentYear);
-                        break;
-                    case "last_n_days":
-                        intent.setTimeRangeType(QueryIntent.TimeRangeType.LAST_N_DAYS);
-                        intent.setDays(timeRange.has("days") ? timeRange.get("days").getAsInt() : 7);
-                        break;
-                    case "all_time":
-                        intent.setTimeRangeType(QueryIntent.TimeRangeType.ALL_TIME);
-                        break;
-                    default:
-                        intent.setTimeRangeType(QueryIntent.TimeRangeType.CURRENT_MONTH);
-                }
-            }
-
-            // Parse category
-            if (json.has("category") && !json.get("category").isJsonNull()) {
-                intent.setCategoryName(json.get("category").getAsString());
-            }
-
-            // Parse query type
-            if (json.has("queryType") && !json.get("queryType").isJsonNull()) {
-                String queryType = json.get("queryType").getAsString();
-                switch (queryType) {
-                    case "spending": intent.setQueryType(QueryIntent.QueryType.SPENDING); break;
-                    case "income": intent.setQueryType(QueryIntent.QueryType.INCOME); break;
-                    case "comparison": intent.setQueryType(QueryIntent.QueryType.COMPARISON); break;
-                    case "trend": intent.setQueryType(QueryIntent.QueryType.TREND); break;
-                    case "category_list": intent.setQueryType(QueryIntent.QueryType.CATEGORY_LIST); break;
-                    default: intent.setQueryType(QueryIntent.QueryType.GENERAL);
-                }
-            }
-
-            // Never set needsClarification - always provide answer
-            // Ignore clarification fields from LLM response
-            intent.setNeedsClarification(false);
-
-        } catch (Exception e) {
-            Log.e(TAG, "Error parsing JSON response: " + jsonResponse, e);
-            return createDefaultIntent(originalQuery);
         }
 
+        // Parse category
+        if (response.getCategory() != null && !response.getCategory().isEmpty()) {
+            intent.setCategoryName(response.getCategory());
+        }
+
+        // Parse query type
+        String queryType = response.getQueryType();
+        if (queryType != null) {
+            switch (queryType) {
+                case "spending": intent.setQueryType(QueryIntent.QueryType.SPENDING); break;
+                case "income": intent.setQueryType(QueryIntent.QueryType.INCOME); break;
+                case "comparison": intent.setQueryType(QueryIntent.QueryType.COMPARISON); break;
+                case "trend": intent.setQueryType(QueryIntent.QueryType.TREND); break;
+                case "category_list": intent.setQueryType(QueryIntent.QueryType.CATEGORY_LIST); break;
+                default: intent.setQueryType(QueryIntent.QueryType.GENERAL);
+            }
+        }
+
+        intent.setNeedsClarification(false);
         return intent;
     }
 
     private void calculateTimestamps(QueryIntent intent) {
         Calendar calendar = Calendar.getInstance();
-        
+
         switch (intent.getTimeRangeType()) {
             case CURRENT_MONTH:
                 calendar.set(Calendar.DAY_OF_MONTH, 1);
@@ -266,22 +230,22 @@ public class QueryParser {
                 intent.setTimeRangeStart(calendar.getTimeInMillis());
                 intent.setTimeRangeEnd(System.currentTimeMillis());
                 break;
-                
+
             case SPECIFIC_MONTH:
                 calendar.set(Calendar.YEAR, intent.getYear());
-                calendar.set(Calendar.MONTH, intent.getMonth() - 1); // Calendar months are 0-indexed
+                calendar.set(Calendar.MONTH, intent.getMonth() - 1);
                 calendar.set(Calendar.DAY_OF_MONTH, 1);
                 calendar.set(Calendar.HOUR_OF_DAY, 0);
                 calendar.set(Calendar.MINUTE, 0);
                 calendar.set(Calendar.SECOND, 0);
                 calendar.set(Calendar.MILLISECOND, 0);
                 intent.setTimeRangeStart(calendar.getTimeInMillis());
-                
+
                 calendar.add(Calendar.MONTH, 1);
                 calendar.add(Calendar.MILLISECOND, -1);
                 intent.setTimeRangeEnd(calendar.getTimeInMillis());
                 break;
-                
+
             case YEAR:
                 calendar.set(Calendar.YEAR, intent.getYear());
                 calendar.set(Calendar.MONTH, Calendar.JANUARY);
@@ -291,12 +255,12 @@ public class QueryParser {
                 calendar.set(Calendar.SECOND, 0);
                 calendar.set(Calendar.MILLISECOND, 0);
                 intent.setTimeRangeStart(calendar.getTimeInMillis());
-                
+
                 calendar.add(Calendar.YEAR, 1);
                 calendar.add(Calendar.MILLISECOND, -1);
                 intent.setTimeRangeEnd(calendar.getTimeInMillis());
                 break;
-                
+
             case LAST_N_DAYS:
                 calendar.add(Calendar.DAY_OF_YEAR, -intent.getDays());
                 calendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -305,7 +269,7 @@ public class QueryParser {
                 intent.setTimeRangeStart(calendar.getTimeInMillis());
                 intent.setTimeRangeEnd(System.currentTimeMillis());
                 break;
-                
+
             case ALL_TIME:
                 intent.setTimeRangeStart(0);
                 intent.setTimeRangeEnd(System.currentTimeMillis());
@@ -321,12 +285,11 @@ public class QueryParser {
                 intent.setCategoryId(category.getId());
                 Log.d(TAG, "Category resolved to ID: " + category.getId());
             } else {
-                // Try case-insensitive search by getting all categories
                 List<Category> allCategories = database.categoryDao().getAllCategories();
                 for (Category cat : allCategories) {
                     if (cat.getName().equalsIgnoreCase(intent.getCategoryName())) {
                         intent.setCategoryId(cat.getId());
-                        intent.setCategoryName(cat.getName()); // Use exact name from DB
+                        intent.setCategoryName(cat.getName());
                         Log.d(TAG, "Category resolved (case-insensitive) to ID: " + cat.getId());
                         return;
                     }
@@ -341,7 +304,7 @@ public class QueryParser {
         intent.setOriginalQuery(originalQuery);
         intent.setTimeRangeType(QueryIntent.TimeRangeType.CURRENT_MONTH);
         intent.setQueryType(QueryIntent.QueryType.GENERAL);
-        
+
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.DAY_OF_MONTH, 1);
         calendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -349,7 +312,7 @@ public class QueryParser {
         calendar.set(Calendar.SECOND, 0);
         intent.setTimeRangeStart(calendar.getTimeInMillis());
         intent.setTimeRangeEnd(System.currentTimeMillis());
-        
+
         return intent;
     }
 
