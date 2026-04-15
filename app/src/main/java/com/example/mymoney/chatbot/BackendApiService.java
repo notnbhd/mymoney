@@ -18,6 +18,12 @@ public interface BackendApiService {
     @POST("parse")
     Call<BackendParseResponse> parse(@Body BackendParseRequest request);
 
+    @POST("retrieve")
+    Call<BackendRetrieveResponse> retrieve(@Body BackendRetrieveRequest request);
+
+    @POST("generate")
+    Call<BackendChatResponse> generate(@Body BackendGenerateRequest request);
+
     @GET("health")
     Call<BackendHealthResponse> health();
 
@@ -34,9 +40,8 @@ public interface BackendApiService {
         public int getDocumentCount() { return document_count; }
     }
 
-    /**
-     * Request model for the /parse endpoint.
-     */
+    // ─── Parse models ─────────────────────────────────────────
+
     class BackendParseRequest {
         @SerializedName("message")
         private String message;
@@ -54,9 +59,6 @@ public interface BackendApiService {
         }
     }
 
-    /**
-     * Response model from the /parse endpoint.
-     */
     class BackendParseResponse {
         @SerializedName("time_range")
         private ParsedTimeRange timeRange;
@@ -90,5 +92,59 @@ public interface BackendApiService {
         public Integer getYear() { return year; }
         public Integer getDays() { return days; }
     }
-}
 
+    // ─── Retrieve models ──────────────────────────────────────
+
+    class BackendRetrieveRequest {
+        @SerializedName("message")
+        private String message;
+
+        public BackendRetrieveRequest(String message) {
+            this.message = message;
+        }
+    }
+
+    class BackendRetrieveResponse {
+        @SerializedName("retrieval_id")
+        private String retrievalId;
+
+        @SerializedName("sources")
+        private java.util.List<BackendChatResponse.Source> sources;
+
+        public String getRetrievalId() { return retrievalId; }
+        public java.util.List<BackendChatResponse.Source> getSources() { return sources; }
+    }
+
+    // ─── Generate models ──────────────────────────────────────
+
+    class BackendGenerateRequest {
+        @SerializedName("retrieval_id")
+        private String retrievalId;
+
+        @SerializedName("message")
+        private String message;
+
+        @SerializedName("financial_context")
+        private BackendChatRequest.FinancialContext financialContext;
+
+        @SerializedName("conversation_id")
+        private String conversationId;
+
+        @SerializedName("user_id")
+        private int userId;
+
+        @SerializedName("wallet_id")
+        private int walletId;
+
+        public BackendGenerateRequest(String retrievalId, String message,
+                                       BackendChatRequest.FinancialContext financialContext,
+                                       String conversationId, int userId, int walletId) {
+            this.retrievalId = retrievalId;
+            this.message = message;
+            this.financialContext = financialContext;
+            this.conversationId = conversationId;
+            this.userId = userId;
+            this.walletId = walletId;
+        }
+    }
+}

@@ -45,6 +45,36 @@ class ChatResponse(BaseModel):
     conversation_id: str = Field(..., description="Conversation ID for follow-up messages")
 
 
+# ─── Split pipeline models (retrieve + generate) ──────────────
+
+class RetrieveRequest(BaseModel):
+    """Request body for the /retrieve endpoint (Phase 1)."""
+    message: str = Field(..., description="User's query message for vector search")
+
+class RetrieveResponse(BaseModel):
+    """Response body from the /retrieve endpoint."""
+    retrieval_id: str = Field(..., description="ID to reference cached retrieval results")
+    sources: List[SourceDocument] = Field(
+        default_factory=list,
+        description="Knowledge documents found by retrieval"
+    )
+
+class GenerateRequest(BaseModel):
+    """Request body for the /generate endpoint (Phase 2)."""
+    retrieval_id: str = Field(..., description="Retrieval ID from /retrieve response")
+    message: str = Field(..., description="User's original query")
+    financial_context: FinancialContext = Field(
+        default_factory=FinancialContext,
+        description="Financial data collected on-device"
+    )
+    conversation_id: Optional[str] = Field(
+        default=None,
+        description="Conversation ID for memory"
+    )
+    user_id: int = Field(default=0, description="User ID")
+    wallet_id: int = Field(default=0, description="Wallet ID")
+
+
 class HealthResponse(BaseModel):
     """Response body from the /health endpoint."""
     status: str = "ok"

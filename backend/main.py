@@ -8,6 +8,7 @@ Usage:
     python main.py
 """
 
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 
@@ -18,6 +19,7 @@ from config import settings
 from models import (
     ChatRequest, ChatResponse, HealthResponse, SourceDocument,
     ParseRequest, ParseResponse, TimeRange,
+    RetrieveRequest, RetrieveResponse, GenerateRequest,
 )
 from rag_chain import rag_chain
 from memory import conversation_memory
@@ -109,11 +111,11 @@ async def chat(request: ChatRequest):
     )
 
     try:
-        # Run the RAG pipeline
-        response_text, sources = rag_chain.retrieve_and_respond(
-            query=request.message,
-            financial_context=request.financial_context,
-            conversation_id=conversation_id
+        response_text, sources = await asyncio.to_thread(
+            rag_chain.retrieve_and_respond,
+            request.message,
+            request.financial_context,
+            conversation_id,
         )
 
         logger.info(
@@ -154,6 +156,118 @@ async def clear_memory(conversation_id: str):
     """Clear conversation memory for a specific conversation."""
     conversation_memory.clear(conversation_id)
     return {"status": "cleared", "conversation_id": conversation_id}
+
+
+import time
+import uuid
+
+# Short-lived cache for retrieved docs (retrieval_id → docs + metadata)
+_retrieval_cache: dict[str, dict] = {}
+_RETRIEVAL_TTL = 300  # 5 minutes
+
+
+def _cleanup_retrieval_cache():
+    """Remove expired entries from the retrieval cache."""
+    now = time.time()
+    expired = [k for k, v in _retrieval_cache.items() if now - v["created"] > _RETRIEVAL_TTL]
+    for k in expired:
+        del _retrieval_cache[k]
+
+
+@app.post("/retrieve", response_model=RetrieveResponse)
+async def retrieve(request: RetrieveRequest):
+    """
+    Phase 1: Retrieve and re-rank documents (no LLM call).
+    Returns a retrieval_id that the client uses when calling /generate.
+    Can be called in parallel with /parse + on-device financial data gathering.
+    """
+    if not rag_chain.is_ready:
+        raise HTTPException(
+            status_code=503,
+            detail="RAG service is not initialized."
+        )
+
+    logger.info(f"Retrieve request: '{request.message[:80]}'")
+    _cleanup_retrieval_cache()
+
+    try:
+        final_docs, sources = await asyncio.to_thread(
+            rag_chain.retrieve_documents, request.message
+        )
+
+        # Cache the retrieved docs
+        retrieval_id = str(uuid.uuid4())
+        _retrieval_cache[retrieval_id] = {
+            "docs": final_docs,
+            "sources": sources,
+            "query": request.message,
+            "created": time.time(),
+        }
+
+        logger.info(
+            f"Retrieved {len(sources)} docs, cached as {retrieval_id[:8]}..."
+        )
+
+        return RetrieveResponse(
+            retrieval_id=retrieval_id,
+            sources=sources,
+        )
+
+    except Exception as e:
+        logger.error(f"Retrieve error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/generate", response_model=ChatResponse)
+async def generate(request: GenerateRequest):
+    """
+    Phase 2: Generate LLM response using pre-retrieved documents.
+    Called after both /retrieve and financial context gathering are complete.
+    """
+    if not rag_chain.is_ready:
+        raise HTTPException(
+            status_code=503,
+            detail="RAG service is not initialized."
+        )
+
+    # Look up cached retrieval results
+    cached = _retrieval_cache.pop(request.retrieval_id, None)
+    if cached is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Retrieval ID '{request.retrieval_id}' not found or expired. "
+                   "Call /retrieve first."
+        )
+
+    conversation_id = request.conversation_id
+    if not conversation_id:
+        conversation_id = f"user_{request.user_id}_wallet_{request.wallet_id}"
+
+    logger.info(
+        f"Generate request: retrieval={request.retrieval_id[:8]}..., "
+        f"conv={conversation_id}"
+    )
+
+    try:
+        response_text = await asyncio.to_thread(
+            rag_chain.generate_response,
+            request.message,
+            request.financial_context,
+            cached["docs"],
+            conversation_id,
+        )
+
+        logger.info(f"Response generated: {len(response_text)} chars")
+
+        return ChatResponse(
+            response=response_text,
+            sources=cached["sources"],
+            conversation_id=conversation_id,
+        )
+
+    except Exception as e:
+        logger.error(f"Generate error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ─── Parse Endpoint ────────────────────────────────────────────
@@ -252,7 +366,8 @@ async def parse_query(request: ParseRequest):
             HumanMessage(content=request.message),
         ]
 
-        llm_response = rag_chain.llm.invoke(
+        llm_response = await asyncio.to_thread(
+            rag_chain.llm.invoke,
             messages,
             temperature=0.1,
             max_tokens=200,

@@ -240,22 +240,13 @@ class RAGChain:
 
     # ─── Main RAG Pipeline ─────────────────────────────────────────
 
-    def retrieve_and_respond(
-        self,
-        query: str,
-        financial_context: FinancialContext,
-        conversation_id: str
-    ) -> tuple[str, List[SourceDocument]]:
+    def retrieve_documents(
+        self, query: str
+    ) -> tuple[List[Document], List[SourceDocument]]:
         """
-        Main RAG pipeline:
-        1. Retrieve a broad pool of documents from Cosmos DB vector search
-        2. Filter by similarity threshold
-        3. Re-rank with cross-encoder
-        4. Get conversation history
-        5. Build system + user prompts
-        6. Call LLM
-        7. Store in conversation memory
-        8. Return response + sources
+        Phase 1: Retrieve and re-rank documents (no LLM call).
+        Can run in parallel with query parsing + financial context gathering.
+        Returns (final_docs, sources).
         """
         if not self._initialized:
             self.initialize()
@@ -280,27 +271,59 @@ class RAGChain:
             for doc in final_docs
         ]
 
-        # 4. Get conversation history
+        return final_docs, sources
+
+    def generate_response(
+        self,
+        query: str,
+        financial_context: FinancialContext,
+        retrieved_docs: List[Document],
+        conversation_id: str
+    ) -> str:
+        """
+        Phase 2: Generate LLM response using pre-retrieved documents.
+        Called after both retrieval and financial context are ready.
+        """
+        if not self._initialized:
+            self.initialize()
+
+        # Get conversation history
         history = conversation_memory.get_history(conversation_id)
 
-        # 5. Build messages
+        # Build messages
         messages = self._build_messages(
-            query, financial_context, final_docs, history
+            query, financial_context, retrieved_docs, history
         )
 
-        # 6. Call LLM
+        # Call LLM
         try:
             response = self.llm.invoke(messages)
             response_text = response.content.strip()
         except Exception as e:
             logger.error(f"LLM call failed: {e}")
             response_text = self._generate_fallback_response(
-                query, financial_context, final_docs
+                query, financial_context, retrieved_docs
             )
 
-        # 7. Store in conversation memory
+        # Store in conversation memory
         conversation_memory.add_exchange(conversation_id, query, response_text)
 
+        return response_text
+
+    def retrieve_and_respond(
+        self,
+        query: str,
+        financial_context: FinancialContext,
+        conversation_id: str
+    ) -> tuple[str, List[SourceDocument]]:
+        """
+        Combined pipeline (backward compatible with /chat endpoint).
+        Calls retrieve_documents + generate_response sequentially.
+        """
+        final_docs, sources = self.retrieve_documents(query)
+        response_text = self.generate_response(
+            query, financial_context, final_docs, conversation_id
+        )
         return response_text, sources
 
     # ─── Prompt Building ───────────────────────────────────────────

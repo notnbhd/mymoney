@@ -21,7 +21,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import okhttp3.OkHttpClient;
 
@@ -136,90 +138,161 @@ public class ChatbotService {
     }
 
     public void generateFinancialAdvice(int userId, int walletId, String userMessage, ChatbotCallback callback) {
-        Log.d(TAG, "Starting financial advice generation for user: " + userId + ", wallet: " + walletId);
+        Log.d(TAG, "Starting financial advice generation (parallel) for user: " + userId + ", wallet: " + walletId);
 
-        // Parse query intent and analyze data in background
         new Thread(() -> {
             try {
-                // Step 1: Parse query to understand what user is asking
-                QueryIntent intent = queryParser.parseQuerySync(userMessage);
-                Log.d(TAG, "Parsed intent: " + intent);
+                // ─── Run two tasks in parallel ─────────────────────────
+                // Thread A: /parse → SQLite queries → build financial context
+                // Thread B: /retrieve → vector search + rerank (no LLM)
 
-                // Clarification is disabled - always provide an answer
-                // Default: current month + all categories if not specified
+                final CountDownLatch latch = new CountDownLatch(2);
+                final AtomicReference<String> financialAnalysisRef = new AtomicReference<>("");
+                final AtomicReference<String> budgetContextRef = new AtomicReference<>("");
+                final AtomicReference<String> patternContextRef = new AtomicReference<>("");
+                final AtomicReference<String> retrievalIdRef = new AtomicReference<>(null);
 
-                // Step 2: Fetch targeted financial data based on parsed intent
-                String financialAnalysis = analyzeUserFinancialData(userId, walletId, intent);
+                // ─── Thread A: Parse + Financial Context ───────────────
+                new Thread(() -> {
+                    try {
+                        QueryIntent intent = queryParser.parseQuerySync(userMessage);
+                        Log.d(TAG, "[Thread A] Parsed intent: " + intent);
 
-                // Get budget analysis from rule-based engine
-                BudgetRuleEngine.BudgetAnalysisResult budgetAnalysis =
-                        budgetContextProvider.analyzeBudgetsSync(walletId);
+                        String financialAnalysis = analyzeUserFinancialData(userId, walletId, intent);
+                        financialAnalysisRef.set(financialAnalysis);
 
-                // Get spending pattern analysis
-                SpendingPatternAnalyzer.PatternAnalysisResult patternResult =
-                        patternAnalyzer.analyzePatterns(walletId);
+                        BudgetRuleEngine.BudgetAnalysisResult budgetAnalysis =
+                                budgetContextProvider.analyzeBudgetsSync(walletId);
 
-                // Check for notifications based on budget status
-                if (budgetAnalysis != null) {
-                    notificationService.checkAndNotify(budgetAnalysis);
-                }
+                        SpendingPatternAnalyzer.PatternAnalysisResult patternResult =
+                                patternAnalyzer.analyzePatterns(walletId);
 
-                // Build enhanced prompt with budget context
-                String budgetContext = "";
-                if (budgetAnalysis != null && isBudgetRelatedQuery(userMessage)) {
-                    budgetContext = BudgetContextProvider.buildPromptEnhancement(budgetAnalysis);
-                }
+                        if (budgetAnalysis != null) {
+                            notificationService.checkAndNotify(budgetAnalysis);
+                        }
 
-                // Build pattern context for habit-related queries
-                String patternContext = "";
-                if (patternResult != null && isPatternRelatedQuery(userMessage)) {
-                    patternContext = buildPatternPromptEnhancement(patternResult);
-                }
+                        if (budgetAnalysis != null && isBudgetRelatedQuery(userMessage)) {
+                            budgetContextRef.set(BudgetContextProvider.buildPromptEnhancement(budgetAnalysis));
+                        }
+                        if (patternResult != null && isPatternRelatedQuery(userMessage)) {
+                            patternContextRef.set(buildPatternPromptEnhancement(patternResult));
+                        }
 
-                Log.d(TAG, "Financial analysis: " + financialAnalysis);
+                        Log.d(TAG, "[Thread A] Financial context ready");
+                    } catch (Exception e) {
+                        Log.e(TAG, "[Thread A] Error", e);
+                    } finally {
+                        latch.countDown();
+                    }
+                }).start();
 
-                // Step 3: Send query + financial context to backend /chat endpoint
-                BackendChatRequest request = new BackendChatRequest(userId, walletId, userMessage);
-                request.setConversationId("user_" + userId + "_wallet_" + walletId);
-                request.setFinancialContext(new BackendChatRequest.FinancialContext(
-                        financialAnalysis,
-                        budgetContext,
-                        patternContext
-                ));
+                // ─── Thread B: Retrieve Documents ──────────────────────
+                new Thread(() -> {
+                    try {
+                        BackendApiService.BackendRetrieveRequest retrieveReq =
+                                new BackendApiService.BackendRetrieveRequest(userMessage);
 
-                Call<BackendChatResponse> call = backendApiService.chat(request);
-                call.enqueue(new Callback<BackendChatResponse>() {
-                    @Override
-                    public void onResponse(Call<BackendChatResponse> call, Response<BackendChatResponse> response) {
+                        Response<BackendApiService.BackendRetrieveResponse> response =
+                                backendApiService.retrieve(retrieveReq).execute();
+
                         if (response.isSuccessful() && response.body() != null) {
-                            Log.d(TAG, "Backend /chat response successful");
-                            String generatedText = response.body().getResponse();
+                            retrievalIdRef.set(response.body().getRetrievalId());
+                            Log.d(TAG, "[Thread B] Retrieval done: " + response.body().getRetrievalId());
+                        } else {
+                            Log.e(TAG, "[Thread B] /retrieve error: " + response.code());
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "[Thread B] /retrieve failure", e);
+                    } finally {
+                        latch.countDown();
+                    }
+                }).start();
 
-                            if (generatedText != null && !generatedText.isEmpty()) {
-                                String cleanedResponse = cleanGeneratedText(generatedText);
-                                callback.onSuccess(cleanedResponse);
+                // ─── Wait for both threads ─────────────────────────────
+                boolean completed = latch.await(30, TimeUnit.SECONDS);
+                if (!completed) {
+                    Log.w(TAG, "Parallel tasks timed out after 30s");
+                }
+
+                String financialAnalysis = financialAnalysisRef.get();
+                String retrievalId = retrievalIdRef.get();
+
+                // ─── Phase 2: Generate response ────────────────────────
+                if (retrievalId != null) {
+                    // Use split pipeline: /generate with pre-retrieved docs
+                    String conversationId = "user_" + userId + "_wallet_" + walletId;
+
+                    BackendApiService.BackendGenerateRequest generateReq =
+                            new BackendApiService.BackendGenerateRequest(
+                                    retrievalId,
+                                    userMessage,
+                                    new BackendChatRequest.FinancialContext(
+                                            financialAnalysis,
+                                            budgetContextRef.get(),
+                                            patternContextRef.get()
+                                    ),
+                                    conversationId,
+                                    userId,
+                                    walletId
+                            );
+
+                    Call<BackendChatResponse> call = backendApiService.generate(generateReq);
+                    call.enqueue(new Callback<BackendChatResponse>() {
+                        @Override
+                        public void onResponse(Call<BackendChatResponse> call, Response<BackendChatResponse> response) {
+                            if (response.isSuccessful() && response.body() != null) {
+                                Log.d(TAG, "Backend /generate response successful");
+                                String generatedText = response.body().getResponse();
+                                if (generatedText != null && !generatedText.isEmpty()) {
+                                    callback.onSuccess(cleanGeneratedText(generatedText));
+                                } else {
+                                    callback.onSuccess(generateLocalFinancialAdvice(userId, walletId, userMessage, financialAnalysis));
+                                }
                             } else {
-                                Log.w(TAG, "Empty response from backend, using local advice");
+                                Log.e(TAG, "Backend /generate error: " + response.code());
                                 callback.onSuccess(generateLocalFinancialAdvice(userId, walletId, userMessage, financialAnalysis));
                             }
-                        } else {
-                            Log.e(TAG, "Backend /chat error: " + response.code() + " - " + response.message());
-                            try {
-                                String errorBody = response.errorBody() != null ? response.errorBody().string() : "Unknown error";
-                                Log.e(TAG, "Error body: " + errorBody);
-                            } catch (Exception e) {
-                                Log.e(TAG, "Error reading error body", e);
-                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<BackendChatResponse> call, Throwable t) {
+                            Log.e(TAG, "Backend /generate failure: " + t.getMessage(), t);
                             callback.onSuccess(generateLocalFinancialAdvice(userId, walletId, userMessage, financialAnalysis));
                         }
-                    }
+                    });
+                } else {
+                    // Fallback: /retrieve failed, use legacy /chat endpoint
+                    Log.w(TAG, "Retrieval failed, falling back to /chat endpoint");
+                    BackendChatRequest chatRequest = new BackendChatRequest(userId, walletId, userMessage);
+                    chatRequest.setConversationId("user_" + userId + "_wallet_" + walletId);
+                    chatRequest.setFinancialContext(new BackendChatRequest.FinancialContext(
+                            financialAnalysis,
+                            budgetContextRef.get(),
+                            patternContextRef.get()
+                    ));
 
-                    @Override
-                    public void onFailure(Call<BackendChatResponse> call, Throwable t) {
-                        Log.e(TAG, "Backend /chat failure: " + t.getMessage(), t);
-                        callback.onSuccess(generateLocalFinancialAdvice(userId, walletId, userMessage, financialAnalysis));
-                    }
-                });
+                    Call<BackendChatResponse> call = backendApiService.chat(chatRequest);
+                    call.enqueue(new Callback<BackendChatResponse>() {
+                        @Override
+                        public void onResponse(Call<BackendChatResponse> call, Response<BackendChatResponse> response) {
+                            if (response.isSuccessful() && response.body() != null) {
+                                String generatedText = response.body().getResponse();
+                                if (generatedText != null && !generatedText.isEmpty()) {
+                                    callback.onSuccess(cleanGeneratedText(generatedText));
+                                } else {
+                                    callback.onSuccess(generateLocalFinancialAdvice(userId, walletId, userMessage, financialAnalysis));
+                                }
+                            } else {
+                                callback.onSuccess(generateLocalFinancialAdvice(userId, walletId, userMessage, financialAnalysis));
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<BackendChatResponse> call, Throwable t) {
+                            callback.onSuccess(generateLocalFinancialAdvice(userId, walletId, userMessage, financialAnalysis));
+                        }
+                    });
+                }
 
             } catch (Exception e) {
                 Log.e(TAG, "Error in financial analysis", e);
