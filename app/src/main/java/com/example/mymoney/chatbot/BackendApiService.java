@@ -12,9 +12,6 @@ import retrofit2.http.POST;
  */
 public interface BackendApiService {
 
-    @POST("chat")
-    Call<BackendChatResponse> chat(@Body BackendChatRequest request);
-
     @POST("parse")
     Call<BackendParseResponse> parse(@Body BackendParseRequest request);
 
@@ -125,7 +122,7 @@ public interface BackendApiService {
         private String message;
 
         @SerializedName("financial_context")
-        private BackendChatRequest.FinancialContext financialContext;
+        private FinancialContext financialContext;
 
         @SerializedName("conversation_id")
         private String conversationId;
@@ -137,7 +134,7 @@ public interface BackendApiService {
         private int walletId;
 
         public BackendGenerateRequest(String retrievalId, String message,
-                                       BackendChatRequest.FinancialContext financialContext,
+                                       FinancialContext financialContext,
                                        String conversationId, int userId, int walletId) {
             this.retrievalId = retrievalId;
             this.message = message;
@@ -146,5 +143,33 @@ public interface BackendApiService {
             this.userId = userId;
             this.walletId = walletId;
         }
+    }
+
+    class FinancialContext {
+        @SerializedName("summary")
+        private String summary = "";
+
+        @SerializedName("budget_context")
+        private String budgetContext = "";
+
+        @SerializedName("pattern_context")
+        private String patternContext = "";
+
+        public FinancialContext() {}
+
+        public FinancialContext(String summary, String budgetContext, String patternContext) {
+            this.summary = summary != null ? summary : "";
+            this.budgetContext = budgetContext != null ? budgetContext : "";
+            this.patternContext = patternContext != null ? patternContext : "";
+        }
+
+        public String getSummary() { return summary; }
+        public void setSummary(String summary) { this.summary = summary; }
+
+        public String getBudgetContext() { return budgetContext; }
+        public void setBudgetContext(String budgetContext) { this.budgetContext = budgetContext; }
+
+        public String getPatternContext() { return patternContext; }
+        public void setPatternContext(String patternContext) { this.patternContext = patternContext; }
     }
 }

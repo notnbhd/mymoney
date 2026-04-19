@@ -13,20 +13,6 @@ class FinancialContext(BaseModel):
     pattern_context: str = Field(default="", description="Spending pattern analysis")
 
 
-class ChatRequest(BaseModel):
-    """Request body for the /chat endpoint."""
-    user_id: int = Field(..., description="User ID from the Android app")
-    wallet_id: int = Field(..., description="Wallet ID from the Android app")
-    message: str = Field(..., description="User's query message")
-    financial_context: FinancialContext = Field(
-        default_factory=FinancialContext,
-        description="Financial data collected on-device"
-    )
-    conversation_id: Optional[str] = Field(
-        default=None,
-        description="Conversation ID for memory. Auto-generated if not provided."
-    )
-
 
 class SourceDocument(BaseModel):
     """A knowledge document used to generate the response."""

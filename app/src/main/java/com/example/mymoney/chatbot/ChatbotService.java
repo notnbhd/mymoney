@@ -35,7 +35,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ChatbotService {
     private static final String TAG = "ChatbotService";
-    private static final String DEFAULT_BACKEND_BASE_URL = "http://192.168.1.16:8010/";
+    private static final String DEFAULT_BACKEND_BASE_URL = "http://192.168.1.16:8000/";
     private static final int CONNECT_TIMEOUT_SECONDS = 15;
     private static final int READ_TIMEOUT_SECONDS = 90;
     private static final int WRITE_TIMEOUT_SECONDS = 60;
@@ -226,7 +226,7 @@ public class ChatbotService {
                             new BackendApiService.BackendGenerateRequest(
                                     retrievalId,
                                     userMessage,
-                                    new BackendChatRequest.FinancialContext(
+                                    new BackendApiService.FinancialContext(
                                             financialAnalysis,
                                             budgetContextRef.get(),
                                             patternContextRef.get()
@@ -260,38 +260,9 @@ public class ChatbotService {
                             callback.onSuccess(generateLocalFinancialAdvice(userId, walletId, userMessage, financialAnalysis));
                         }
                     });
-                } else {
-                    // Fallback: /retrieve failed, use legacy /chat endpoint
-                    Log.w(TAG, "Retrieval failed, falling back to /chat endpoint");
-                    BackendChatRequest chatRequest = new BackendChatRequest(userId, walletId, userMessage);
-                    chatRequest.setConversationId("user_" + userId + "_wallet_" + walletId);
-                    chatRequest.setFinancialContext(new BackendChatRequest.FinancialContext(
-                            financialAnalysis,
-                            budgetContextRef.get(),
-                            patternContextRef.get()
-                    ));
-
-                    Call<BackendChatResponse> call = backendApiService.chat(chatRequest);
-                    call.enqueue(new Callback<BackendChatResponse>() {
-                        @Override
-                        public void onResponse(Call<BackendChatResponse> call, Response<BackendChatResponse> response) {
-                            if (response.isSuccessful() && response.body() != null) {
-                                String generatedText = response.body().getResponse();
-                                if (generatedText != null && !generatedText.isEmpty()) {
-                                    callback.onSuccess(cleanGeneratedText(generatedText));
-                                } else {
-                                    callback.onSuccess(generateLocalFinancialAdvice(userId, walletId, userMessage, financialAnalysis));
-                                }
-                            } else {
-                                callback.onSuccess(generateLocalFinancialAdvice(userId, walletId, userMessage, financialAnalysis));
-                            }
-                        }
-
-                        @Override
-                        public void onFailure(Call<BackendChatResponse> call, Throwable t) {
-                            callback.onSuccess(generateLocalFinancialAdvice(userId, walletId, userMessage, financialAnalysis));
-                        }
-                    });
+                    // Fallback: /retrieve failed, return local advice instantly
+                    Log.w(TAG, "Retrieval failed, returning local advice instantly");
+                    callback.onSuccess(generateLocalFinancialAdvice(userId, walletId, userMessage, financialAnalysis));
                 }
 
             } catch (Exception e) {

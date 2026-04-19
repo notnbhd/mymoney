@@ -5,7 +5,7 @@ with vector embeddings for semantic search.
 This script:
 1. Scans the pdf_knowledge/ directory for .pdf files
 2. Loads and splits each PDF using LangChain's PyPDFLoader
-3. Chunks the text using RecursiveCharacterTextSplitter
+3. Chunks the text using SemanticChunker
 4. Computes embeddings using the same multilingual model
 5. Uploads each chunk to Cosmos DB (appends to existing container)
 
@@ -27,7 +27,7 @@ import sys
 import logging
 
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_experimental.text_splitter import SemanticChunker
 from azure.cosmos import CosmosClient
 from langchain_huggingface import HuggingFaceEmbeddings
 
@@ -40,9 +40,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def load_and_chunk_pdf(pdf_path: str, chunk_size: int, chunk_overlap: int) -> list[dict]:
+def load_and_chunk_pdf(pdf_path: str, embeddings_model) -> list[dict]:
     """
-    Load a PDF with LangChain's PyPDFLoader and split into chunks.
+    Load a PDF with LangChain's PyPDFLoader and split into semantic chunks.
     Returns a list of dicts with chunk metadata.
     """
     filename = os.path.basename(pdf_path)
@@ -57,13 +57,9 @@ def load_and_chunk_pdf(pdf_path: str, chunk_size: int, chunk_overlap: int) -> li
         logger.warning(f"No content extracted from {filename}")
         return []
 
-    # Split into chunks
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=chunk_size,
-        chunk_overlap=chunk_overlap,
-        length_function=len,
-        separators=["\n\n", "\n", ". ", " ", ""],
-    )
+    # Split into chunks semantically
+    logger.info(f"Splitting {filename} using SemanticChunker...")
+    splitter = SemanticChunker(embeddings_model)
     chunks_docs = splitter.split_documents(pages)
 
     # Convert to our format
@@ -85,8 +81,7 @@ def load_and_chunk_pdf(pdf_path: str, chunk_size: int, chunk_overlap: int) -> li
         })
 
     logger.info(
-        f"{filename}: {len(pages)} pages → {len(chunks)} chunks "
-        f"(chunk_size={chunk_size}, overlap={chunk_overlap})"
+        f"{filename}: {len(pages)} pages → {len(chunks)} semantic chunks"
     )
     return chunks
 
@@ -176,29 +171,30 @@ def main():
 
     logger.info(f"Found {len(pdf_files)} PDF file(s): {pdf_files}")
 
-    # 2. Load, split, and chunk all PDFs
-    all_chunks = []
-    for pdf_file in pdf_files:
-        pdf_path = os.path.join(pdf_dir, pdf_file)
-        chunks = load_and_chunk_pdf(
-            pdf_path,
-            chunk_size=settings.PDF_CHUNK_SIZE,
-            chunk_overlap=settings.PDF_CHUNK_OVERLAP,
-        )
-        all_chunks.extend(chunks)
-
-    logger.info(f"Total: {len(all_chunks)} chunks from {len(pdf_files)} PDF(s)")
-
-    # 3. Compute embeddings
+    # 2. Loading embedding model
     logger.info(f"Loading embedding model: {settings.EMBEDDING_MODEL}")
     embeddings_model = HuggingFaceEmbeddings(
         model_name=settings.EMBEDDING_MODEL,
         model_kwargs={"device": "cpu"},
         encode_kwargs={"normalize_embeddings": True},
     )
+
+    # 3. Load, split, and chunk all PDFs using SemanticChunker
+    all_chunks = []
+    for pdf_file in pdf_files:
+        pdf_path = os.path.join(pdf_dir, pdf_file)
+        chunks = load_and_chunk_pdf(
+            pdf_path,
+            embeddings_model=embeddings_model
+        )
+        all_chunks.extend(chunks)
+
+    logger.info(f"Total: {len(all_chunks)} semantic chunks from {len(pdf_files)} PDF(s)")
+
+    # 4. Compute embeddings
     all_chunks = compute_embeddings(all_chunks, embeddings_model)
 
-    # 4. Upload to Cosmos DB
+    # 5. Upload to Cosmos DB
     upload_to_cosmos(all_chunks)
 
     logger.info(

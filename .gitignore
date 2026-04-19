@@ -17,3 +17,4 @@
 local.properties
 .env
 /.vscode
+backend/API_DOCS.md

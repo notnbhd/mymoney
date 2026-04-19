@@ -5,10 +5,10 @@ and OpenRouter for response generation.
 """
 
 import logging
+import math
 from typing import List, Optional
 
 from langchain.schema import Document, HumanMessage, SystemMessage, AIMessage
-from langchain.retrievers.document_compressors import CrossEncoderReranker
 from langchain_community.cross_encoders import HuggingFaceCrossEncoder
 from langchain_openai import ChatOpenAI
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -33,7 +33,7 @@ class RAGChain:
     def __init__(self):
         self.embeddings: Optional[HuggingFaceEmbeddings] = None
         self.llm: Optional[ChatOpenAI] = None
-        self.reranker: Optional[CrossEncoderReranker] = None
+        self.cross_encoder: Optional[HuggingFaceCrossEncoder] = None
         self.documents: List[Document] = []
         self._initialized = False
         self._cosmos_container = None
@@ -54,13 +54,9 @@ class RAGChain:
             encode_kwargs={"normalize_embeddings": True}
         )
 
-        # 2. Initialize cross-encoder re-ranker (LangChain)
+        # 2. Initialize cross-encoder re-ranker (direct, not via LangChain wrapper)
         logger.info(f"Loading re-ranker model: {settings.RAG_RERANKER_MODEL}")
-        cross_encoder = HuggingFaceCrossEncoder(model_name=settings.RAG_RERANKER_MODEL)
-        self.reranker = CrossEncoderReranker(
-            model=cross_encoder,
-            top_n=settings.RAG_RERANK_TOP_K,
-        )
+        self.cross_encoder = HuggingFaceCrossEncoder(model_name=settings.RAG_RERANKER_MODEL)
         logger.info("Re-ranker model loaded.")
 
         # 3. Initialize Cosmos DB vector store
@@ -72,7 +68,7 @@ class RAGChain:
             openai_api_key=settings.OPENROUTER_API_TOKEN,
             openai_api_base=settings.OPENROUTER_BASE_URL,
             temperature=0.1,
-            max_tokens=500,
+            max_tokens=1024,
             default_headers={
                 "HTTP-Referer": "https://github.com/notnbhd/mymoney",
                 "X-Title": "MyMoney App"
@@ -159,8 +155,12 @@ class RAGChain:
 
             documents = []
             for item in results:
+                # Prefer Vietnamese content for cross-encoder reranking
+                # (queries are in Vietnamese, so page_content should match)
+                vi_content = item.get("content_vi", "")
+                page_text = vi_content if vi_content else item.get("text_content", "")
                 doc = Document(
-                    page_content=item.get("text_content", ""),
+                    page_content=page_text,
                     metadata={
                         "id": item.get("id", ""),
                         "topic": item.get("topic", ""),
@@ -208,20 +208,40 @@ class RAGChain:
 
     # ─── Cross-Encoder Re-ranking ───────────────────────────────────
 
+    @staticmethod
+    def _sigmoid(x: float) -> float:
+        """Sigmoid function to normalize raw logits to [0, 1]."""
+        try:
+            return 1.0 / (1.0 + math.exp(-x))
+        except OverflowError:
+            return 0.0 if x < 0 else 1.0
+
     def _rerank(
         self, query: str, documents: List[Document], top_k: int
     ) -> List[Document]:
         """
-        Re-rank retrieved documents using LangChain's CrossEncoderReranker.
-        Uses compress_documents() which scores each (query, document) pair
-        and returns the top_n most relevant documents.
+        Re-rank retrieved documents using the cross-encoder directly.
+        Scores each (query, document) pair, normalizes with sigmoid,
+        and stores the score in metadata['relevance_score'].
         """
-        if not documents or self.reranker is None:
+        if not documents or self.cross_encoder is None:
             return documents[:top_k]
 
         try:
-            reranked = self.reranker.compress_documents(documents, query)
-            reranked = list(reranked)[:top_k]
+            # Score all (query, doc) pairs
+            pairs = [(query, doc.page_content) for doc in documents]
+            raw_scores = self.cross_encoder.score(pairs)
+
+            # Attach normalized scores to metadata
+            for doc, raw in zip(documents, raw_scores):
+                doc.metadata["relevance_score"] = self._sigmoid(float(raw))
+
+            # Sort by rerank score descending, take top_k
+            reranked = sorted(
+                documents,
+                key=lambda d: d.metadata["relevance_score"],
+                reverse=True,
+            )[:top_k]
 
             logger.info(
                 f"Re-ranked {len(documents)} docs → top {len(reranked)}: "
@@ -310,21 +330,7 @@ class RAGChain:
 
         return response_text
 
-    def retrieve_and_respond(
-        self,
-        query: str,
-        financial_context: FinancialContext,
-        conversation_id: str
-    ) -> tuple[str, List[SourceDocument]]:
-        """
-        Combined pipeline (backward compatible with /chat endpoint).
-        Calls retrieve_documents + generate_response sequentially.
-        """
-        final_docs, sources = self.retrieve_documents(query)
-        response_text = self.generate_response(
-            query, financial_context, final_docs, conversation_id
-        )
-        return response_text, sources
+
 
     # ─── Prompt Building ───────────────────────────────────────────
 

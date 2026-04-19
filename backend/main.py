@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
 from models import (
-    ChatRequest, ChatResponse, HealthResponse, SourceDocument,
+    ChatResponse, HealthResponse, SourceDocument,
     ParseRequest, ParseResponse, TimeRange,
     RetrieveRequest, RetrieveResponse, GenerateRequest,
 )
@@ -86,55 +86,6 @@ async def health_check():
         document_count=rag_chain.document_count
     )
 
-
-@app.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
-    """
-    Main chat endpoint.
-    Receives user query + financial context from the Android app,
-    runs through the LangChain RAG pipeline, and returns a response.
-    """
-    if not rag_chain.is_ready:
-        raise HTTPException(
-            status_code=503,
-            detail="RAG service is not initialized. Please try again later."
-        )
-
-    # Generate conversation_id if not provided
-    conversation_id = request.conversation_id
-    if not conversation_id:
-        conversation_id = f"user_{request.user_id}_wallet_{request.wallet_id}"
-
-    logger.info(
-        f"Chat request: user={request.user_id}, wallet={request.wallet_id}, "
-        f"conv={conversation_id}, message='{request.message[:50]}...'"
-    )
-
-    try:
-        response_text, sources = await asyncio.to_thread(
-            rag_chain.retrieve_and_respond,
-            request.message,
-            request.financial_context,
-            conversation_id,
-        )
-
-        logger.info(
-            f"Response generated: {len(response_text)} chars, "
-            f"{len(sources)} sources"
-        )
-
-        return ChatResponse(
-            response=response_text,
-            sources=sources,
-            conversation_id=conversation_id
-        )
-
-    except Exception as e:
-        logger.error(f"Chat error: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to generate response: {str(e)}"
-        )
 
 
 @app.get("/stats")

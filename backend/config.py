@@ -21,12 +21,12 @@ elif os.path.exists(os.path.join(_project_root, ".env")):
 class Settings(BaseSettings):
     # OpenRouter / LLM
     OPENROUTER_API_TOKEN: str = ""
-    OPENROUTER_MODEL: str = "openrouter/hunter-alpha"
+    OPENROUTER_MODEL: str = "openai/gpt-oss-120b:free"
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
 
     # Server
     HOST: str = "0.0.0.0"
-    PORT: int = 8000
+    PORT: int = 8010
 
     # RAG
     KNOWLEDGE_BASE_PATH: str = os.path.join(
@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     RAG_TOP_K: int = 10  # Initial retrieval pool (before re-ranking)
     RAG_RERANK_TOP_K: int = 3  # Final top-K after re-ranking
     RAG_SIMILARITY_THRESHOLD: float = 0.35  # Min cosine similarity to keep a doc
-    RAG_RERANKER_MODEL: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    RAG_RERANKER_MODEL: str = "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1"
 
     # PDF Ingestion
     PDF_KNOWLEDGE_DIR: str = os.path.join(_backend_dir, "pdf_knowledge")
