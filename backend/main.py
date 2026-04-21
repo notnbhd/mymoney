@@ -92,13 +92,15 @@ async def health_check():
 async def stats():
     """Get server statistics."""
     memory_stats = conversation_memory.get_stats()
+    cache_stats = _retrieval_cache.stats()
     return {
         "rag": {
             "initialized": rag_chain.is_ready,
             "document_count": rag_chain.document_count,
             "vector_store_type": rag_chain.store_type,
         },
-        "memory": memory_stats
+        "memory": memory_stats,
+        "retrieval_cache": cache_stats,
     }
 
 
@@ -109,21 +111,98 @@ async def clear_memory(conversation_id: str):
     return {"status": "cleared", "conversation_id": conversation_id}
 
 
-import time
+import json
 import uuid
 
-# Short-lived cache for retrieved docs (retrieval_id → docs + metadata)
-_retrieval_cache: dict[str, dict] = {}
-_RETRIEVAL_TTL = 300  # 5 minutes
+from langchain.schema import Document
 
 
-def _cleanup_retrieval_cache():
-    """Remove expired entries from the retrieval cache."""
-    now = time.time()
-    expired = [k for k, v in _retrieval_cache.items() if now - v["created"] > _RETRIEVAL_TTL]
-    for k in expired:
-        del _retrieval_cache[k]
+class RetrievalCache:
+    """
+    Redis-backed cache for retrieved documents.
+    Shared across all Uvicorn workers — safe with WORKERS > 1.
+    Each entry expires automatically after RETRIEVAL_TTL seconds.
+    """
 
+    RETRIEVAL_TTL = 300     # 5 minutes
+    KEY_PREFIX = "mymoney:retrieval:"
+
+    def __init__(self):
+        import redis as _redis
+        self._redis = _redis.from_url(settings.REDIS_URL, decode_responses=True)
+
+    def _key(self, retrieval_id: str) -> str:
+        return f"{self.KEY_PREFIX}{retrieval_id}"
+
+    # ── Serialize / Deserialize Documents ───────────────────────────
+
+    @staticmethod
+    def _serialize_doc(doc: Document) -> dict:
+        return {"page_content": doc.page_content, "metadata": doc.metadata}
+
+    @staticmethod
+    def _deserialize_doc(data: dict) -> Document:
+        return Document(
+            page_content=data["page_content"],
+            metadata=data["metadata"],
+        )
+
+    @staticmethod
+    def _serialize_source(src: SourceDocument) -> dict:
+        return {"id": src.id, "topic": src.topic, "category": src.category}
+
+    @staticmethod
+    def _deserialize_source(data: dict) -> SourceDocument:
+        return SourceDocument(**data)
+
+    # ── Public API ───────────────────────────────────────────────────
+
+    def store(
+        self,
+        retrieval_id: str,
+        docs: list[Document],
+        sources: list[SourceDocument],
+        query: str,
+    ) -> None:
+        """Serialize and store retrieval result in Redis with TTL."""
+        payload = json.dumps({
+            "docs":    [self._serialize_doc(d) for d in docs],
+            "sources": [self._serialize_source(s) for s in sources],
+            "query":   query,
+        })
+        self._redis.setex(self._key(retrieval_id), self.RETRIEVAL_TTL, payload)
+
+    def pop(
+        self, retrieval_id: str
+    ) -> dict | None:
+        """
+        Atomically fetch-and-delete the cached entry.
+        Returns dict with 'docs', 'sources', 'query' or None if missing/expired.
+        """
+        key = self._key(retrieval_id)
+        # Pipeline: GET + DEL in one round-trip
+        pipe = self._redis.pipeline()
+        pipe.get(key)
+        pipe.delete(key)
+        raw, _ = pipe.execute()
+
+        if raw is None:
+            return None
+
+        data = json.loads(raw)
+        return {
+            "docs":    [self._deserialize_doc(d) for d in data["docs"]],
+            "sources": [self._deserialize_source(s) for s in data["sources"]],
+            "query":   data["query"],
+        }
+
+    def stats(self) -> dict:
+        keys = self._redis.keys(f"{self.KEY_PREFIX}*")
+        return {"pending_retrievals": len(keys)}
+
+
+# Module-level singleton (one per worker process, but all hit the same Redis)
+_retrieval_cache = RetrievalCache()
 
 @app.post("/retrieve", response_model=RetrieveResponse)
 async def retrieve(request: RetrieveRequest):
@@ -131,6 +210,7 @@ async def retrieve(request: RetrieveRequest):
     Phase 1: Retrieve and re-rank documents (no LLM call).
     Returns a retrieval_id that the client uses when calling /generate.
     Can be called in parallel with /parse + on-device financial data gathering.
+    The result is stored in Redis — safe with multiple Uvicorn workers.
     """
     if not rag_chain.is_ready:
         raise HTTPException(
@@ -139,24 +219,18 @@ async def retrieve(request: RetrieveRequest):
         )
 
     logger.info(f"Retrieve request: '{request.message[:80]}'")
-    _cleanup_retrieval_cache()
 
     try:
         final_docs, sources = await asyncio.to_thread(
             rag_chain.retrieve_documents, request.message
         )
 
-        # Cache the retrieved docs
+        # Cache in Redis (shared across all workers)
         retrieval_id = str(uuid.uuid4())
-        _retrieval_cache[retrieval_id] = {
-            "docs": final_docs,
-            "sources": sources,
-            "query": request.message,
-            "created": time.time(),
-        }
+        _retrieval_cache.store(retrieval_id, final_docs, sources, request.message)
 
         logger.info(
-            f"Retrieved {len(sources)} docs, cached as {retrieval_id[:8]}..."
+            f"Retrieved {len(sources)} docs, cached in Redis as {retrieval_id[:8]}..."
         )
 
         return RetrieveResponse(
@@ -181,8 +255,8 @@ async def generate(request: GenerateRequest):
             detail="RAG service is not initialized."
         )
 
-    # Look up cached retrieval results
-    cached = _retrieval_cache.pop(request.retrieval_id, None)
+    # Atomically fetch-and-delete from Redis (works across all workers)
+    cached = _retrieval_cache.pop(request.retrieval_id)
     if cached is None:
         raise HTTPException(
             status_code=404,
@@ -341,8 +415,9 @@ async def parse_query(request: ParseRequest):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
-        app,
+        "main:app",          # string form required when workers > 1
         host=settings.HOST,
         port=settings.PORT,
-        reload=False
+        workers=settings.WORKERS,
+        reload=False,
     )

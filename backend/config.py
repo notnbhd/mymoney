@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     # Server
     HOST: str = "0.0.0.0"
     PORT: int = 8010
+    # Workers: number of Uvicorn processes.
+    # Keep at 1 for dev (each worker loads ~700MB of ML models).
+    # Set to 2-4 on a production server with enough RAM.
+    WORKERS: int = 1
 
     # RAG
     KNOWLEDGE_BASE_PATH: str = os.path.join(
@@ -35,21 +39,23 @@ class Settings(BaseSettings):
         "financial_knowledge_base.json"
     )
     EMBEDDING_MODEL: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-    RAG_TOP_K: int = 10  # Initial retrieval pool (before re-ranking)
-    RAG_RERANK_TOP_K: int = 3  # Final top-K after re-ranking
-    RAG_SIMILARITY_THRESHOLD: float = 0.35  # Min cosine similarity to keep a doc
+    RAG_TOP_K: int = 15          # Initial retrieval pool (before re-ranking)
+    RAG_RERANK_TOP_K: int = 4   # Final top-K after re-ranking
+    RAG_SIMILARITY_THRESHOLD: float = 0.30  # Min cosine similarity to keep a doc
     RAG_RERANKER_MODEL: str = "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1"
+    # Hybrid Search weights (dense + BM25 via RRF)
+    RAG_HYBRID_DENSE_WEIGHT: float = 0.6   # Weight for vector similarity
+    RAG_HYBRID_BM25_WEIGHT: float = 0.4    # Weight for full-text (BM25) score
+    RAG_RRF_K: int = 60                    # RRF smoothing constant
 
     # PDF Ingestion
     PDF_KNOWLEDGE_DIR: str = os.path.join(_backend_dir, "pdf_knowledge")
     PDF_CHUNK_SIZE: int = 1024
     PDF_CHUNK_OVERLAP: int = 100
 
-    # Azure Cosmos DB
-    COSMOS_DB_ENDPOINT: str = "https://mymoney.documents.azure.com:443/"
-    COSMOS_DB_KEY: str = ""
-    COSMOS_DB_DATABASE: str = "mymoney"
-    COSMOS_DB_CONTAINER: str = "knowledge_vectors"
+    # PostgreSQL + pgvector
+    POSTGRES_URL: str = "postgresql://god@localhost:5432/mymoney"
+    POSTGRES_TABLE: str = "knowledge"
 
     # Memory
     REDIS_URL: str = "redis://localhost:6379/0"
